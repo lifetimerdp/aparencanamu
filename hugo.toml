@@ -1,0 +1,4 @@
+baseURL = "https://aparencanamu.com/"
+languageCode = "en-us"
+title = "Apa Rencanamu"
+theme = "ananke"
