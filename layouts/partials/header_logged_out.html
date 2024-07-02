@@ -1,0 +1,33 @@
+<!-- static/partials/header_logged_out.html -->
+<header class="site-header">
+    <div class="container">
+        <div class="logo">
+            <a href="/"><img src="{{ "img/logo-aparencanamu.png" | relURL }}" alt="Logo Aparencanamu"></a>
+        </div>
+        <div class="header-buttons">
+            <a id="auth-register-button" class="btn-daftar" href="/daftar">Daftar</a>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="/">Beranda</a></li>
+                <li><a href="/about">Tentang Kami</a></li>
+                <li><a href="/features">Fitur</a></li>
+                <li><a href="/contact">Kontak</a></li>
+            </ul>
+        </nav>
+    </div>
+    <div class="dropdown-menu">
+        <ul>
+            <li><a href="/">Beranda</a></li>
+            <li><a href="/about">Tentang Kami</a></li>
+            <li><a href="/features">Fitur</a></li>
+            <li><a href="/contact">Kontak</a></li>
+            <li id="dropdown-auth-button"><a href="/masuk" class="btn-masuk">Masuk</a></li>
+        </ul>
+    </div>
+</header>

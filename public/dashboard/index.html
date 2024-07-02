@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Aparencanamu</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script defer type="module" src="/js/scripts.js"></script>
+    <script type="module" defer src="/js/firebaseConfig.js"></script>
+</head>
+<body>
+    
+<header class="site-header">
+    <div class="container">
+        <div class="logo">
+            <a href="/"><img src="/img/logo-aparencanamu.png" alt="Logo Aparencanamu"></a>
+        </div>
+        <div class="header-buttons">
+            <a id="auth-register-button" class="btn-daftar" href="/daftar">Daftar</a>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="/">Beranda</a></li>
+                <li><a href="/about">Tentang Kami</a></li>
+                <li><a href="/features">Fitur</a></li>
+                <li><a href="/contact">Kontak</a></li>
+            </ul>
+        </nav>
+    </div>
+    <div class="dropdown-menu">
+        <ul>
+            <li><a href="/">Beranda</a></li>
+            <li><a href="/about">Tentang Kami</a></li>
+            <li><a href="/features">Fitur</a></li>
+            <li><a href="/contact">Kontak</a></li>
+            <li id="dropdown-auth-button"><a href="/masuk" class="btn-masuk">Masuk</a></li>
+        </ul>
+    </div>
+</header> 
+    <div id="dynamic-header" style="display: none;"></div> 
+    <main>
+        
+<main>
+  <h1>Dashboard</h1>
+  <section id="daily-activities">
+    <h2>Aktivitas Harian</h2>
+    <ul id="daily-activities-list"></ul>
+    <form id="daily-activities-form">
+      <input type="text" id="daily-activities-input" placeholder="Tambah Aktivitas Harian">
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+
+  <section id="weekly-plans">
+    <h2>Rencana Mingguan</h2>
+    <ul id="weekly-plans-list"></ul>
+    <form id="weekly-plans-form">
+      <input type="text" id="weekly-plans-input" placeholder="Tambah Rencana Mingguan">
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+
+  <section id="financial-management">
+    <h2>Pengelolaan Keuangan</h2>
+    <ul id="budget-list"></ul>
+    <form id="budget-form">
+      <input type="text" id="budget-input" placeholder="Tambah Anggaran Bulanan">
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+</main>
+<script type="module" src="/js/dashboard.js"></script>
+
+    </main>
+    <footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-section logo-branding">
+                <img src="/img/logo-aparencanamu.png" alt="aparencanamu logo" class="footer-logo">
+                <p>Mengatur, merencanakan, dan mengorganisir kehidupan Anda.</p>
+            </div>
+            <div class="footer-sections">
+                <div class="footer-section quick-links">
+                    <h4>Navigasi</h4>
+                    <ul class="no-bullets">
+                        <li><a href="/about">Tentang Kami</a></li>
+                        <li><a href="/blog">Blog</a></li>
+                        <li><a href="/help">Bantuan</a></li>
+                        <li><a href="/contact">Kontak</a></li>
+                        <li><a href="/terms">Syarat dan Ketentuan</a></li>
+                        <li><a href="/privacy">Kebijakan Privasi</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section social-media">
+                    <h4>Ikuti Kami</h4>
+                    <a href="https://facebook.com/aparencanamu" target="_blank">Facebook</a>
+                    <a href="https://twitter.com/aparencanamu" target="_blank">Twitter</a>
+                    <a href="https://instagram.com/aparencanamu" target="_blank">Instagram</a>
+                    <a href="https://linkedin.com/company/aparencanamu" target="_blank">LinkedIn</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-section copyright">
+            <p>© 2024 aparencanamu. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

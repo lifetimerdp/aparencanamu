@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - Aparencanamu</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script defer type="module" src="/js/scripts.js"></script>
+    <script type="module" defer src="/js/firebaseConfig.js"></script>
+</head>
+<body>
+    
+<header class="site-header">
+    <div class="container">
+        <div class="logo">
+            <a href="/"><img src="/img/logo-aparencanamu.png" alt="Logo Aparencanamu"></a>
+        </div>
+        <div class="header-buttons">
+            <a id="auth-register-button" class="btn-daftar" href="/daftar">Daftar</a>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="/">Beranda</a></li>
+                <li><a href="/about">Tentang Kami</a></li>
+                <li><a href="/features">Fitur</a></li>
+                <li><a href="/contact">Kontak</a></li>
+            </ul>
+        </nav>
+    </div>
+    <div class="dropdown-menu">
+        <ul>
+            <li><a href="/">Beranda</a></li>
+            <li><a href="/about">Tentang Kami</a></li>
+            <li><a href="/features">Fitur</a></li>
+            <li><a href="/contact">Kontak</a></li>
+            <li id="dropdown-auth-button"><a href="/masuk" class="btn-masuk">Masuk</a></li>
+        </ul>
+    </div>
+</header> 
+    <div id="dynamic-header" style="display: none;"></div> 
+    <main>
+        
+<main class="profile-container">
+  <div class="profile-header">
+    <img src="" alt="Foto Profil" class="profile-picture">
+    <h1>Profil</h1>
+  </div>
+  <div class="profile-info">
+    <h2>Informasi Pribadi</h2>
+    <p><strong>Nama:</strong> <span id="name-display">-</span></p>
+    <p><strong>Email:</strong> <span id="email-display">-</span></p>
+    <p><strong>Nomor Telepon:</strong> <span id="phone-display">-</span></p>
+    <p><strong>Alamat:</strong> <span id="address-display">-</span></p>
+    
+    <h2>Pendidikan dan Karir</h2>
+    <p><strong>Pendidikan:</strong> <span id="education-display">-</span></p>
+    <p><strong>Institusi:</strong> <span id="institution-display">-</span></p>
+    <p><strong>Pekerjaan saat ini:</strong> <span id="currentJob-display">-</span></p>
+    <p><strong>Riwayat Pekerjaan:</strong> <span id="workHistory-display">-</span></p>
+    <p><strong>Keterampilan:</strong> <span id="skills-display">-</span></p>
+
+    
+
+    <h2>Pengaturan Akun</h2>
+    <button id="edit-profile-btn" class="btn">Edit</button>
+    <button id="save-profile-btn" class="btn" style="display: none;">Simpan Perubahan</button>
+    <button id="logout-btn" class="btn">Logout</button>
+    <button id="delete-account-btn" class="btn btn-danger">Hapus Akun</button>
+
+    <form id="profile-form" style="display: none;">
+      <h2>Edit Informasi Pribadi</h2>
+      <label for="name">Nama:</label>
+      <input type="text" id="name">
+      <label for="email">Email:</label>
+      <input type="email" id="email">
+      <label for="phone">Nomor Telepon:</label>
+      <input type="tel" id="phone">
+      <label for="address">Alamat:</label>
+      <input type="text" id="address">
+      
+      <h2>Edit Pendidikan dan Karir</h2>
+      <label for="education">Pendidikan:</label>
+      <input type="text" id="education">
+      <label for="institution">Institusi:</label>
+      <input type="text" id="institution">
+      <label for="currentJob">Pekerjaan saat ini:</label>
+      <input type="text" id="currentJob">
+      <label for="workHistory">Riwayat Pekerjaan:</label>
+      <input type="text" id="workHistory">
+      <label for="skills">Keterampilan:</label>
+      <input type="text" id="skills">
+      
+      
+    </form>
+  </div>
+</main>
+<script type="module" src="/js/profil.js"></script>
+<script type="module" src="/js/auth.js"></script>
+
+    </main>
+    <footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-section logo-branding">
+                <img src="/img/logo-aparencanamu.png" alt="aparencanamu logo" class="footer-logo">
+                <p>Mengatur, merencanakan, dan mengorganisir kehidupan Anda.</p>
+            </div>
+            <div class="footer-sections">
+                <div class="footer-section quick-links">
+                    <h4>Navigasi</h4>
+                    <ul class="no-bullets">
+                        <li><a href="/about">Tentang Kami</a></li>
+                        <li><a href="/blog">Blog</a></li>
+                        <li><a href="/help">Bantuan</a></li>
+                        <li><a href="/contact">Kontak</a></li>
+                        <li><a href="/terms">Syarat dan Ketentuan</a></li>
+                        <li><a href="/privacy">Kebijakan Privasi</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section social-media">
+                    <h4>Ikuti Kami</h4>
+                    <a href="https://facebook.com/aparencanamu" target="_blank">Facebook</a>
+                    <a href="https://twitter.com/aparencanamu" target="_blank">Twitter</a>
+                    <a href="https://instagram.com/aparencanamu" target="_blank">Instagram</a>
+                    <a href="https://linkedin.com/company/aparencanamu" target="_blank">LinkedIn</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-section copyright">
+            <p>© 2024 aparencanamu. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

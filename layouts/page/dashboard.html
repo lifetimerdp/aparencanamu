@@ -1,0 +1,32 @@
+{{ define "main" }}
+<main>
+  <h1>Dashboard</h1>
+  <section id="daily-activities">
+    <h2>Aktivitas Harian</h2>
+    <ul id="daily-activities-list"></ul>
+    <form id="daily-activities-form">
+      <input type="text" id="daily-activities-input" placeholder="Tambah Aktivitas Harian">
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+
+  <section id="weekly-plans">
+    <h2>Rencana Mingguan</h2>
+    <ul id="weekly-plans-list"></ul>
+    <form id="weekly-plans-form">
+      <input type="text" id="weekly-plans-input" placeholder="Tambah Rencana Mingguan">
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+
+  <section id="financial-management">
+    <h2>Pengelolaan Keuangan</h2>
+    <ul id="budget-list"></ul>
+    <form id="budget-form">
+      <input type="text" id="budget-input" placeholder="Tambah Anggaran Bulanan">
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+</main>
+<script type="module" src="{{ "js/dashboard.js" | relURL }}"></script>
+{{ end }}

@@ -1,0 +1,13 @@
+{{ define "main" }}
+  <main>
+    <h1>Postingan Terbaru</h1>
+    <ul>
+      {{ range .Pages }}
+        <li>
+          <a href="{{ .Permalink }}">{{ .Title }}</a> - {{ .Date.Format "02 Jan 2006" }}
+          <p>{{ .Summary }}</p>
+        </li>
+      {{ end }}
+    </ul>
+  </main>
+{{ end }}

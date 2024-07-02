@@ -1,0 +1,28 @@
+{{ define "main" }}
+<section class="registration-form">
+    <div class="container">
+        <h2>Form Pendaftaran</h2>
+        <form id="register-form">
+            <label for="first-name">Nama Depan:</label>
+            <input type="text" id="first-name" name="first-name" required><br><br>
+
+            <label for="last-name">Nama Belakang:</label>
+            <input type="text" id="last-name" name="last-name" required><br><br>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required><br><br>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br><br>
+
+            <label for="confirm-password">Konfirmasi Password:</label>
+            <input type="password" id="confirm-password" name="confirm-password" required><br><br>
+
+            <button type="submit">Daftar</button>
+        </form>
+        <div id="notification" class="notification"></div>
+    </div>
+</section>
+<script type="module" src="{{ "js/register.js" | relURL }}"></script>
+<script type="module" src="{{ "js/auth.js" | relURL }}"></script>
+{{ end }}

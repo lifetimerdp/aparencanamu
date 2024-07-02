@@ -1,0 +1,30 @@
+{{ define "main" }}
+<section id="contact-network">
+    <h2>Jaringan Kontak</h2>
+    <ul id="contact-network-list"></ul>
+    <form id="contact-network-form">
+      <input type="text" id="contact-network-input" placeholder="Tambah Jaringan Kontak">
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+
+  <section id="groups">
+    <h2>Grup</h2>
+    <ul id="groups-list"></ul>
+    <form id="groups-form">
+      <input type="text" id="groups-input" placeholder="Tambah Grup">
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+
+  <section id="social-activities">
+    <h2>Aktivitas Sosial</h2>
+    <ul id="social-activities-list"></ul>
+    <form id="social-activities-form">
+      <input type="text" id="social-activities-input" placeholder="Tambah Aktivitas Sosial">
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+</main>
+<script type="module" src="{{ "js/sosial-komunitas.js" | relURL }}"></script>
+{{ end }}

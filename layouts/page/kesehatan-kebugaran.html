@@ -1,0 +1,23 @@
+{{ define "main" }}
+<main>
+  <h1>Kesehatan dan Kebugaran</h1>
+  <section id="physical-activities">
+    <h2>Aktivitas Fisik</h2>
+    <ul id="physical-activities-list"></ul>
+    <form id="physical-activities-form">
+      <input type="text" id="physical-activities-input" placeholder="Tambah Aktivitas Fisik">
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+
+  <section id="health-goals">
+    <h2>Tujuan Kesehatan</h2>
+    <ul id="health-goals-list"></ul>
+    <form id="health-goals-form">
+      <input type="text" id="health-goals-input" placeholder="Tambah Tujuan Kesehatan">
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+</main>
+<script type="module" src="{{ "js/kesehatan-kebugaran.js" | relURL }}"></script>
+{{ end }}
