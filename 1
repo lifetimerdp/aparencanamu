@@ -1,0 +1,859 @@
+HTML:
+
+{{ define "main" }}
+<main>
+  <h1>Dashboard</h1>
+  
+  <!-- Selector Aplikasi -->
+  <div class="app-selector">
+    <button class="app-btn" data-target="daily-activities">Aktivitas Harian</button>
+    <button class="app-btn" data-target="weekly-plans">Rencana Mingguan</button>
+    <button class="app-btn" data-target="financial-management">Pengelola Keuangan</button>
+  </div>
+
+  <!-- Aktivitas Harian -->
+  <section id="daily-activities" class="app-section">
+    <h2>Aktivitas Harian</h2>
+    <div id="daily-calendar"></div>
+    <ul id="daily-activities-list"></ul>
+    <form id="daily-activities-form">
+      <input type="text" id="daily-activities-input" placeholder="Tambah Aktivitas Harian">
+      <select id="daily-activities-date">
+        <option value="today">Hari Ini</option>
+        <option value="tomorrow">Besok</option>
+      </select>
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+  
+  <!-- Template untuk sub-aktivitas -->
+  <template id="sub-activity-template">
+    <li>
+      <form class="sub-activity-form">
+        <input type="text" class="sub-activity-input" placeholder="Tambah Sub-Aktivitas">
+        <button type="submit">Tambah</button>
+      </form>
+      <ul class="sub-activity-list"></ul>
+    </li>
+  </template>
+  
+  <!-- Rencana Mingguan -->
+  <section id="weekly-plans" class="app-section hidden">
+    <h2>Rencana Mingguan</h2>
+    <div id="weekly-calendar"></div>
+    <ul id="weekly-plans-list"></ul>
+    <form id="weekly-plans-form">
+      <input type="text" id="weekly-plans-input" placeholder="Tambah Rencana Mingguan">
+      <select id="weekly-plans-duration">
+        <option value="1">1 Minggu</option>
+        <option value="2">2 Minggu</option>
+        <option value="3">3 Minggu</option>
+      </select>
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+  
+  <!-- Pengelolaan Keuangan -->
+  <section id="financial-management" class="app-section hidden">
+    <h2>Pengelolaan Keuangan</h2>
+    <div class="selector">
+      <button class="selector-btn" data-target="incomes">Pendapatan</button>
+      <button class="selector-btn" data-target="expenses">Pengeluaran</button>
+      <button class="selector-btn" data-target="reminders">Pengingat</button>
+      <button class="selector-btn" data-target="budget">Anggaran Bulanan</button>
+    </div>
+
+    <div id="incomes" class="financial-section">
+      <h3>Pendapatan</h3>
+      <ul id="incomes-list"></ul>
+      <form id="income-form">
+        <input type="text" id="income-input" placeholder="Nama Pendapatan">
+        <input type="text" id="income-category" placeholder="Kategori Pendapatan">
+        <input type="number" id="income-amount" placeholder="Jumlah Pendapatan">
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+
+    <div id="expenses" class="financial-section hidden">
+      <h3>Pengeluaran</h3>
+      <ul id="expenses-list"></ul>
+      <form id="expense-form">
+        <input type="text" id="expense-input" placeholder="Nama Pengeluaran">
+        <input type="text" id="expense-category" placeholder="Kategori Pengeluaran">
+        <input type="number" id="expense-amount" placeholder="Jumlah Pengeluaran">
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+
+    <div id="reminders" class="financial-section hidden">
+      <h3>Pengingat Pembayaran</h3>
+      <ul id="reminders-list"></ul>
+      <form id="reminder-form">
+        <input type="text" id="reminder-input" placeholder="Nama Pengingat">
+        <input type="date" id="reminder-date">
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+
+    <div id="budget" class="financial-section hidden">
+      <h3>Anggaran Bulanan</h3>
+      <ul id="budget-list"></ul>
+      <form id="budget-form">
+        <input type="text" id="budget-input" placeholder="Nama Anggaran">
+        <select id="budget-month" name="budgetMonth">
+        <option value="Januari">Januari</option>
+        <option value="Februari">Februari</option>
+        <option value="Maret">Maret</option>
+        <option value="April">April</option>
+        <option value="Mei">Mei</option>
+        <option value="Juni">Juni</option>
+        <option value="Juli">Juli</option>
+        <option value="Agustus">Agustus</option>
+        <option value="September">September</option>
+        <option value="Oktober">Oktober</option>
+        <option value="November">November</option>
+        <option value="Desember">Desember</option>
+        </select>
+        <input type="number" id="budget-amount" placeholder="Jumlah Anggaran">
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Statistik -->
+  <section id="statistics">
+    <h2>Statistik</h2>
+    <p>Total Aktivitas Selesai: <span id="completed-activities-count">0</span></p>
+    <p>Total Rencana Belum Selesai: <span id="pending-plans-count">0</span></p>
+  </section>
+</main>
+<script type="module" src="{{ "js/dashboard.js" | relURL }}"></script>
+<script type="module" src="{{ "js/auth.js" | relURL }}"></script>
+{{ end }}
+
+
+JS:
+
+// dashboard.js
+
+import { auth, db } from './firebaseConfig.js';
+import { getDocs, addDoc, collection, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import './auth.js';
+
+const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+const dailyActivitiesForm = document.getElementById('daily-activities-form');
+const dailyActivitiesInput = document.getElementById('daily-activities-input');
+const dailyActivitiesDate = document.getElementById('daily-activities-date');
+const weeklyPlansForm = document.getElementById('weekly-plans-form');
+const weeklyPlansInput = document.getElementById('weekly-plans-input');
+const weeklyPlansDuration = document.getElementById('weekly-plans-duration');
+const budgetForm = document.getElementById('budget-form');
+const budgetInput = document.getElementById('budget-input');
+const budgetMonth = document.getElementById('budget-month');
+const budgetAmount = document.getElementById('budget-amount');
+const expenseForm = document.getElementById('expense-form');
+const expenseInput = document.getElementById('expense-input');
+const expenseCategory = document.getElementById('expense-category');
+const expenseAmount = document.getElementById('expense-amount');
+const incomeForm = document.getElementById('income-form');
+const incomeInput = document.getElementById('income-input');
+const incomeCategory = document.getElementById('income-category');
+const incomeAmount = document.getElementById('income-amount');
+const reminderForm = document.getElementById('reminder-form');
+const reminderInput = document.getElementById('reminder-input');
+const reminderDate = document.getElementById('reminder-date');
+let userId = null;
+
+const formatRupiah = (amount) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
+};
+
+const checkAuth = async () => {
+  return new Promise((resolve, reject) => {
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        userId = user.uid;
+        resolve(user);
+      } else {
+        userId = null;
+        reject('Tidak ada pengguna yang login.');
+      }
+    });
+  });
+};
+
+const renderSubActivities = (parentElement, subActivities) => {
+  const subActivityList = parentElement.querySelector('.sub-activity-list');
+  subActivityList.innerHTML = '';
+
+  subActivities.forEach(subActivity => {
+    const li = document.createElement('li');
+    li.setAttribute('data-id', subActivity.id); // Set data-id for sub-activity
+    li.innerHTML = `
+      ${subActivity.name}
+      <button class="edit-sub-btn" data-id="${subActivity.id}" data-name="${subActivity.name}">Edit</button>
+      <button class="delete-sub-btn" data-id="${subActivity.id}">Hapus</button>
+    `;
+    subActivityList.appendChild(li);
+  });
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Fungsi untuk memuat dan merender sub-aktivitas
+  const loadAndRenderSubActivities = (activityElement, activityId) => {
+    if (!activityId) {
+      console.error('Activity ID is null or undefined.');
+      return;
+    }
+    const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", activityId), "subActivities");
+    onSnapshot(subActivitiesRef, (snapshot) => {
+      const subActivities = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderSubActivities(activityElement, subActivities);
+    });
+  };
+
+  // Event listener untuk form tambah sub-aktivitas
+  document.addEventListener('click', async (e) => {
+  if (e.target.classList.contains('edit-sub-btn')) {
+    const activityElement = e.target.closest('li');
+    const activityId = activityElement.getAttribute('data-id');
+    const subActivityId = e.target.getAttribute('data-id');
+    const subActivityName = prompt('Edit Sub-Aktivitas:', e.target.getAttribute('data-name'));
+  
+    if (subActivityName) {
+      const subActivityDocRef = doc(db, "users", userId, "dailyActivities", activityId, "subActivities", subActivityId);
+      
+      try {
+        const subActivityDoc = await getDoc(subActivityDocRef);
+        if (subActivityDoc.exists()) {
+          await updateDoc(subActivityDocRef, {
+            name: subActivityName
+          });
+        } else {
+          console.error('Sub-activity document does not exist.');
+        }
+      } catch (error) {
+        console.error('Error updating sub-activity:', error);
+      }
+    }
+  }
+
+  if (e.target.classList.contains('delete-sub-btn')) {
+    const activityElement = e.target.closest('li');
+    const activityId = activityElement.getAttribute('data-id');
+    const subActivityId = e.target.getAttribute('data-id');
+    
+    try {
+      const subActivityDocRef = doc(db, "users", userId, "dailyActivities", activityId, "subActivities", subActivityId);
+      const subActivityDoc = await getDoc(subActivityDocRef);
+      if (subActivityDoc.exists()) {
+        await deleteDoc(subActivityDocRef);
+      } else {
+        console.error('Sub-activity document does not exist.');
+      }
+    } catch (error) {
+      console.error('Error deleting sub-activity:', error);
+    }
+  }
+});
+
+  // Event listener untuk tombol edit & hapus sub-aktivitas
+  document.addEventListener('click', async (e) => {
+    // Event listener untuk tombol edit sub-aktivitas
+    if (e.target.classList.contains('edit-sub-btn')) {
+      console.log('Edit button clicked');
+      const activityElement = e.target.closest('li');
+      const activityId = activityElement.getAttribute('data-id');
+      const subActivityId = e.target.getAttribute('data-id');
+      console.log('Activity ID:', activityId, 'Sub-Activity ID:', subActivityId);
+      const subActivityName = prompt('Edit Sub-Aktivitas:', e.target.getAttribute('data-name'));
+    
+      if (subActivityName) {
+        try {
+          await updateDoc(doc(db, "users", userId, "dailyActivities", activityId, "subActivities", subActivityId), {
+            name: subActivityName
+          });
+        } catch (error) {
+          console.error('Error updating sub-activity:', error);
+        }
+      }
+    }
+    
+    // Event listener untuk tombol hapus sub-aktivitas
+    if (e.target.classList.contains('delete-sub-btn')) {
+      console.log('Delete button clicked');
+      const activityElement = e.target.closest('li');
+      const activityId = activityElement.getAttribute('data-id');
+      const subActivityId = e.target.getAttribute('data-id');
+      console.log('Activity ID:', activityId, 'Sub-Activity ID:', subActivityId);
+      try {
+        await deleteDoc(doc(db, "users", userId, "dailyActivities", activityId, "subActivities", subActivityId));
+      } catch (error) {
+        console.error('Error deleting sub-activity:', error);
+      }
+    }
+  });
+});
+
+const renderList = (listElement, items, dataType) => {
+  if (!listElement) return;
+  listElement.innerHTML = '';
+
+  const renderGroupedItems = (groupedItems, createHeader) => {
+    Object.keys(groupedItems).forEach(groupKey => {
+      const header = createHeader(groupKey);
+      listElement.appendChild(header);
+
+      groupedItems[groupKey].forEach(item => {
+        const li = document.createElement('li');
+        let content = `${item.name}`;
+        
+        if (dataType === 'expenses' || dataType === 'incomes') {
+          content += ` - ${formatRupiah(item.amount)}`;
+        } else if (dataType === 'budget') {
+          content += ` - ${formatRupiah(item.amount)}`;
+        } else if (dataType === 'dailyActivities') {
+          const dateToShow = formatDate(item.date);
+          content += ` - ${dateToShow}`;
+        }
+        li.setAttribute('data-id', item.id);
+
+        li.innerHTML = `
+          ${content}
+          <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}">Edit</button>
+          <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>`;
+        
+        if (dataType === 'dailyActivities') {
+          addSubActivityForm(li, item);
+        }
+
+        listElement.appendChild(li);
+      });
+    });
+  };
+
+  const formatDate = (date) => {
+    if (date === 'Hari Ini') {
+      const today = new Date();
+      return `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+    } else if (date === 'Besok') {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return `${tomorrow.getDate()} ${months[tomorrow.getMonth()]} ${tomorrow.getFullYear()}`;
+    } else {
+      return date;
+    }
+  };
+
+  const addSubActivityForm = (li, item) => {
+    const subActivityTemplate = document.getElementById('sub-activity-template').content.cloneNode(true);
+    li.appendChild(subActivityTemplate);
+    const subActivityForm = li.querySelector('.sub-activity-form');
+
+    const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", item.id), "subActivities");
+    onSnapshot(subActivitiesRef, (snapshot) => {
+      const subActivities = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderSubActivities(li, subActivities);
+    });
+  };
+
+  const groupedItems = items.reduce((grouped, item) => {
+    let groupKey;
+    if (dataType === 'reminders') {
+      groupKey = item.date;
+    } else if (dataType === 'budget') {
+      groupKey = item.month;
+    } else if (dataType === 'weeklyPlans') {
+      groupKey = `${item.createdAt} - ${item.endDate}`;
+    } else {
+      groupKey = '';
+    }
+
+    if (!grouped[groupKey]) {
+      grouped[groupKey] = [];
+    }
+    grouped[groupKey].push(item);
+    return grouped;
+  }, {});
+
+  if (dataType === 'reminders' || dataType === 'budget' || dataType === 'weeklyPlans') {
+    renderGroupedItems(groupedItems, (groupKey) => {
+      const header = document.createElement('h3');
+      header.textContent = groupKey;
+      return header;
+    });
+  } else {
+    items.forEach(item => {
+      const li = document.createElement('li');
+      let content = `${item.name}`;
+      
+      if (dataType === 'expenses' || dataType === 'incomes') {
+        content += ` - ${formatRupiah(item.amount)}`;
+      } else if (dataType === 'dailyActivities') {
+        const dateToShow = formatDate(item.date);
+        content += ` - ${dateToShow}`;
+      }
+
+      li.innerHTML = `
+        ${content}
+        <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}">Edit</button>
+        <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>`;
+      
+      if (dataType === 'dailyActivities') {
+        addSubActivityForm(li, item);
+      }
+
+      listElement.appendChild(li);
+    });
+  }
+};
+
+// Memuat data Pengeluaran dan Pendapatan dari Firestore
+const loadExpensesAndIncomes = async (userDocRef) => {
+  try {
+    // Memuat Pengeluaran
+    const expensesRef = collection(userDocRef, 'expenses');
+    onSnapshot(expensesRef, (snapshot) => {
+      const expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderList(document.getElementById('expenses-list'), expenses, 'expenses');
+    });
+
+    // Memuat Pendapatan
+    const incomesRef = collection(userDocRef, 'incomes');
+    onSnapshot(incomesRef, (snapshot) => {
+      const incomes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderList(document.getElementById('incomes-list'), incomes, 'incomes');
+    });
+  } catch (error) {
+    console.error('Error loading financial data:', error);
+  }
+};
+
+// Event listener untuk form Pengeluaran
+expenseForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const expenseName = expenseInput.value;
+  const expenseCategoryValue = expenseCategory.value;
+  const expenseAmountValue = expenseAmount.value;
+
+  if (expenseName.trim() && expenseAmountValue) {
+    try {
+      await addDoc(collection(doc(db, "users", userId), "expenses"), {
+        name: expenseName,
+        category: expenseCategoryValue,
+        amount: parseFloat(expenseAmountValue),
+      });
+
+      expenseInput.value = '';
+      expenseCategory.value = '';
+      expenseAmount.value = '';
+    } catch (error) {
+      console.error('Error adding expense:', error);
+    }
+  }
+});
+
+// Event listener untuk form Pendapatan
+incomeForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const incomeName = incomeInput.value;
+  const incomeCategoryValue = incomeCategory.value;
+  const incomeAmountValue = incomeAmount.value;
+
+  if (incomeName.trim() && incomeAmountValue) {
+    try {
+      await addDoc(collection(doc(db, "users", userId), "incomes"), {
+        name: incomeName,
+        category: incomeCategoryValue,
+        amount: parseFloat(incomeAmountValue),
+      });
+
+      incomeInput.value = '';
+      incomeCategory.value = '';
+      incomeAmount.value = '';
+    } catch (error) {
+      console.error('Error adding income:', error);
+    }
+  }
+});
+
+// Event listener untuk tombol hapus Pengeluaran atau Pendapatan
+document.addEventListener('click', async (e) => {
+  if (e.target.classList.contains('delete-btn')) {
+    const dataType = e.target.getAttribute('data-type');
+    const dataId = e.target.getAttribute('data-id');
+
+    try {
+      await deleteDoc(doc(db, "users", userId, dataType, dataId));
+    } catch (error) {
+      console.error(`Error deleting ${dataType}:`, error);
+    }
+  }
+});
+
+const showEditPopup = (id, type, name) => {
+  const typeName = getTypeName(type); // Ambil nama yang sesuai untuk tampilan
+
+  const editPopup = document.createElement('div');
+  editPopup.classList.add('edit-popup');
+
+  editPopup.innerHTML = `
+    <div class="edit-popup-content">
+      <h3>Edit ${typeName}</h3> <!-- Gunakan typeName di sini -->
+      <form id="edit-form">
+        <input type="text" id="edit-input" value="${name}">
+        <button type="submit">Simpan</button>
+        <button type="button" id="cancel-edit">Batal</button>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(editPopup);
+
+  const editForm = document.getElementById('edit-form');
+  const cancelEditButton = document.getElementById('cancel-edit');
+
+  editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const updatedName = document.getElementById('edit-input').value.trim();
+
+    if (updatedName) {
+      await updateData(type, id, { name: updatedName });
+      document.body.removeChild(editPopup);
+    }
+  });
+
+  cancelEditButton.addEventListener('click', () => {
+    document.body.removeChild(editPopup);
+  });
+};
+
+const getTypeName = (type) => {
+  switch (type) {
+    case 'dailyActivities':
+      return 'Aktivitas Harian';
+    case 'weeklyPlans':
+      return 'Rencana Mingguan';
+    case 'budget':
+      return 'Anggaran';
+    case 'expenses':
+      return 'Pengeluaran';
+    case 'incomes':
+      return 'Pendapatan';
+    case 'reminders':
+      return 'Pengingat';
+    default:
+      return 'Item'; // Default fallback
+  }
+};
+
+const updateData = async (dataType, id, updatedObject) => {
+  try {
+    const user = await checkAuth();
+    const userDocRef = doc(db, "users", userId);
+    const docRef = doc(userDocRef, dataType, id);
+    await updateDoc(docRef, updatedObject);
+  } catch (error) {
+    console.error("Error updating document: ", error);
+  }
+};
+
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const user = await checkAuth();
+    const userDocRef = doc(db, "users", user.uid); // pastikan userId sudah diambil dari user.uid
+
+    // Periksa aktivitas harian yang sudah kadaluarsa
+    await checkExpiredDailyActivities();
+
+    // Listen for real-time updates on daily activities
+    const dailyActivitiesRef = collection(userDocRef, 'dailyActivities');
+    onSnapshot(dailyActivitiesRef, (snapshot) => {
+      const dailyActivities = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderList(document.getElementById('daily-activities-list'), dailyActivities, 'dailyActivities');
+      updateStatistics(dailyActivities, []); // Update statistik harian
+
+      // Tambahkan event listener untuk form sub-aktivitas
+      const dailyActivitiesList = document.getElementById('daily-activities-list');
+      dailyActivitiesList.addEventListener('submit', async (e) => {
+        if (e.target.classList.contains('sub-activity-form')) {
+          e.preventDefault();
+          const subActivityInput = e.target.querySelector('.sub-activity-input');
+          const subActivityText = subActivityInput.value.trim();
+          if (subActivityText === "") return;
+
+          const activityItemId = e.target.closest('li').dataset.id; // Ambil ID aktivitas utama
+          const activityDocRef = doc(dailyActivitiesRef, activityItemId);
+
+          // Tambahkan sub-aktivitas ke Firestore
+          await updateDoc(activityDocRef, {
+            subActivities: arrayUnion({ name: subActivityText }) // Sesuaikan dengan struktur data sub-aktivitas
+          });
+
+          subActivityInput.value = "";
+        }
+      });
+    });
+
+    // Listen for real-time updates on weekly plans
+    const weeklyPlansRef = collection(userDocRef, 'weeklyPlans');
+    onSnapshot(weeklyPlansRef, (snapshot) => {
+      const weeklyPlans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderList(document.getElementById('weekly-plans-list'), weeklyPlans, 'weeklyPlans');
+      updateStatistics([], weeklyPlans); // Update statistik mingguan
+    });
+
+    // Listen for real-time updates on budget
+    const budgetRef = collection(userDocRef, 'budget');
+    onSnapshot(budgetRef, (snapshot) => {
+      const budget = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderList(document.getElementById('budget-list'), budget, 'budget');
+    });
+
+    // Listen for real-time updates on financial reminders
+    const remindersRef = collection(userDocRef, 'reminders');
+    onSnapshot(remindersRef, (snapshot) => {
+      const reminders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderList(document.getElementById('reminders-list'), reminders, 'reminders');
+    });
+
+    // Event listeners for application buttons
+    const appButtons = document.querySelectorAll('.app-btn');
+    const appSections = document.querySelectorAll('.app-section');
+
+    appButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Tambahkan class 'hidden' ke semua section aplikasi
+        appSections.forEach(section => {
+          section.classList.add('hidden');
+        });
+
+        // Hapus class 'hidden' dari section yang dipilih
+        const targetId = button.getAttribute('data-target');
+        document.getElementById(targetId).classList.remove('hidden');
+      });
+    });
+
+    // Event listeners for selector buttons in financial management
+    const selectors = document.querySelectorAll('.selector-btn');
+    const sections = document.querySelectorAll('.financial-section');
+
+    selectors.forEach(selector => {
+      selector.addEventListener('click', () => {
+        // Tambahkan class 'hidden' ke semua section keuangan
+        sections.forEach(section => {
+          section.classList.add('hidden');
+        });
+
+        // Hapus class 'hidden' dari section yang dipilih
+        const targetId = selector.getAttribute('data-target');
+        document.getElementById(targetId).classList.remove('hidden');
+      });
+    });
+
+    // Load expenses and incomes
+    loadExpensesAndIncomes(userDocRef);
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+const updateStatistics = (dailyActivities, weeklyPlans) => {
+  document.getElementById('completed-activities-count').textContent = dailyActivities.filter(activity => activity.completed).length;
+  // Tidak menyaring berdasarkan field `completed`
+  document.getElementById('pending-plans-count').textContent = weeklyPlans.length;
+};
+
+dailyActivitiesForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const activityName = document.getElementById('daily-activities-input').value.trim();
+  const activityDate = document.getElementById('daily-activities-date').value;
+  if (activityName && activityDate) {
+    try {
+      const user = await checkAuth();
+      if (!userId) {
+        userId = user.uid;
+      }
+      const dailyActivitiesRef = collection(db, "users", userId, "dailyActivities");
+      const docRef = await addDoc(dailyActivitiesRef, {
+        name: activityName,
+        date: activityDate
+      });
+
+      addActivityToDOM(docRef.id, activityName); // Panggil fungsi untuk menambahkan ke DOM
+
+      document.getElementById('daily-activities-input').value = ''; // Reset input
+    } catch (error) {
+      console.error('Error adding activity:', error);
+    }
+  } else {
+    console.error('Activity name or date is missing.');
+  }
+});
+
+function addActivityToDOM(activityId, activityName) {
+  const dailyActivitiesList = document.getElementById('daily-activities-list');
+  
+  const li = document.createElement('li');
+  li.setAttribute('data-id', activityId);
+  
+  const div = document.createElement('div');
+  div.textContent = activityName;
+  
+  const ulSubActivities = document.createElement('ul');
+  ulSubActivities.classList.add('sub-activity-list');
+
+  const form = document.createElement('form');
+  form.classList.add('sub-activity-form');
+  form.innerHTML = `
+    <input type="text" class="sub-activity-input" placeholder="Tambah Sub-Aktivitas">
+    <button type="submit">Tambah</button>
+  `;
+  
+  li.appendChild(div);
+  li.appendChild(ulSubActivities);
+  li.appendChild(form);
+  
+  dailyActivitiesList.appendChild(li);
+}
+
+const checkExpiredDailyActivities = async () => {
+  try {
+    const userDocRef = doc(db, "users", userId);
+    const dailyActivitiesRef = collection(userDocRef, 'dailyActivities');
+    const snapshot = await getDocs(dailyActivitiesRef);
+
+    snapshot.forEach(async (doc) => {
+      const activity = doc.data();
+      const [day, month, year] = activity.date.split(' ');
+      const activityDate = new Date(year, months.indexOf(month), day);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set to the beginning of the day
+
+      if (activityDate < today && !activity.completed) {
+        await updateDoc(doc.ref, { completed: true });
+      }
+    });
+  } catch (error) {
+    console.error("Error checking expired daily activities: ", error);
+  }
+};
+
+const durationToEndDate = (duration) => {
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + (duration * 7) - 1); // Mengurangi satu hari dari durasi
+  const endDateFormat = `${endDate.getDate()} ${months[endDate.getMonth()]} ${endDate.getFullYear()}`;
+  return endDateFormat;
+};
+
+weeklyPlansForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const planName = weeklyPlansInput.value;
+  const planDuration = parseInt(weeklyPlansDuration.value); // Ambil nilai duration sebagai integer
+
+  if (planName.trim()) {
+    try {
+      const createdAt = new Date(); // Waktu pembuatan rencana mingguan
+      const createdAtFormatted = `${createdAt.getDate()} ${months[createdAt.getMonth()]} ${createdAt.getFullYear()}`; // Format createdAt
+      const endDate = durationToEndDate(planDuration); // Hitung tanggal akhir berdasarkan durasi
+      
+      await addDoc(collection(doc(db, "users", userId), "weeklyPlans"), {
+        name: planName,
+        duration: planDuration, // Simpan durasi sebagai integer
+        createdAt: createdAtFormatted, // Simpan waktu pembuatan dalam format yang diinginkan
+        endDate: endDate, // Simpan tanggal akhir
+        completed: false,
+      });
+
+      weeklyPlansInput.value = '';
+      weeklyPlansDuration.value = '1';
+    } catch (error) {
+      console.error('Error adding weekly plan:', error);
+    }
+  }
+});
+
+// Event listener untuk form Anggaran
+budgetForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const budgetName = budgetInput.value;
+  const budgetMonthValue = budgetMonth.value;
+  const budgetAmountValue = budgetAmount.value;
+
+  if (budgetName.trim() && budgetAmountValue) {
+    try {
+      await addDoc(collection(doc(db, 'users', userId), 'budget'), {
+        name: budgetName,
+        month: budgetMonthValue, // Gunakan bulan dalam bahasa Indonesia
+        amount: parseFloat(budgetAmountValue),
+      });
+
+      // Atur ulang nilai form
+      budgetInput.value = '';
+      budgetMonth.value = 'Januari'; // Set bulan default (misalnya Januari dalam bahasa Indonesia)
+      budgetAmount.value = '';
+
+    } catch (error) {
+      console.error('Error adding budget:', error);
+    }
+  }
+});
+
+reminderForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const reminderName = reminderInput.value;
+  const reminderDateValue = new Date(reminderDate.value);
+
+  if (reminderName.trim() && reminderDateValue) {
+    const formattedDate = `${reminderDateValue.getDate()} ${months[reminderDateValue.getMonth()]} ${reminderDateValue.getFullYear()}`;
+
+    try {
+      await addDoc(collection(doc(db, "users", userId), "reminders"), {
+        name: reminderName,
+        date: formattedDate,
+      });
+
+      reminderInput.value = '';
+      reminderDate.value = '';
+    } catch (error) {
+      console.error('Error adding reminder:', error);
+    }
+  }
+});
+
+// Delete functionality
+document.addEventListener('click', async (e) => {
+  if (e.target.classList.contains('delete-btn')) {
+    const dataType = e.target.getAttribute('data-type');
+    const dataId = e.target.getAttribute('data-id');
+
+    try {
+      await deleteData(dataType, dataId);
+    } catch (error) {
+      console.error('Error deleting document:', error);
+    }
+  }
+});
+
+const deleteData = async (dataType, id) => {
+  try {
+    const user = await checkAuth();
+    const userDocRef = doc(db, "users", userId);
+    const docRef = doc(userDocRef, dataType, id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error('Error deleting document:', error);
+  }
+};
+
+// Edit functionality
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('edit-btn')) {
+    const dataType = e.target.getAttribute('data-type');
+    const dataId = e.target.getAttribute('data-id');
+    const dataName = e.target.getAttribute('data-name');
+
+    showEditPopup(dataId, dataType, dataName);
+  }
+});
