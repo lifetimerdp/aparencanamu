@@ -9,6 +9,10 @@ html, body {
     overflow-x: hidden; /* Mencegah overflow horizontal */
 }
 
+.hidden {
+  display: none;
+}
+
 .container {
     width: 80%;
     max-width: 1200px; /* Atur maksimum lebar container */
@@ -74,24 +78,6 @@ html, body {
 
 .btn-daftar:hover, .btn-masuk:hover, .btn-profilku:hover, .btn-logout:hover {
     background-color: #2A9D8F; /* Warna latar belakang saat tombol dihover */
-}
-
-/* Gaya untuk tombol Profilku */
-.btn-profilku {
-    /* Sudah ditambahkan di aturan bersama tombol lainnya di atas */
-}
-
-.btn-profilku:hover {
-    background-color: #2A9D8F; /* Warna latar belakang saat tombol dihover */
-}
-
-/* Gaya untuk tombol Logout */
-.btn-logout {
-    /* Sudah ditambahkan di aturan bersama tombol lainnya di atas */
-}
-
-.btn-logout:hover {
-    background-color: #2A9D8F;
 }
 
 /* Tombol Hamburger */
@@ -435,4 +421,100 @@ html, body {
     .profile-info p {
         font-size: 0.9rem;
     }
+}
+
+/* Weekly Plans Form */
+#weeklyPlansForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#weeklyPlansForm label {
+    font-weight: bold;
+}
+
+#weeklyPlansForm input[type="text"],
+#weeklyPlansForm input[type="date"],
+#weeklyPlansForm input[type="time"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#weeklyPlansForm button {
+    background-color: #2A9D8F;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#weeklyPlansForm button:hover {
+    background-color: #264653;
+}
+
+/* Data Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th,
+table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #2A9D8F;
+    color: white;
+}
+
+/* CSS untuk popup edit */
+.edit-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  z-index: 1000;
+}
+
+.edit-popup-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-popup-content h3 {
+  margin-bottom: 10px;
+}
+
+.edit-popup-content form {
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-popup-content input {
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid #ccc;
+}
+
+.edit-popup-content button {
+  padding: 8px;
+  border: none;
+  background-color: #007BFF;
+  color: white;
+  cursor: pointer;
+}
+
+.edit-popup-content button[type="button"] {
+  background-color: #6c757d;
+  margin-top: 10px;
 }

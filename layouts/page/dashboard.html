@@ -1,32 +1,163 @@
 {{ define "main" }}
 <main>
   <h1>Dashboard</h1>
-  <section id="daily-activities">
+  
+  <!-- Selector Aplikasi -->
+  <div class="app-selector">
+    <button class="app-btn" data-target="daily-activities">Aktivitas Harian</button>
+    <button class="app-btn" data-target="weekly-plans">Rencana Mingguan</button>
+    <button class="app-btn" data-target="financial-management">Pengelola Keuangan</button>
+  </div>
+
+  <!-- Aktivitas Harian -->
+  <section id="daily-activities" class="app-section">
     <h2>Aktivitas Harian</h2>
+    <div id="daily-calendar"></div>
     <ul id="daily-activities-list"></ul>
     <form id="daily-activities-form">
       <input type="text" id="daily-activities-input" placeholder="Tambah Aktivitas Harian">
+      <select id="daily-activities-date">
+        <option value="today">Hari Ini</option>
+        <option value="tomorrow">Besok</option>
+      </select>
       <button type="submit">Tambah</button>
     </form>
   </section>
-
-  <section id="weekly-plans">
+  
+  <!-- Template untuk sub-aktivitas -->
+  <template id="sub-activity-template">
+    <li>
+      <form class="sub-activity-form">
+        <input type="text" class="sub-activity-input" placeholder="Tambah Sub-Aktivitas">
+        <button type="submit">Tambah</button>
+      </form>
+      <ul class="sub-activity-list"></ul>
+    </li>
+  </template>
+  
+  <!-- Template untuk tasks -->
+  <template id="task-template">
+    <form class="task-form">
+      <input type="text" class="task-input" placeholder="Tambahkan tugas">
+      <button type="submit">Tambah Task</button>
+    </form>
+    <ul class="task-list"></ul>
+  </template>
+  
+  <!-- Rencana Mingguan -->
+  <section id="weekly-plans" class="app-section hidden">
     <h2>Rencana Mingguan</h2>
+    <div id="weekly-calendar"></div>
     <ul id="weekly-plans-list"></ul>
     <form id="weekly-plans-form">
       <input type="text" id="weekly-plans-input" placeholder="Tambah Rencana Mingguan">
+      <select id="weekly-plans-duration">
+        <option value="1">1 Minggu</option>
+        <option value="2">2 Minggu</option>
+        <option value="3">3 Minggu</option>
+      </select>
       <button type="submit">Tambah</button>
     </form>
   </section>
-
-  <section id="financial-management">
+  
+  <!-- Template untuk sub-rencana mingguan -->
+  <template id="sub-weeklyPlan-template">
+    <li>
+      <form class="sub-weeklyPlan-form">
+        <input type="text" class="sub-weeklyPlan-input" placeholder="Tambah Sub-Rencana Mingguan">
+        <button type="submit">Tambah</button>
+      </form>
+      <ul class="sub-weeklyPlan-list"></ul>
+    </li>
+  </template>
+  
+  <!-- Pengelolaan Keuangan -->
+  <section id="financial-management" class="app-section hidden">
     <h2>Pengelolaan Keuangan</h2>
-    <ul id="budget-list"></ul>
-    <form id="budget-form">
-      <input type="text" id="budget-input" placeholder="Tambah Anggaran Bulanan">
-      <button type="submit">Tambah</button>
-    </form>
+    <div class="selector">
+      <button class="selector-btn" data-target="incomes">Pendapatan</button>
+      <button class="selector-btn" data-target="expenses">Pengeluaran</button>
+      <button class="selector-btn" data-target="reminders">Pengingat</button>
+      <button class="selector-btn" data-target="budget">Anggaran Bulanan</button>
+    </div>
+
+    <div id="incomes" class="financial-section">
+      <h3>Pendapatan</h3>
+      <ul id="incomes-list"></ul>
+      <form id="income-form">
+        <input type="text" id="income-input" placeholder="Nama Pendapatan">
+        <input type="text" id="income-category" placeholder="Kategori Pendapatan">
+        <input type="number" id="income-amount" placeholder="Jumlah Pendapatan">
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+
+    <div id="expenses" class="financial-section hidden">
+      <h3>Pengeluaran</h3>
+      <ul id="expenses-list"></ul>
+      <form id="expense-form">
+        <input type="text" id="expense-input" placeholder="Nama Pengeluaran">
+        <input type="text" id="expense-category" placeholder="Kategori Pengeluaran">
+        <input type="number" id="expense-amount" placeholder="Jumlah Pengeluaran">
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+
+    <div id="reminders" class="financial-section hidden">
+      <h3>Pengingat Pembayaran</h3>
+      <ul id="reminders-list"></ul>
+      <form id="reminder-form">
+        <input type="text" id="reminder-input" placeholder="Nama Pengingat">
+        <input type="date" id="reminder-date" required="">
+        <input type="time" id="reminder-time" required>
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+
+    <div id="budget" class="financial-section hidden">
+      <h3>Anggaran Bulanan</h3>
+      <ul id="budget-list"></ul>
+      <form id="budget-form">
+        <input type="text" id="budget-input" placeholder="Nama Anggaran">
+        <select id="budget-month" name="budgetMonth">
+          <option value="Januari">Januari</option>
+          <option value="Februari">Februari</option>
+          <option value="Maret">Maret</option>
+          <option value="April">April</option>
+          <option value="Mei">Mei</option>
+          <option value="Juni">Juni</option>
+          <option value="Juli">Juli</option>
+          <option value="Agustus">Agustus</option>
+          <option value="September">September</option>
+          <option value="Oktober">Oktober</option>
+          <option value="November">November</option>
+          <option value="Desember">Desember</option>
+        </select>
+        <input type="number" id="budget-amount" placeholder="Jumlah Anggaran">
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+  </section>
+  
+  
+  <!-- Statistik -->
+  <section id="statistics">
+    <h2>Statistik</h2>
+    <div>
+      <label for="time-range">Rentang Waktu:</label>
+      <select id="time-range">
+        <option value="weekly">Mingguan</option>
+        <option value="monthly">Bulanan</option>
+        <option value="yearly">Tahunan</option>
+      </select>
+    </div>
+    <p>Total Aktivitas Selesai: <span id="completed-activities-count">0</span></p>
+    <p>Total Rencana Belum Selesai: <span id="pending-plans-count">0</span></p>
+    <p>Total Pendapatan: <span id="total-income-count">0</span></p>
+    <p>Total Pengeluaran: <span id="total-expense-count">0</span></p>
+    <p>Pengingat Aktif: <span id="active-reminders-count">0</span></p>
   </section>
 </main>
-<script type="module" src="{{ "js/dashboard.js" | relURL }}"></script>
+<script type="module" src="{{ "js/coretan.js" | relURL }}"></script>
+<script type="module" src="{{ "js/auth.js" | relURL }}"></script>
 {{ end }}
