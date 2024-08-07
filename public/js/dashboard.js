@@ -27,6 +27,7 @@ const incomeAmount = document.getElementById('income-amount');
 const reminderForm = document.getElementById('reminder-form');
 const reminderInput = document.getElementById('reminder-input');
 const reminderDate = document.getElementById('reminder-date');
+const reminderTime = document.getElementById('reminder-time');
 let userId = null;
 
 const formatRupiah = (amount) => {
@@ -777,18 +778,24 @@ reminderForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const reminderName = reminderInput.value;
   const reminderDateValue = new Date(reminderDate.value);
+  const reminderTimeValue = reminderTime.value; // Dapatkan waktu dari input
 
-  if (reminderName.trim() && reminderDateValue) {
-    const formattedDate = `${reminderDateValue.getDate()} ${months[reminderDateValue.getMonth()]} ${reminderDateValue.getFullYear()}`;
+  if (reminderName.trim() && reminderDateValue && reminderTimeValue) {
+    const reminderDateTime = new Date(`${reminderDateValue.toDateString()} ${reminderTimeValue}`); // Gabungkan tanggal dan waktu
+
+    const formattedDate = `${reminderDateTime.getDate()} ${months[reminderDateTime.getMonth()]} ${reminderDateTime.getFullYear()}`;
+    const formattedTime = reminderDateTime.toTimeString().split(' ')[0]; // Format waktu HH:mm:ss
 
     try {
       await addDoc(collection(doc(db, "users", userId), "reminders"), {
         name: reminderName,
         date: formattedDate,
+        time: formattedTime, // Simpan waktu ke Firestore
       });
 
       reminderInput.value = '';
       reminderDate.value = '';
+      reminderTime.value = ''; // Reset input waktu setelah submit
     } catch (error) {
       console.error('Error adding reminder:', error);
     }

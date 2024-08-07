@@ -1,8 +1,9 @@
 // dashboard.js
 
-import { auth, db } from './firebaseConfig.js';
+import { auth, db, messaging } from './firebaseConfig.js';
 import { getDocs, addDoc, collection, doc, updateDoc, deleteDoc, onSnapshot, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 import './auth.js';
 
 const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
@@ -909,8 +910,94 @@ const monitorDataChanges = () => {
   onSnapshot(remindersRef, fetchAndRenderStatistics);
 };
 
+// Fungsi untuk memantau pengingat dan mengirim notifikasi
+const monitorReminders = () => {
+  if (!userId) return;
+
+  const remindersRef = collection(db, "users", userId, "reminders");
+
+  onSnapshot(remindersRef, (snapshot) => {
+    snapshot.forEach(doc => {
+      const reminder = doc.data();
+      const reminderDateTime = new Date(`${reminder.date} ${reminder.time}`);
+      const now = new Date();
+
+      // Periksa apakah waktu pengingat sudah tercapai
+      if (reminderDateTime <= now) {
+        sendLocalFCMNotification(reminder.name, reminder.date, reminder.time);
+      }
+    });
+  });
+};
+
+// Fungsi untuk mengirim notifikasi lokal
+const sendLocalFCMNotification = (title, date, time) => {
+  const notificationTitle = `Pengingat: ${title}`;
+  const notificationOptions = {
+    body: `Jangan lupa pengingat Anda pada ${date} pukul ${time}`,
+    icon: 'path-to-your-icon.png' // Ganti dengan path ikon notifikasi Anda
+  };
+
+  // Periksa apakah notifikasi diperbolehkan dan kirim notifikasi
+  if (Notification.permission === "granted") {
+    new Notification(notificationTitle, notificationOptions);
+  } else {
+    console.error("Notifikasi tidak diizinkan oleh pengguna.");
+  }
+};
+
 // Mulai ketika autentikasi sudah dicek
 checkAuth().then(() => {
   monitorDataChanges();
   checkExpiredWeeklyPlans();
+  monitorReminders();
 }).catch(console.error);
+
+// Minta izin untuk mengirim notifikasi dan ambil token FCM
+const requestNotificationPermission = async () => {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      console.log("Izin notifikasi diberikan.");
+      const token = await getToken(messaging, {
+        vapidKey: "BLkleGJm7ErQhO6BVhEO7RmgAcUoiNP3z46Cb4ei1Hn4L1FwDmz5CgJ3rg-C_e-pFQahbXlgxUDn06rIW1WOOiY"
+      });
+      console.log("Token FCM:", token);
+      // Simpan token ke Firestore atau backend Anda
+      await saveTokenToFirestore(token);
+    } else {
+      console.error("Izin notifikasi ditolak.");
+    }
+  } catch (error) {
+    console.error("Error mendapatkan token FCM:", error);
+  }
+};
+
+// Simpan token FCM ke Firestore
+const saveTokenToFirestore = async (token) => {
+  const userId = await checkAuth(); // Pastikan pengguna sudah terautentikasi
+  try {
+    const userDocRef = doc(db, "users", userId);
+    await setDoc(userDocRef, { fcmToken: token }, { merge: true });
+  } catch (error) {
+    console.error("Error menyimpan token FCM:", error);
+  }
+};
+
+// Panggil fungsi ini ketika diperlukan
+requestNotificationPermission();
+
+// Tangani pesan foreground
+onMessage(messaging, (payload) => {
+  console.log("Pesan diterima. ", payload);
+  // Kustomisasi notifikasi di sini
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: payload.notification.icon
+  };
+
+  if (Notification.permission === "granted") {
+    new Notification(notificationTitle, notificationOptions);
+  }
+});
