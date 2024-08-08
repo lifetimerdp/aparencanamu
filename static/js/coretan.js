@@ -960,7 +960,8 @@ const requestNotificationPermission = async () => {
     if (permission === "granted") {
       console.log("Izin notifikasi diberikan.");
       const token = await getToken(messaging, {
-        vapidKey: "BLkleGJm7ErQhO6BVhEO7RmgAcUoiNP3z46Cb4ei1Hn4L1FwDmz5CgJ3rg-C_e-pFQahbXlgxUDn06rIW1WOOiY"
+        vapidKey: "BLkleGJm7ErQhO6BVhEO7RmgAcUoiNP3z46Cb4ei1Hn4L1FwDmz5CgJ3rg-C_e-pFQahbXlgxUDn06rIW1WOOiY",
+        serviceWorkerRegistration: await navigator.serviceWorker.ready, // Gunakan service worker yang telah didaftarkan
       });
       console.log("Token FCM:", token);
       // Simpan token ke Firestore atau backend Anda
@@ -1001,3 +1002,13 @@ onMessage(messaging, (payload) => {
     new Notification(notificationTitle, notificationOptions);
   }
 });
+
+// Daftarkan Service Worker untuk Firebase Messaging
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/js/firebase-messaging-sw.js', { scope: '/js/' })
+  .then((registration) => {
+    console.log('Service Worker registered with scope:', registration.scope);
+  }).catch((error) => {
+    console.error('Service Worker registration failed:', error);
+  });
+}
