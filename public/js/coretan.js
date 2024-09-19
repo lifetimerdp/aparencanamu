@@ -1,18 +1,21 @@
-// dashboard.js
-
 import { auth, db, messaging } from './firebaseConfig.js';
 import { getDocs, addDoc, collection, doc, updateDoc, deleteDoc, onSnapshot, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 import './auth.js';
+import { renderSubActivities, addTaskForm, renderTasks, addSubActivityForm, checkExpiredDailyActivities, addDailyActivity } from './dailyActivities.js';
+import { renderSubWeeklyPlans, addSubWeeklyPlanForm, checkExpiredWeeklyPlans, initWeeklyPlans, renderWeeklyPlans, loadWeeklyPlans } from './weeklyPlans.js'
+import { 
+  addExpense, 
+  addIncome, 
+  addBudget, 
+  addReminder, 
+  loadExpensesAndIncomes 
+} from './financialManagement.js';
 
 const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 const dailyActivitiesForm = document.getElementById('daily-activities-form');
 const dailyActivitiesInput = document.getElementById('daily-activities-input');
 const dailyActivitiesDate = document.getElementById('daily-activities-date');
-const weeklyPlansForm = document.getElementById('weekly-plans-form');
-const weeklyPlansInput = document.getElementById('weekly-plans-input');
-const weeklyPlansDuration = document.getElementById('weekly-plans-duration');
 const budgetForm = document.getElementById('budget-form');
 const budgetInput = document.getElementById('budget-input');
 const budgetMonth = document.getElementById('budget-month');
@@ -29,19 +32,19 @@ const reminderForm = document.getElementById('reminder-form');
 const reminderInput = document.getElementById('reminder-input');
 const reminderDate = document.getElementById('reminder-date');
 const reminderTime = document.getElementById('reminder-time');
-let userId = null;
+export let userId = null;
 
 const formatRupiah = (amount) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
 };
 
-const checkAuth = async () => {
+// Fungsi checkAuth yang diperbarui
+export const checkAuth = () => {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, user => {
       if (user) {
         userId = user.uid;
         resolve(user);
-        fetchAndRenderStatistics();
       } else {
         userId = null;
         reject('Tidak ada pengguna yang login.');
@@ -50,182 +53,7 @@ const checkAuth = async () => {
   });
 };
 
-const renderSubActivities = (parentElement, subActivities) => {
-  const subActivityList = parentElement.querySelector('.sub-activity-list');
-  subActivityList.innerHTML = '';
-
-  subActivities.forEach(subActivity => {
-    const li = document.createElement('li');
-    li.setAttribute('data-id', subActivity.id);
-    li.innerHTML = `
-      ${subActivity.name}
-      <button class="edit-sub-btn" data-id="${subActivity.id}" data-name="${subActivity.name}">Edit</button>
-      <button class="delete-sub-btn" data-id="${subActivity.id}">Hapus</button>
-    `;
-
-    const taskTemplate = document.getElementById('task-template').content.cloneNode(true);
-    const taskList = taskTemplate.querySelector('.task-list');
-    li.appendChild(taskTemplate);
-
-    const tasksRef = collection(doc(db, "users", userId, "dailyActivities", parentElement.getAttribute('data-id'), "subActivities", subActivity.id), "tasks");
-    onSnapshot(tasksRef, (snapshot) => {
-      const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      renderTasks(taskList, tasks, parentElement.getAttribute('data-id'), subActivity.id);
-    });
-
-    subActivityList.appendChild(li);
-
-    // Dalam renderSubActivities, ketika mengedit sub-aktivitas
-    li.querySelector('.edit-sub-btn').addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const subActivityId = e.target.getAttribute('data-id');
-      const subActivityName = e.target.getAttribute('data-name');
-      const activityId = parentElement.getAttribute('data-id');
-      showEditPopup(subActivityId, 'subActivities', subActivityName, activityId); // Tambahkan activityId di sini
-    });
-
-    li.querySelector('.delete-sub-btn').addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const subActivityId = e.target.getAttribute('data-id');
-      try {
-        await deleteDoc(doc(db, "users", userId, "dailyActivities", parentElement.getAttribute('data-id'), "subActivities", subActivityId));
-      } catch (error) {
-        console.error(`Error deleting sub-activity with ID: ${subActivityId}`, error);
-      }
-    });
-  });
-  
-  // Event listener untuk form task
-  parentElement.querySelectorAll('.task-form').forEach(form => {
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const subActivityId = form.closest('li').getAttribute('data-id');
-    const taskInput = form.querySelector('.task-input');
-    const taskName = taskInput.value.trim();
-
-    if (taskName && subActivityId) {
-      try {
-        const subActivityRef = doc(db, "users", userId, "dailyActivities", parentElement.getAttribute('data-id'), "subActivities", subActivityId);
-        const tasksRef = collection(subActivityRef, "tasks");
-
-        await addDoc(tasksRef, { name: taskName });
-        taskInput.value = '';
-      } catch (error) {
-        console.error('Error adding task:', error);
-      }
-    }
-  });
-  });
-};
-
-// Function to render tasks
-const renderTasks = (taskList, tasks, activityId, subActivityId) => {
-  taskList.innerHTML = '';
-  tasks.forEach(task => {
-    const li = document.createElement('li');
-    li.setAttribute('data-id', task.id);
-    li.innerHTML = `
-      ${task.name}
-      <button class="edit-task-btn" data-id="${task.id}" data-name="${task.name}" data-activity-id="${activityId}" data-sub-activity-id="${subActivityId}">Edit</button>
-      <button class="delete-task-btn" data-id="${task.id}" data-activity-id="${activityId}" data-sub-activity-id="${subActivityId}">Hapus</button>
-    `;
-    taskList.appendChild(li);
-
-    // Dalam renderTasks, ketika mengedit task
-    li.querySelector('.edit-task-btn').addEventListener('click', async (e) => {
-    e.stopPropagation();
-    const taskId = e.target.getAttribute('data-id');
-    const taskName = e.target.getAttribute('data-name');
-    const activityId = e.target.getAttribute('data-activity-id');
-    const subActivityId = e.target.getAttribute('data-sub-activity-id');
-    showEditPopup(taskId, 'tasks', taskName, activityId, subActivityId); // Tambahkan subActivityId di sini
-    });
-
-    li.querySelector('.delete-task-btn').addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const taskId = e.target.getAttribute('data-id');
-      try {
-        await deleteDoc(doc(db, "users", userId, "dailyActivities", activityId, "subActivities", subActivityId, "tasks", taskId));
-      } catch (error) {
-        console.error(`Error deleting task with ID: ${taskId}`, error);
-      }
-    });
-  });
-};
-
-// Function to render sub-weekly plans
-const renderSubWeeklyPlans = (parentElement, subWeeklyPlans) => {
-  const subWeeklyPlanList = parentElement.querySelector('.sub-weeklyPlan-list');
-  subWeeklyPlanList.innerHTML = '';
-
-  subWeeklyPlans.forEach(subPlan => {
-    const li = document.createElement('li');
-    li.setAttribute('data-id', subPlan.id);
-    li.innerHTML = `
-      ${subPlan.name}
-      <button class="edit-sub-weeklyPlan-btn" data-id="${subPlan.id}" data-name="${subPlan.name}">Edit</button>
-      <button class="delete-sub-weeklyPlan-btn" data-id="${subPlan.id}">Hapus</button>
-    `;
-
-    subWeeklyPlanList.appendChild(li);
-
-    li.querySelector('.edit-sub-weeklyPlan-btn').addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const subPlanId = e.target.getAttribute('data-id');
-      const subPlanName = e.target.getAttribute('data-name');
-      const planId = parentElement.getAttribute('data-id');
-      showEditPopup(subPlanId, 'subWeeklyPlans', subPlanName, planId);
-    });
-
-    li.querySelector('.delete-sub-weeklyPlan-btn').addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const subPlanId = e.target.getAttribute('data-id');
-      try {
-        await deleteDoc(doc(db, "users", userId, "weeklyPlans", parentElement.getAttribute('data-id'), "subWeeklyPlans", subPlanId));
-      } catch (error) {
-        console.error(`Error deleting sub-weekly plan with ID: ${subPlanId}`, error);
-      }
-    });
-  });
-};
-
-// Function to add sub-weekly plan form
-const addSubWeeklyPlanForm = (li, plan) => {
-  const subWeeklyPlanTemplate = document.getElementById('sub-weeklyPlan-template').content.cloneNode(true);
-  const subWeeklyPlanLi = subWeeklyPlanTemplate.querySelector('li');
-  subWeeklyPlanLi.setAttribute('data-id', plan.id);
-  li.appendChild(subWeeklyPlanTemplate);
-
-  const subWeeklyPlanForm = li.querySelector('.sub-weeklyPlan-form');
-
-  if (!userId) {
-    console.error('User ID is not initialized');
-    return;
-  }
-
-  const subWeeklyPlansRef = collection(doc(db, "users", userId, "weeklyPlans", plan.id), "subWeeklyPlans");
-  onSnapshot(subWeeklyPlansRef, (snapshot) => {
-    const subWeeklyPlans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderSubWeeklyPlans(li, subWeeklyPlans);
-  });
-
-  subWeeklyPlanForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const subPlanName = subWeeklyPlanForm.querySelector('.sub-weeklyPlan-input').value.trim();
-
-    if (subPlanName) {
-      try {
-        await addDoc(subWeeklyPlansRef, { name: subPlanName });
-        subWeeklyPlanForm.querySelector('.sub-weeklyPlan-input').value = '';
-      } catch (error) {
-        console.error('Error adding sub-weekly plan:', error);
-      }
-    }
-  });
-};
-
-// Adjust renderList function for weeklyPlans
-const renderList = (listElement, items, dataType) => {
+export const renderList = (listElement, items, dataType, parentId = null, subParentId = null) => {
   if (!listElement) return;
   listElement.innerHTML = '';
 
@@ -249,9 +77,13 @@ const renderList = (listElement, items, dataType) => {
         li.setAttribute('data-id', item.id);
 
         li.innerHTML = `
-          ${content}
-          <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}">Edit</button>
-          <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>`;
+          <div class="item-content">
+            <span class="item-name">${content}</span>
+            <div class="item-actions">
+              <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}" data-parent-id="${parentId || ''}" data-sub-parent-id="${subParentId || ''}">Edit</button>
+              <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
+            </div>
+          </div>`;
         
         if (dataType === 'dailyActivities') {
           addSubActivityForm(li, item);
@@ -277,30 +109,16 @@ const renderList = (listElement, items, dataType) => {
     }
   };
 
-  const addSubActivityForm = (li, item) => {
-    const subActivityTemplate = document.getElementById('sub-activity-template').content.cloneNode(true);
-    const subActivityLi = subActivityTemplate.querySelector('li');
-    subActivityLi.setAttribute('data-id', item.id); // Set data-id here
-    li.appendChild(subActivityTemplate);
-
-    const subActivityForm = li.querySelector('.sub-activity-form');
-
-    if (!userId) {
-      console.error('User ID is not initialized');
-      return;
-    }
-
-    const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", item.id), "subActivities");
-    onSnapshot(subActivitiesRef, (snapshot) => {
-      const subActivities = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      renderSubActivities(li, subActivities);
-    });
+  const formatDateToIndonesian = (date) => {
+    const [year, monthIndex, day] = date.split('-');
+    const month = months[parseInt(monthIndex, 10) - 1];
+    return `${parseInt(day, 10)} ${month} ${year}`;
   };
 
   const groupedItems = items.reduce((grouped, item) => {
     let groupKey;
     if (dataType === 'reminders') {
-      groupKey = item.date;
+      groupKey = formatDateToIndonesian(item.date); // Format tanggal untuk reminders
     } else if (dataType === 'budget') {
       groupKey = item.month;
     } else if (dataType === 'weeklyPlans') {
@@ -336,9 +154,13 @@ const renderList = (listElement, items, dataType) => {
       li.setAttribute('data-id', item.id);
 
       li.innerHTML = `
-        ${content}
-        <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}">Edit</button>
-        <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>`;
+        <div class="item-content">
+          <span class="item-name">${content}</span>
+          <div class="item-actions">
+            <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}" data-parent-id="${parentId || ''}" data-sub-parent-id="${subParentId || ''}">Edit</button>
+            <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
+          </div>
+        </div>`;
       
       if (dataType === 'dailyActivities') {
         addSubActivityForm(li, item);
@@ -351,7 +173,6 @@ const renderList = (listElement, items, dataType) => {
   }
 };
 
-// Event listener untuk form Pengeluaran
 expenseForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const expenseName = expenseInput.value;
@@ -360,12 +181,7 @@ expenseForm.addEventListener('submit', async (e) => {
 
   if (expenseName.trim() && expenseAmountValue) {
     try {
-      await addDoc(collection(doc(db, "users", userId), "expenses"), {
-        name: expenseName,
-        category: expenseCategoryValue,
-        amount: parseFloat(expenseAmountValue),
-      });
-
+      await addExpense(expenseName, expenseCategoryValue, parseFloat(expenseAmountValue));
       expenseInput.value = '';
       expenseCategory.value = '';
       expenseAmount.value = '';
@@ -375,7 +191,6 @@ expenseForm.addEventListener('submit', async (e) => {
   }
 });
 
-// Event listener untuk form Pendapatan
 incomeForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const incomeName = incomeInput.value;
@@ -384,12 +199,7 @@ incomeForm.addEventListener('submit', async (e) => {
 
   if (incomeName.trim() && incomeAmountValue) {
     try {
-      await addDoc(collection(doc(db, "users", userId), "incomes"), {
-        name: incomeName,
-        category: incomeCategoryValue,
-        amount: parseFloat(incomeAmountValue),
-      });
-
+      await addIncome(incomeName, incomeCategoryValue, parseFloat(incomeAmountValue));
       incomeInput.value = '';
       incomeCategory.value = '';
       incomeAmount.value = '';
@@ -399,31 +209,152 @@ incomeForm.addEventListener('submit', async (e) => {
   }
 });
 
-// Event listener untuk tombol hapus Pengeluaran atau Pendapatan
-document.addEventListener('click', async (e) => {
-  if (e.target.classList.contains('delete-btn')) {
-    const dataType = e.target.getAttribute('data-type');
-    const dataId = e.target.getAttribute('data-id');
+// Fungsi umum untuk mengedit data
+const editData = async (dataType, id, updatedFields, parentId = null, subParentId = null) => {
+  try {
+    const user = await checkAuth();
+    if (!user) throw new Error('User tidak terautentikasi');
 
-    try {
-      await deleteDoc(doc(db, "users", userId, dataType, dataId));
-    } catch (error) {
-      console.error(`Error deleting ${dataType}:`, error);
+    let docRef;
+    const userDocRef = doc(db, "users", user.uid);
+
+    switch (dataType) {
+      case 'dailyActivities':
+      case 'weeklyPlans':
+      case 'budget':
+      case 'expenses':
+      case 'incomes':
+      case 'reminders':
+        docRef = doc(userDocRef, dataType, id);
+        break;
+      case 'subActivities':
+        if (!parentId) throw new Error('parentId diperlukan untuk subActivities');
+        docRef = doc(userDocRef, "dailyActivities", parentId, "subActivities", id);
+        break;
+      case 'subWeeklyPlans':
+        if (!parentId) throw new Error('parentId diperlukan untuk subWeeklyPlans');
+        docRef = doc(userDocRef, "weeklyPlans", parentId, "subWeeklyPlans", id);
+        break;
+      case 'tasks':
+        if (!parentId || !subParentId) throw new Error('parentId dan subParentId diperlukan untuk tasks');
+        docRef = doc(userDocRef, "dailyActivities", parentId, "subActivities", subParentId, "tasks", id);
+        break;
+      default:
+        throw new Error(`Tipe data tidak dikenal: ${dataType}`);
     }
+
+    // Dapatkan data saat ini
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+      throw new Error(`Dokumen dengan ID ${id} tidak ditemukan`);
+    }
+    const currentData = docSnap.data();
+
+    // Persiapkan data yang diperbarui
+    const updatedData = { ...currentData, ...updatedFields };
+
+    // Jika ini adalah rencana mingguan dan durasinya berubah, perbarui endDate
+    if (dataType === 'weeklyPlans' && updatedFields.duration !== undefined) {
+      const createdAtDate = new Date(currentData.createdAt.split(' ').reverse().join('-'));
+      const endDate = new Date(createdAtDate);
+      endDate.setDate(endDate.getDate() + (updatedFields.duration * 7) - 1);
+      updatedData.endDate = `${endDate.getDate()} ${months[endDate.getMonth()]} ${endDate.getFullYear()}`;
+    }
+
+    // Periksa apakah ada perubahan yang diizinkan
+    const hasChanges = Object.keys(updatedFields).some(key => {
+      // Periksa apakah field ini diizinkan untuk diubah
+      const isAllowedToChange = !(
+        (dataType === 'dailyActivities' && (key === 'date' || key === 'completed')) ||
+        (dataType === 'weeklyPlans' && (key === 'createdAt' || key === 'completed')) ||
+        (dataType === 'reminders' && (key === 'timeZone' || key === 'notificationSent'))
+      );
+      return isAllowedToChange && currentData[key] !== updatedFields[key];
+    });
+
+    if (hasChanges) {
+      await updateDoc(docRef, updatedData);
+      console.log(`${dataType} dengan ID ${id} berhasil diperbarui`);
+    } else {
+      console.log(`Tidak ada perubahan yang diizinkan untuk ${dataType} dengan ID ${id}`);
+    }
+
+    return updatedData;
+  } catch (error) {
+    console.error(`Error mengupdate ${dataType}:`, error);
+    throw error;
   }
-});
+};
 
-const showEditPopup = (id, type, name, parentId = null, subParentId = null) => {
-  const typeName = getTypeName(type); // Ambil nama yang sesuai untuk tampilan
-
+// Fungsi untuk menampilkan popup editData
+const showEditPopup = (id, type, currentData, parentId = null, subParentId = null) => {
+  const typeName = getTypeName(type);
   const editPopup = document.createElement('div');
   editPopup.classList.add('edit-popup');
 
+  let formContent = '';
+  for (const key in currentData) {
+    if (key !== 'id' && key !== 'userId') {
+      // Periksa apakah field ini harus dikecualikan dari pengeditan
+      const isExcluded = (
+        (type === 'dailyActivities' && (key === 'date' || key === 'completed')) ||
+        (type === 'weeklyPlans' && (key === 'createdAt' || key === 'completed')) ||
+        (type === 'reminders' && (key === 'timeZone' || key === 'notificationSent')) ||
+        (type === 'subActivities' && key === 'completed') ||
+        (type === 'tasks' && key === 'completed')
+      );
+
+      if (!isExcluded) {
+        let label = key;
+        let inputType = 'text';
+        let inputContent = '';
+
+        // Menyesuaikan label dan tipe input
+        switch(key) {
+          case 'name':
+            label = `Nama ${typeName}`;
+            break;
+          case 'duration':
+            if (type === 'weeklyPlans') {
+              label = 'Durasi';
+              inputType = 'select';
+              inputContent = `
+                <select id="edit-${key}">
+                  <option value="1" ${currentData[key] == 1 ? 'selected' : ''}>1 minggu</option>
+                  <option value="2" ${currentData[key] == 2 ? 'selected' : ''}>2 minggu</option>
+                </select>
+              `;
+            }
+            break;
+          case 'amount':
+            inputType = 'number';
+            break;
+        }
+
+        if (inputType === 'select') {
+          formContent += `
+            <div>
+              <label for="edit-${key}">${label}:</label>
+              ${inputContent}
+            </div>
+          `;
+        } else {
+          formContent += `
+            <div>
+              <label for="edit-${key}">${label}:</label>
+              <input type="${inputType}" id="edit-${key}" value="${currentData[key]}">
+            </div>
+          `;
+        }
+      }
+    }
+  }
+
   editPopup.innerHTML = `
     <div class="edit-popup-content">
-      <h3>Edit ${typeName}</h3> <!-- Gunakan typeName di sini -->
+      <h3>Edit ${typeName}</h3>
       <form id="edit-form">
-        <input type="text" id="edit-input" value="${name}">
+        ${formContent}
         <button type="submit">Simpan</button>
         <button type="button" id="cancel-edit">Batal</button>
       </form>
@@ -437,11 +368,30 @@ const showEditPopup = (id, type, name, parentId = null, subParentId = null) => {
 
   editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const updatedName = document.getElementById('edit-input').value.trim();
+    const updatedFields = {};
+    for (const key in currentData) {
+      if (key !== 'id' && key !== 'userId') {
+        const input = document.getElementById(`edit-${key}`);
+        if (input && !input.disabled) {
+          if (input.type === 'checkbox') {
+            updatedFields[key] = input.checked;
+          } else if (input.type === 'number') {
+            updatedFields[key] = parseFloat(input.value);
+          } else if (input.tagName.toLowerCase() === 'select') {
+            updatedFields[key] = parseInt(input.value);
+          } else {
+            updatedFields[key] = input.value.trim();
+          }
+        }
+      }
+    }
 
-    if (updatedName) {
-      await updateData(type, id, { name: updatedName }, parentId, subParentId); // Oper subParentId di sini
+    try {
+      await editData(type, id, updatedFields, parentId, subParentId);
       document.body.removeChild(editPopup);
+    } catch (error) {
+      console.error('Error saat menyimpan perubahan:', error);
+      alert('Terjadi kesalahan saat menyimpan perubahan. Silakan coba lagi.');
     }
   });
 
@@ -450,6 +400,7 @@ const showEditPopup = (id, type, name, parentId = null, subParentId = null) => {
   });
 };
 
+// Fungsi untuk mendapatkan nama tipe data
 const getTypeName = (type) => {
   switch (type) {
     case 'dailyActivities':
@@ -464,35 +415,18 @@ const getTypeName = (type) => {
       return 'Pendapatan';
     case 'reminders':
       return 'Pengingat';
+    case 'subActivities':
+      return 'Sub-aktivitas';
+    case 'subWeeklyPlans':
+      return 'Sub-rencana';
+    case 'tasks':
+      return 'Tugas';
     default:
-      return 'Item'; // Default fallback
+      return 'Item';
   }
 };
 
-const updateData = async (dataType, id, updatedObject, parentId = null, subParentId = null) => {
-  try {
-    const user = await checkAuth();
-    const userDocRef = doc(db, "users", user.uid);
 
-    let docRef;
-    if (dataType === 'tasks') {
-      if (!parentId || !subParentId) throw new Error('Parent ID dan Sub-Parent ID diperlukan untuk tasks');
-      docRef = doc(userDocRef, "dailyActivities", parentId, "subActivities", subParentId, "tasks", id);
-    } else if (dataType === 'subActivities') {
-      if (!parentId) throw new Error('Parent ID diperlukan untuk subActivities');
-      docRef = doc(userDocRef, "dailyActivities", parentId, "subActivities", id);
-    } else if (dataType === 'subWeeklyPlans') {
-      if (!parentId) throw new Error('Parent ID diperlukan untuk subWeeklyPlans');
-      docRef = doc(userDocRef, "weeklyPlans", parentId, "subWeeklyPlans", id);
-    } else {
-      docRef = doc(userDocRef, dataType, id);
-    }
-
-    await updateDoc(docRef, updatedObject);
-  } catch (error) {
-    console.error(`Error updating ${dataType} with ID: ${id}`, error);
-  }
-};
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
@@ -506,11 +440,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
       const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", activityId), "subActivities");
-      onSnapshot(subActivitiesRef, (snapshot) => {
+      const unsubscribe = onSnapshot(subActivitiesRef, (snapshot) => {
         const subActivities = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderSubActivities(activityElement, subActivities);
       });
+      
+      // Store the unsubscribe function to clean up later if needed
+      activityElement.setAttribute('data-unsubscribe', unsubscribe);
     };
+    
+    // Tambahkan template untuk form task
+    const taskTemplate = document.createElement('template');
+    taskTemplate.id = 'task-template';
+    taskTemplate.innerHTML = `
+      <form class="task-form">
+        <input type="text" class="task-input" placeholder="Tambah tugas baru">
+        <button type="submit">Tambah Tugas</button>
+      </form>
+      <ul class="task-list"></ul>
+    `;
+    document.body.appendChild(taskTemplate);
 
     // Periksa aktivitas harian yang sudah kadaluarsa
     await checkExpiredDailyActivities();
@@ -549,14 +498,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     appButtons.forEach(button => {
       button.addEventListener('click', () => {
-        // Tambahkan class 'hidden' ke semua section aplikasi
+        // Remove active class from all buttons
+        appButtons.forEach(btn => btn.classList.remove('active'));
+        // Add active class to clicked button
+        button.classList.add('active');
+
+        // Hide all sections
         appSections.forEach(section => {
-          section.classList.add('hidden');
+          section.classList.remove('visible');
+          setTimeout(() => {
+            section.style.display = 'none';
+          }, 300);
         });
 
-        // Hapus class 'hidden' dari section yang dipilih
+        // Show selected section
         const targetId = button.getAttribute('data-target');
-        document.getElementById(targetId).classList.remove('hidden');
+        const targetSection = document.getElementById(targetId);
+        setTimeout(() => {
+          targetSection.style.display = 'block';
+          setTimeout(() => {
+            targetSection.classList.add('visible');
+          }, 50);
+        }, 300);
       });
     });
 
@@ -577,69 +540,52 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
 
-    // Memuat data Pengeluaran dan Pendapatan dari Firestore
-    const loadExpensesAndIncomes = async (userDocRef) => {
-      try {
-        // Memuat Pengeluaran
-        const expensesRef = collection(userDocRef, 'expenses');
-        onSnapshot(expensesRef, (snapshot) => {
-          const expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          renderList(document.getElementById('expenses-list'), expenses, 'expenses');
-        });
-
-        // Memuat Pendapatan
-        const incomesRef = collection(userDocRef, 'incomes');
-        onSnapshot(incomesRef, (snapshot) => {
-          const incomes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          renderList(document.getElementById('incomes-list'), incomes, 'incomes');
-        });
-      } catch (error) {
-        console.error('Error loading financial data:', error);
-      }
-    };
-
     // Load expenses and incomes
-    loadExpensesAndIncomes(userDocRef);
+    await loadExpensesAndIncomes(userDocRef);
   } catch (error) {
     console.error('Error loading user data:', error);
   }
   
   // Event listener untuk form tambah sub-aktivitas
   document.addEventListener('submit', async (e) => {
-  if (e.target.classList.contains('sub-activity-form')) {
-    e.preventDefault();
-    const liElement = e.target.closest('li');
-    if (liElement) {
-      const activityId = liElement.getAttribute('data-id');
-      const subActivityInput = e.target.querySelector('.sub-activity-input');
-      const subActivityName = subActivityInput.value.trim();
-
-      if (subActivityName && activityId) {
-        try {
-          const user = await checkAuth();
-          if (!userId) {
-            userId = user.uid;
+    if (e.target.classList.contains('sub-activity-form')) {
+      e.preventDefault();
+      const liElement = e.target.closest('li');
+      if (liElement) {
+        const activityId = liElement.getAttribute('data-id');
+        const subActivityInput = e.target.querySelector('.sub-activity-input');
+        const subActivityName = subActivityInput.value.trim();
+  
+        if (subActivityName && activityId) {
+          try {
+            const user = await checkAuth();
+            if (!userId) {
+              userId = user.uid;
+            }
+  
+            const dailyActivityRef = doc(db, "users", userId, "dailyActivities", activityId);
+            const subActivitiesRef = collection(dailyActivityRef, "subActivities");
+  
+            // Check if a sub-activity with the same name already exists
+            const existingSubActivity = await getDocs(query(subActivitiesRef, where("name", "==", subActivityName)));
+  
+            if (existingSubActivity.empty) {
+              // If no existing sub-activity with the same name, add a new one
+              await addDoc(subActivitiesRef, {
+                name: subActivityName
+              });
+  
+              subActivityInput.value = '';
+            } else {
+              console.log('Sub-activity with this name already exists');
+              // Optionally, you can show an error message to the user
+            }
+          } catch (error) {
+            console.error('Error adding sub-activity:', error);
           }
-
-          const dailyActivityRef = doc(db, "users", userId, "dailyActivities", activityId);
-          const subActivitiesRef = collection(dailyActivityRef, "subActivities");
-
-          // Tambahkan sub-aktivitas ke Firestore
-          await addDoc(subActivitiesRef, {
-            name: subActivityName
-          });
-
-          subActivityInput.value = ''; // Reset input setelah submit
-        } catch (error) {
-          console.error('Error adding sub-activity:', error);
         }
-      } else {
-        console.error('Sub-activity name or activity ID is missing.');
       }
-    } else {
-      console.error('Parent activity element not found.');
     }
-  }
   });
 });
 
@@ -648,108 +594,14 @@ dailyActivitiesForm.addEventListener('submit', async (e) => {
   const activityName = dailyActivitiesInput.value;
   const activityDate = dailyActivitiesDate.value;
 
-  if (activityName.trim()) {
-    let dateToAdd = new Date();
-    if (activityDate === 'tomorrow') {
-      dateToAdd.setDate(dateToAdd.getDate() + 1);
-    }
-    const formattedDate = `${dateToAdd.getDate()} ${months[dateToAdd.getMonth()]} ${dateToAdd.getFullYear()}`;
-    
-    try {
-      await addDoc(collection(doc(db, "users", userId), "dailyActivities"), {
-        name: activityName,
-        date: formattedDate,
-        completed: false,
-      });
+  const success = await addDailyActivity(activityName, activityDate);
 
-      dailyActivitiesInput.value = '';
-      dailyActivitiesDate.value = 'today';
-    } catch (error) {
-      console.error('Error adding daily activity:', error);
-    }
+  if (success) {
+    dailyActivitiesInput.value = '';
+    dailyActivitiesDate.value = 'today';
   }
 });
 
-const checkExpiredDailyActivities = async () => {
-  try {
-    const userDocRef = doc(db, "users", userId);
-    const dailyActivitiesRef = collection(userDocRef, 'dailyActivities');
-    const snapshot = await getDocs(dailyActivitiesRef);
-
-    snapshot.forEach(async (doc) => {
-      const activity = doc.data();
-      const [day, month, year] = activity.date.split(' ');
-      const activityDate = new Date(year, months.indexOf(month), day);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Set to the beginning of the day
-
-      if (activityDate < today && !activity.completed) {
-        await updateDoc(doc.ref, { completed: true });
-      }
-    });
-  } catch (error) {
-    console.error("Error checking expired daily activities: ", error);
-  }
-};
-
-const checkExpiredWeeklyPlans = async () => {
-  try {
-    const userDocRef = doc(db, "users", userId);
-    const weeklyPlansRef = collection(userDocRef, 'weeklyPlans');
-    const snapshot = await getDocs(weeklyPlansRef);
-
-    snapshot.forEach(async (doc) => {
-      const plan = doc.data();
-      const [day, month, year] = plan.endDate.split(' ');
-      const planEndDate = new Date(year, months.indexOf(month), day);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Set to the beginning of the day
-
-      if (planEndDate < today && !plan.completed) {
-        console.log(`Marking plan as completed: ${plan.name}`);
-        await updateDoc(doc.ref, { completed: true });
-      }
-    });
-  } catch (error) {
-    console.error("Error checking expired weekly plans: ", error);
-  }
-};
-
-const durationToEndDate = (duration) => {
-  const endDate = new Date();
-  endDate.setDate(endDate.getDate() + (duration * 7) - 1); // Mengurangi satu hari dari durasi
-  const endDateFormat = `${endDate.getDate()} ${months[endDate.getMonth()]} ${endDate.getFullYear()}`;
-  return endDateFormat;
-};
-
-weeklyPlansForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const planName = weeklyPlansInput.value;
-  const planDuration = parseInt(weeklyPlansDuration.value); // Ambil nilai duration sebagai integer
-
-  if (planName.trim()) {
-    try {
-      const createdAt = new Date(); // Waktu pembuatan rencana mingguan
-      const createdAtFormatted = `${createdAt.getDate()} ${months[createdAt.getMonth()]} ${createdAt.getFullYear()}`; // Format createdAt
-      const endDate = durationToEndDate(planDuration); // Hitung tanggal akhir berdasarkan durasi
-      
-      await addDoc(collection(doc(db, "users", userId), "weeklyPlans"), {
-        name: planName,
-        duration: planDuration, // Simpan durasi sebagai integer
-        createdAt: createdAtFormatted, // Simpan waktu pembuatan dalam format yang diinginkan
-        endDate: endDate, // Simpan tanggal akhir
-        completed: false,
-      });
-
-      weeklyPlansInput.value = '';
-      weeklyPlansDuration.value = '1';
-    } catch (error) {
-      console.error('Error adding weekly plan:', error);
-    }
-  }
-});
-
-// Event listener untuk form Anggaran
 budgetForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const budgetName = budgetInput.value;
@@ -758,17 +610,10 @@ budgetForm.addEventListener('submit', async (e) => {
 
   if (budgetName.trim() && budgetAmountValue) {
     try {
-      await addDoc(collection(doc(db, 'users', userId), 'budget'), {
-        name: budgetName,
-        month: budgetMonthValue, // Gunakan bulan dalam bahasa Indonesia
-        amount: parseFloat(budgetAmountValue),
-      });
-
-      // Atur ulang nilai form
+      await addBudget(budgetName, budgetMonthValue, parseFloat(budgetAmountValue));
       budgetInput.value = '';
-      budgetMonth.value = 'Januari'; // Set bulan default (misalnya Januari dalam bahasa Indonesia)
+      budgetMonth.value = 'Januari';
       budgetAmount.value = '';
-
     } catch (error) {
       console.error('Error adding budget:', error);
     }
@@ -778,237 +623,293 @@ budgetForm.addEventListener('submit', async (e) => {
 reminderForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const reminderName = reminderInput.value;
-  const reminderDateValue = new Date(reminderDate.value);
-  const reminderTimeValue = reminderTime.value; // Dapatkan waktu dari input
+  const reminderDateValue = reminderDate.value;
+  const reminderTimeValue = reminderTime.value;
 
-  if (reminderName.trim() && reminderDateValue && reminderTimeValue) {
-    const reminderDateTime = new Date(`${reminderDateValue.toDateString()} ${reminderTimeValue}`); // Gabungkan tanggal dan waktu
-
-    const formattedDate = `${reminderDateTime.getDate()} ${months[reminderDateTime.getMonth()]} ${reminderDateTime.getFullYear()}`;
-    const formattedTime = reminderDateTime.toTimeString().split(' ')[0]; // Format waktu HH:mm:ss
-
+  if (reminderName.trim()) {
     try {
-      await addDoc(collection(doc(db, "users", userId), "reminders"), {
-        name: reminderName,
-        date: formattedDate,
-        time: formattedTime, // Simpan waktu ke Firestore
-      });
-
+      await addReminder(reminderName, reminderDateValue, reminderTimeValue);
       reminderInput.value = '';
       reminderDate.value = '';
-      reminderTime.value = ''; // Reset input waktu setelah submit
+      reminderTime.value = '';
     } catch (error) {
       console.error('Error adding reminder:', error);
     }
   }
 });
 
-// Delete functionality
+// Fungsi deleteData yang diperbarui
+const deleteData = async (dataType, dataId, parentId, subParentId) => {
+  console.log('Deleting:', { dataType, dataId, parentId, subParentId, userId });
+  try {
+    const docRef = getDocRef(dataType, dataId, parentId, subParentId);
+    console.log('Document reference:', docRef.path);
+    await deleteDoc(docRef);
+    console.log(`${dataType} dengan ID ${dataId} berhasil dihapus`);
+    
+    // Tambahkan delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Periksa apakah dokumen masih ada
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+      console.log('Dokumen berhasil dihapus dan tidak ada lagi');
+    } else {
+      console.warn('Dokumen masih ada setelah dihapus, mungkin karena caching');
+    }
+  } catch (error) {
+    console.error(`Error deleting ${dataType}:`, error);
+    if (error.code === 'permission-denied') {
+      console.error('Error izin saat menghapus dokumen:', error);
+      // Periksa apakah dokumen masih ada
+      try {
+        const docRef = getDocRef(dataType, dataId, parentId, subParentId);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) {
+          console.log('Dokumen sudah terhapus meskipun ada error izin');
+          // Mungkin Anda ingin memperbarui UI di sini
+        } else {
+          console.warn('Dokumen masih ada setelah mencoba menghapus');
+        }
+      } catch (checkError) {
+        console.error('Error saat memeriksa dokumen setelah error izin:', checkError);
+      }
+    }
+    throw error;
+  }
+};
+
+// Fungsi getDocRef yang diperbarui
+const getDocRef = (dataType, dataId, parentId, subParentId) => {
+  if (!userId) {
+    throw new Error('User ID is not set. User might not be authenticated.');
+  }
+  const userDocRef = doc(db, "users", userId);
+  switch (dataType) {
+    case 'dailyActivities':
+    case 'weeklyPlans':
+    case 'budget':
+    case 'expenses':
+    case 'incomes':
+    case 'reminders':
+      return doc(userDocRef, dataType, dataId);
+    case 'subActivities':
+      return doc(userDocRef, "dailyActivities", parentId, "subActivities", dataId);
+    case 'subWeeklyPlans':
+      return doc(userDocRef, "weeklyPlans", parentId, "subWeeklyPlans", dataId);
+    case 'tasks':
+      return doc(userDocRef, "dailyActivities", parentId, "subActivities", subParentId, "tasks", dataId);
+    default:
+      throw new Error(`Tipe data tidak dikenal: ${dataType}`);
+  }
+};
+
+// Event listener untuk tombol edit
+document.addEventListener('click', async (e) => {
+  if (e.target.classList.contains('edit-btn')) {
+    const dataType = e.target.getAttribute('data-type');
+    const dataId = e.target.getAttribute('data-id');
+    const parentId = e.target.getAttribute('data-parent-id');
+    const subParentId = e.target.getAttribute('data-sub-parent-id');
+
+    console.log('Edit button clicked:', { dataType, dataId, parentId, subParentId });
+
+    try {
+      await checkAuth(); // Pastikan user terautentikasi sebelum mengedit
+      const docRef = getDocRef(dataType, dataId, parentId, subParentId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const currentData = docSnap.data();
+        showEditPopup(dataId, dataType, currentData, parentId, subParentId);
+      } else {
+        console.log('Dokumen tidak ditemukan');
+      }
+    } catch (error) {
+      console.error('Error in editData:', error);
+      // Handle error appropriately, maybe show a message to the user
+    }
+  }
+});
+
+// Event listener untuk tombol delete yang diperbarui
 document.addEventListener('click', async (e) => {
   if (e.target.classList.contains('delete-btn')) {
     const dataType = e.target.getAttribute('data-type');
     const dataId = e.target.getAttribute('data-id');
+    const parentId = e.target.getAttribute('data-parent-id');
+    const subParentId = e.target.getAttribute('data-sub-parent-id');
+
+    console.log('Delete button clicked:', { dataType, dataId, parentId, subParentId });
 
     try {
-      await deleteData(dataType, dataId);
+      await checkAuth(); // Pastikan user terautentikasi sebelum menghapus
+      await deleteData(dataType, dataId, parentId, subParentId);
     } catch (error) {
-      console.error('Error deleting document:', error);
+      console.error('Error in deleteData:', error);
+      // Handle error appropriately, maybe show a message to the user
     }
   }
 });
 
-const deleteData = async (dataType, id) => {
-  try {
-    const user = await checkAuth();
-    const userDocRef = doc(db, "users", userId);
-    const docRef = doc(userDocRef, dataType, id);
-    await deleteDoc(docRef);
-  } catch (error) {
-    console.error('Error deleting document:', error);
-  }
-};
+// 1. Deklarasi Variabel Global
+const publicVapidKey = 'BKgrl4UTlsunc8_A1RQLkdVohqqLAuRcit1hRk3BnQBly9ScUO839i0zmerOHd7jX_w5AiIAMTdyhn695UniPTg';
 
-// Edit functionality
-document.addEventListener('click', (e) => {
-  if (e.target.classList.contains('edit-btn')) {
-    const dataType = e.target.getAttribute('data-type');
-    const dataId = e.target.getAttribute('data-id');
-    const dataName = e.target.getAttribute('data-name');
+// 2. Fungsi Utilitas
+function convertBase64ToUint8Array(base64String) {
+    console.debug('Mengonversi Vapid Key dari Base64 ke Uint8Array...');
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    console.debug('Konversi Vapid Key selesai:', outputArray);
+    return outputArray;
+}
 
-    showEditPopup(dataId, dataType, dataName);
-  }
-});
+// 3. Fungsi untuk Meminta Izin Notifikasi
+async function requestNotificationPermission() {
+    const permission = Notification.permission;
 
-// Fungsi untuk menghitung statistik dan memperbarui elemen HTML
-const fetchAndRenderStatistics = async () => {
-  try {
-    if (!userId) return;
+    if (permission === 'granted') {
+        return true;
+    } else if (permission === 'denied') {
+        console.warn('Izin notifikasi telah ditolak oleh pengguna.');
+        return false;
+    } else {
+        console.debug('Meminta izin notifikasi kepada pengguna...');
+        const newPermission = await Notification.requestPermission();
+        console.debug('Hasil permintaan izin:', newPermission);
+        return newPermission === 'granted';
+    }
+}
 
-    // Mendapatkan referensi ke koleksi yang diperlukan
-    const dailyActivitiesRef = collection(db, "users", userId, "dailyActivities");
-    const weeklyPlansRef = collection(db, "users", userId, "weeklyPlans");
-    const incomesRef = collection(db, "users", userId, "incomes");
-    const expensesRef = collection(db, "users", userId, "expenses");
+// 4. Fungsi untuk Mendaftar dan Mengatur Subscription
+async function registerServiceWorkerAndSubscribe() {
+    try {
+        const registration = await navigator.serviceWorker.register('/js/push-notification.js', {
+            scope: '/js/'
+        });
+        await registration.update();
+        let pushSubscription = await registration.pushManager.getSubscription();
+
+        if (!pushSubscription) {
+            console.debug('Push subscription belum ada, melakukan subscribe...');
+            pushSubscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: convertBase64ToUint8Array(publicVapidKey)
+            });
+
+            if (pushSubscription) {
+                console.debug('Push subscription baru berhasil dibuat:', pushSubscription);
+            } else {
+                console.error('Push subscription tidak berhasil dibuat.');
+                throw new Error('Failed to create push subscription.');
+            }
+        } else {
+          // push subscription sudah ada
+        }
+
+        return pushSubscription;
+    } catch (error) {
+        console.error('Terjadi kesalahan saat mendaftarkan atau berlangganan push notification:', error);
+        throw error;
+    }
+}
+
+// 5. Fungsi untuk Mengirim Push Notification
+async function sendPushNotification(subscription, reminderId, userId, reminderName) {
+    try {
+        console.debug(`Mengirim push notification untuk pengingat: ${reminderName}...`);
+        console.debug('Data yang akan dikirim ke server:', {
+            subscription: subscription,
+            title: 'Pengingat!',
+            message: `Waktunya untuk: ${reminderName}`,
+            reminderId: reminderId,
+            userId: userId
+        });
+
+        const response = await fetch('http://185.81.29.87:3000/send-notification', {
+            method: 'POST',
+            body: JSON.stringify({
+                subscription: subscription,
+                title: 'Pengingat!',
+                message: `Waktunya untuk: ${reminderName}`,
+                reminderId: reminderId,  // Tambahkan reminderId
+                userId: userId            // Tambahkan userId
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.debug('Status response dari server:', response.status);
+        if (response.ok) {
+            console.debug('Push notification berhasil dikirim.');
+        } else {
+            const responseText = await response.text();
+            console.error('Gagal mengirim push notification:', response.statusText, responseText);
+        }
+    } catch (error) {
+        console.error('Terjadi kesalahan dalam proses pengiriman push notification:', error);
+    }
+}
+
+// 6. Fungsi untuk Memantau Pengingat
+const monitorReminders = (pushSubscription) => {
     const remindersRef = collection(db, "users", userId, "reminders");
 
-    // Mengambil data dari Firestore
-    const [dailyActivitiesSnap, weeklyPlansSnap, incomesSnap, expensesSnap, remindersSnap] = await Promise.all([
-      getDocs(dailyActivitiesRef),
-      getDocs(weeklyPlansRef),
-      getDocs(incomesRef),
-      getDocs(expensesRef),
-      getDocs(remindersRef)
-    ]);
+    onSnapshot(remindersRef, (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+            if (change.type === 'added') {
+                const reminder = change.doc.data();
+                const reminderId = change.doc.id;
 
-    // Menghitung total aktivitas harian yang sudah selesai
-    const completedActivitiesCount = dailyActivitiesSnap.docs.filter(doc => doc.data().completed).length;
-    document.getElementById('completed-activities-count').innerText = completedActivitiesCount;
+                // Cek apakah push notification sudah dikirim
+                if (!reminder.notificationSent) {
+                    console.debug('Push notification belum dikirim untuk pengingat ini.');
+                    if (pushSubscription) {
+                        console.debug('Push subscription tersedia, mengirim notifikasi...');
+                        await sendPushNotification(pushSubscription, reminderId, userId, reminder.name);
 
-    // Menghitung total rencana mingguan yang belum selesai
-    const pendingPlansCount = weeklyPlansSnap.docs.filter(doc => {
-      const plan = doc.data();
-      const [day, month, year] = plan.endDate.split(' ');
-      const planEndDate = new Date(year, months.indexOf(month), day);
-      return !plan.completed && planEndDate >= new Date(); // Rencana yang belum selesai
-    }).length;
-    document.getElementById('pending-plans-count').innerText = pendingPlansCount;
-
-    // Menghitung total pendapatan
-    const totalIncome = incomesSnap.docs.reduce((sum, doc) => sum + doc.data().amount, 0);
-    document.getElementById('total-income-count').innerText = formatRupiah(totalIncome);
-
-    // Menghitung total pengeluaran
-    const totalExpense = expensesSnap.docs.reduce((sum, doc) => sum + doc.data().amount, 0);
-    document.getElementById('total-expense-count').innerText = formatRupiah(totalExpense);
-
-    // Menghitung total pengingat aktif
-    const activeRemindersCount = remindersSnap.size;
-    document.getElementById('active-reminders-count').innerText = activeRemindersCount;
-
-  } catch (error) {
-    console.error('Error fetching statistics:', error);
-  }
-};
-
-// Memantau perubahan data untuk memperbarui statistik secara real-time
-const monitorDataChanges = () => {
-  if (!userId) return;
-
-  const dailyActivitiesRef = collection(db, "users", userId, "dailyActivities");
-  const weeklyPlansRef = collection(db, "users", userId, "weeklyPlans");
-  const incomesRef = collection(db, "users", userId, "incomes");
-  const expensesRef = collection(db, "users", userId, "expenses");
-  const remindersRef = collection(db, "users", userId, "reminders");
-
-  onSnapshot(dailyActivitiesRef, fetchAndRenderStatistics);
-  onSnapshot(weeklyPlansRef, () => {
-    fetchAndRenderStatistics();
-    checkExpiredWeeklyPlans(); // Periksa rencana mingguan saat ada perubahan
-  });
-  onSnapshot(incomesRef, fetchAndRenderStatistics);
-  onSnapshot(expensesRef, fetchAndRenderStatistics);
-  onSnapshot(remindersRef, fetchAndRenderStatistics);
-};
-
-// Fungsi untuk memantau pengingat dan mengirim notifikasi
-const monitorReminders = () => {
-  if (!userId) return;
-
-  const remindersRef = collection(db, "users", userId, "reminders");
-
-  onSnapshot(remindersRef, (snapshot) => {
-    snapshot.forEach(doc => {
-      const reminder = doc.data();
-      const reminderDateTime = new Date(`${reminder.date} ${reminder.time}`);
-      const now = new Date();
-
-      // Periksa apakah waktu pengingat sudah tercapai
-      if (reminderDateTime <= now) {
-        sendLocalFCMNotification(reminder.name, reminder.date, reminder.time);
-      }
+                        // Setelah notifikasi berhasil dikirim, perbarui field notificationSent
+                        const reminderDocRef = doc(db, "users", userId, "reminders", reminderId);
+                        await updateDoc(reminderDocRef, {
+                            notificationSent: true
+                        });
+                        console.debug(`Field notificationSent diperbarui untuk pengingat ${reminder.name}`);
+                    } else {
+                        console.debug('Push subscription tidak tersedia.');
+                    }
+                } else {
+                    // Push notification sudah dikirim sebelumnya untuk pengingat ini
+                }
+            }
+        });
     });
-  });
 };
 
-// Fungsi untuk mengirim notifikasi lokal
-const sendLocalFCMNotification = (title, date, time) => {
-  const notificationTitle = `Pengingat: ${title}`;
-  const notificationOptions = {
-    body: `Jangan lupa pengingat Anda pada ${date} pukul ${time}`,
-    icon: 'path-to-your-icon.png' // Ganti dengan path ikon notifikasi Anda
-  };
+// 7. Fungsi untuk Autentikasi dan Inisialisasi
+checkAuth().then(async () => {
+    checkExpiredWeeklyPlans();
 
-  // Periksa apakah notifikasi diperbolehkan dan kirim notifikasi
-  if (Notification.permission === "granted") {
-    new Notification(notificationTitle, notificationOptions);
-  } else {
-    console.error("Notifikasi tidak diizinkan oleh pengguna.");
-  }
-};
+    if ('serviceWorker' in navigator) {
+        try {
+            const permissionGranted = await requestNotificationPermission();
+            if (!permissionGranted) {
+                console.warn('Izin notifikasi tidak diberikan oleh pengguna. Menghentikan proses.');
+                return;
+            }
 
-// Mulai ketika autentikasi sudah dicek
-checkAuth().then(() => {
-  monitorDataChanges();
-  checkExpiredWeeklyPlans();
-  monitorReminders();
-}).catch(console.error);
-
-// Minta izin untuk mengirim notifikasi dan ambil token FCM
-const requestNotificationPermission = async () => {
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission === "granted") {
-      console.log("Izin notifikasi diberikan.");
-      const token = await getToken(messaging, {
-        vapidKey: "BLkleGJm7ErQhO6BVhEO7RmgAcUoiNP3z46Cb4ei1Hn4L1FwDmz5CgJ3rg-C_e-pFQahbXlgxUDn06rIW1WOOiY",
-        serviceWorkerRegistration: await navigator.serviceWorker.ready, // Gunakan service worker yang telah didaftarkan
-      });
-      console.log("Token FCM:", token);
-      // Simpan token ke Firestore atau backend Anda
-      await saveTokenToFirestore(token);
-    } else {
-      console.error("Izin notifikasi ditolak.");
+            let pushSubscription = await registerServiceWorkerAndSubscribe();
+            if (pushSubscription) {
+                monitorReminders(pushSubscription);
+            } else {
+                console.error('Push subscription tidak tersedia setelah inisialisasi.');
+            }
+        } catch (error) {
+            console.error('Kesalahan saat melakukan inisialisasi push subscription:', error);
+        }
     }
-  } catch (error) {
-    console.error("Error mendapatkan token FCM:", error);
-  }
-};
-
-// Simpan token FCM ke Firestore
-const saveTokenToFirestore = async (token) => {
-  const userId = await checkAuth(); // Pastikan pengguna sudah terautentikasi
-  try {
-    const userDocRef = doc(db, "users", userId);
-    await setDoc(userDocRef, { fcmToken: token }, { merge: true });
-  } catch (error) {
-    console.error("Error menyimpan token FCM:", error);
-  }
-};
-
-// Panggil fungsi ini ketika diperlukan
-requestNotificationPermission();
-
-// Tangani pesan foreground
-onMessage(messaging, (payload) => {
-  console.log("Pesan diterima. ", payload);
-  // Kustomisasi notifikasi di sini
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: payload.notification.icon
-  };
-
-  if (Notification.permission === "granted") {
-    new Notification(notificationTitle, notificationOptions);
-  }
-});
-
-// Daftarkan Service Worker untuk Firebase Messaging
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/js/firebase-messaging-sw.js', { scope: '/js/' })
-  .then((registration) => {
-    console.log('Service Worker registered with scope:', registration.scope);
-  }).catch((error) => {
-    console.error('Service Worker registration failed:', error);
-  });
-}
+}).catch(console.error);

@@ -52,18 +52,18 @@
   
   
   <div class="app-selector">
-    <button class="app-btn" data-target="daily-activities">Aktivitas Harian</button>
+    <button class="app-btn active" data-target="daily-activities">Aktivitas Harian</button>
     <button class="app-btn" data-target="weekly-plans">Rencana Mingguan</button>
     <button class="app-btn" data-target="financial-management">Pengelola Keuangan</button>
   </div>
 
   
-  <section id="daily-activities" class="app-section">
+  <section id="daily-activities" class="app-section visible">
     <h2>Aktivitas Harian</h2>
     <div id="daily-calendar"></div>
-    <ul id="daily-activities-list"></ul>
-    <form id="daily-activities-form">
-      <input type="text" id="daily-activities-input" placeholder="Tambah Aktivitas Harian">
+    <ul id="daily-activities-list" class="activity-list"></ul>
+    <form id="daily-activities-form" class="add-form">
+      <input type="text" id="daily-activities-input" placeholder="Tambah Aktivitas Harian" required>
       <select id="daily-activities-date">
         <option value="today">Hari Ini</option>
         <option value="tomorrow">Besok</option>
@@ -74,9 +74,12 @@
   
   
   <template id="sub-activity-template">
-    <li>
-      <form class="sub-activity-form">
-        <input type="text" class="sub-activity-input" placeholder="Tambah Sub-Aktivitas">
+    <li class="sub-activity-item slide-in-right">
+      <span class="sub-activity-text"></span>
+      <button class="edit-sub-btn">Edit</button>
+      <button class="delete-sub-btn">Hapus</button>
+      <form class="sub-activity-form add-form">
+        <input type="text" class="sub-activity-input" placeholder="Tambah Sub-Aktivitas" required>
         <button type="submit">Tambah</button>
       </form>
       <ul class="sub-activity-list"></ul>
@@ -85,15 +88,19 @@
   
   
   <template id="task-template">
-    <form class="task-form">
-      <input type="text" class="task-input" placeholder="Tambahkan tugas">
-      <button type="submit">Tambah Task</button>
-    </form>
-    <ul class="task-list"></ul>
+    <li class="task-item slide-in-right">
+      <span class="task-text"></span>
+      <button class="edit-task-btn">Edit</button>
+      <button class="delete-task-btn">Hapus</button>
+      <form class="task-form">
+        <input type="text" class="task-input" placeholder="Add new task">
+        <button type="submit">Add Task</button>
+      </form>
+    </li>
   </template>
   
   
-  <section id="weekly-plans" class="app-section hidden">
+  <section id="weekly-plans" class="app-section">
     <h2>Rencana Mingguan</h2>
     <div id="weekly-calendar"></div>
     <ul id="weekly-plans-list"></ul>
@@ -110,17 +117,17 @@
   
   
   <template id="sub-weeklyPlan-template">
-    <li>
-      <form class="sub-weeklyPlan-form">
-        <input type="text" class="sub-weeklyPlan-input" placeholder="Tambah Sub-Rencana Mingguan">
-        <button type="submit">Tambah</button>
-      </form>
-      <ul class="sub-weeklyPlan-list"></ul>
-    </li>
+  <div class="sub-weeklyPlan-container">
+    <form class="sub-weeklyPlan-form">
+      <input type="text" class="sub-weeklyPlan-input" placeholder="Tambah Sub-Rencana Mingguan">
+      <button type="submit">Tambah</button>
+    </form>
+    <ul class="sub-weeklyPlan-list"></ul>
+  </div>
   </template>
   
   
-  <section id="financial-management" class="app-section hidden">
+  <section id="financial-management" class="app-section">
     <h2>Pengelolaan Keuangan</h2>
     <div class="selector">
       <button class="selector-btn" data-target="incomes">Pendapatan</button>
@@ -187,26 +194,11 @@
     </div>
   </section>
   
-  
-  
-  <section id="statistics">
-    <h2>Statistik</h2>
-    <div>
-      <label for="time-range">Rentang Waktu:</label>
-      <select id="time-range">
-        <option value="weekly">Mingguan</option>
-        <option value="monthly">Bulanan</option>
-        <option value="yearly">Tahunan</option>
-      </select>
-    </div>
-    <p>Total Aktivitas Selesai: <span id="completed-activities-count">0</span></p>
-    <p>Total Rencana Belum Selesai: <span id="pending-plans-count">0</span></p>
-    <p>Total Pendapatan: <span id="total-income-count">0</span></p>
-    <p>Total Pengeluaran: <span id="total-expense-count">0</span></p>
-    <p>Pengingat Aktif: <span id="active-reminders-count">0</span></p>
-  </section>
+  <ul id="remindersList"></ul>
 </main>
+<link rel="stylesheet" href="/css/dashboard.css">
 <script type="module" src="/js/coretan.js"></script>
+<script type="module" src="/js/dailyActivities.js"></script>
 <script type="module" src="/js/auth.js"></script>
 
     </main>

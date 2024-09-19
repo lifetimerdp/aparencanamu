@@ -5,8 +5,8 @@ html, body {
     color: #333;
     margin: 0;
     padding: 0;
-    background-color: #fff; /* Warna latar belakang umum */
-    overflow-x: hidden; /* Mencegah overflow horizontal */
+    background-color: #fff;
+    overflow-x: hidden;
 }
 
 .hidden {
@@ -15,7 +15,7 @@ html, body {
 
 .container {
     width: 80%;
-    max-width: 1200px; /* Atur maksimum lebar container */
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -71,13 +71,13 @@ html, body {
     padding: 10px 15px;
     font-size: 0.9rem;
     cursor: pointer;
-    border-radius: 5px; /* Tambahkan sudut bulat untuk tombol */
+    border-radius: 5px;
     text-decoration: none;
     text-align: center;
 }
 
 .btn-daftar:hover, .btn-masuk:hover, .btn-profilku:hover, .btn-logout:hover {
-    background-color: #2A9D8F; /* Warna latar belakang saat tombol dihover */
+    background-color: #2A9D8F;
 }
 
 /* Tombol Hamburger */
@@ -192,23 +192,23 @@ html, body {
     }
 
     .dropdown-menu ul {
-        padding-bottom: 10px; /* Tambahkan padding bawah untuk ruang tombol masuk */
+        padding-bottom: 10px;
     }
 
     .dropdown-menu ul li a.btn-masuk {
         display: block;
         margin: 10px auto;
-        width: 80%; /* Atur lebar tombol masuk */
-        padding: 10px 0; /* Tambahkan padding vertikal */
+        width: 80%;
+        padding: 10px 0;
     }
 }
 
 /* Bagian Footer */
 .site-footer {
-    background-color: #2A9D8F; /* Warna latar belakang footer */
+    background-color: #2A9D8F;
     padding: 50px 0;
     color: white;
-    font-size: 0.9rem; /* Ukuran font untuk teks kecil */
+    font-size: 0.9rem;
 }
 
 .site-footer .container {
@@ -232,7 +232,7 @@ html, body {
 .site-footer .logo-branding {
     flex: 1;
     min-width: 100px;
-    text-align: left; /* Posisikan teks logo ke kiri */
+    text-align: left;
 }
 
 .site-footer .footer-sections {
@@ -248,14 +248,14 @@ html, body {
 
 .site-footer .logo-branding p {
     margin: 10px 0 0;
-    font-size: 1.1rem; /* Ukuran font untuk nama dan slogan */
-    color: #fff; /* Warna teks */
+    font-size: 1.1rem;
+    color: #fff;
 }
 
 .site-footer .quick-links ul.no-bullets {
-    list-style-type: none; /* Menghilangkan bullets */
-    padding-left: 0; /* Menghilangkan padding kiri */
-    margin: 0; /* Menghilangkan margin */
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
 }
 
 .site-footer .quick-links ul.no-bullets li {
@@ -308,213 +308,4 @@ html, body {
     .site-footer .logo-branding {
         margin-bottom: 20px;
     }
-}
-
-/* Gaya untuk notifikasi */
-.notification {
-    margin-top: 20px;
-    padding: 10px;
-    border-radius: 5px;
-    display: none; /* Sembunyikan secara default */
-}
-
-.notification.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-    display: block; /* Tampilkan ketika notifikasi sukses */
-}
-
-.notification.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    display: block; /* Tampilkan ketika notifikasi error */
-}
-
-.notification.info {
-    background-color: #cce5ff;
-    color: #004085;
-    border: 1px solid #b8daff;
-    display: block; /* Tampilkan ketika notifikasi info */
-}
-
-/* Tambahan untuk halaman profil */
-.profile-container {
-    width: 80%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #f4f4f4;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: none; /* Sembunyikan secara default */
-}
-
-.profile-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.profile-picture {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    margin-right: 20px;
-}
-
-.profile-header h1 {
-    font-size: 2rem;
-    color: #264653;
-}
-
-.profile-info {
-    font-size: 1rem;
-    color: #333;
-}
-
-.profile-info h2 {
-    font-size: 1.5rem;
-    color: #2A9D8F;
-    margin-top: 20px;
-    border-bottom: 2px solid #2A9D8F;
-    padding-bottom: 5px;
-}
-
-.profile-info p {
-    margin: 10px 0;
-}
-
-/* Tambahkan ikon untuk setiap bagian (opsional) */
-.profile-info p:before {
-    content: '•'; /* Gantilah dengan ikon yang sesuai */
-    color: #2A9D8F;
-    margin-right: 10px;
-}
-
-/* Responsivitas untuk Halaman Profil */
-@media (max-width: 768px) {
-    .profile-container {
-        width: 95%;
-        padding: 10px;
-    }
-
-    .profile-header {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .profile-picture {
-        margin-bottom: 10px;
-    }
-
-    .profile-header h1 {
-        font-size: 1.5rem;
-        text-align: center;
-    }
-
-    .profile-info h2 {
-        font-size: 1.25rem;
-    }
-
-    .profile-info p {
-        font-size: 0.9rem;
-    }
-}
-
-/* Weekly Plans Form */
-#weeklyPlansForm {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-#weeklyPlansForm label {
-    font-weight: bold;
-}
-
-#weeklyPlansForm input[type="text"],
-#weeklyPlansForm input[type="date"],
-#weeklyPlansForm input[type="time"] {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-#weeklyPlansForm button {
-    background-color: #2A9D8F;
-    color: white;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-#weeklyPlansForm button:hover {
-    background-color: #264653;
-}
-
-/* Data Table */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-table th,
-table td {
-    padding: 10px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-table th {
-    background-color: #2A9D8F;
-    color: white;
-}
-
-/* CSS untuk popup edit */
-.edit-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  z-index: 1000;
-}
-
-.edit-popup-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.edit-popup-content h3 {
-  margin-bottom: 10px;
-}
-
-.edit-popup-content form {
-  display: flex;
-  flex-direction: column;
-}
-
-.edit-popup-content input {
-  margin-bottom: 10px;
-  padding: 8px;
-  border: 1px solid #ccc;
-}
-
-.edit-popup-content button {
-  padding: 8px;
-  border: none;
-  background-color: #007BFF;
-  color: white;
-  cursor: pointer;
-}
-
-.edit-popup-content button[type="button"] {
-  background-color: #6c757d;
-  margin-top: 10px;
 }
