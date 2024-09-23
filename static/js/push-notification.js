@@ -24,7 +24,7 @@ self.addEventListener('push', (event) => {
 
     self.registration.showNotification(data.title, {
         body: data.message,
-        icon: '/img/logo-aparencanamu.png'
+        icon: '/img/logoAparencanamu.png'
     });
 });
 

@@ -1,0 +1,339 @@
+:root {
+  --header-height: 80px;
+}
+
+body {
+  padding-top: var(--header-height);
+}
+
+/* Bagian Header */
+.site-header {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: var(--header-height);
+}
+
+.site-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 100%;
+}
+
+.site-header .logo {
+    flex: 0 0 200px;
+}
+
+.site-header .logo img {
+    max-width: 100%;
+    height: auto;
+}
+
+.site-header .nav-menu {
+    flex-grow: 1;
+}
+
+.site-header .nav-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.site-header .nav-menu ul li {
+    margin: 0 15px;
+    position: relative;
+}
+
+.site-header .nav-menu ul li a {
+    color: #333;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.site-header .nav-menu ul li a:hover {
+    color: #1E90FF;
+}
+
+/* Dropdown styles */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 200px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    z-index: 1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.dropdown-content a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.3s ease;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.header-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.btn-profilku, .btn-logout, .btn-daftar, .btn-masuk {
+    background-color: #1E90FF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-left: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-profilku:hover, .btn-logout:hover, .btn-daftar:hover, .btn-masuk:hover {
+    background-color: #1873CC;
+}
+
+.hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    margin-left: 15px;
+}
+
+.hamburger span {
+    background-color: #333;
+    height: 3px;
+    width: 25px;
+    margin: 2px 0;
+    transition: all 0.3s ease;
+}
+
+/* Media Queries */
+@media (max-width: 992px) {
+    :root {
+        --header-height: 70px;
+    }
+
+    .site-header .logo {
+        flex: 0 0 150px;
+    }
+
+    .site-header .nav-menu ul li {
+        margin: 0 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --header-height: 60px;
+    }
+
+    .site-header .container {
+        padding: 0 15px;
+    }
+
+    .site-header .logo {
+        flex: 0 0 120px;
+    }
+
+    .nav-menu {
+        display: none;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    /* Mobile dropdown menu */
+    #mobile-menu {
+        display: none;
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: white;
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 1000;
+        padding: 20px 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    #mobile-menu.show {
+        display: block;
+    }
+
+    #mobile-menu ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 20px 0;
+    }
+
+    #mobile-menu ul li {
+        margin-bottom: 0;
+    }
+
+    #mobile-menu ul li a {
+        color: #333;
+        text-decoration: none;
+        font-size: 16px;
+        display: block;
+        padding: 15px 20px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        /* Removed border-bottom */
+    }
+
+    #mobile-menu .btn-profilku, 
+    #mobile-menu .btn-logout,
+    #mobile-menu .btn-masuk {
+        display: block;
+        width: calc(100% - 40px);
+        max-width: none;
+        margin: 10px 20px;
+        text-align: center;
+        padding: 15px 20px;
+        font-size: 16px;
+        box-sizing: border-box;
+        min-height: 50px;
+    }
+
+    #mobile-menu .btn-profilku,
+    #mobile-menu .btn-logout {
+        background-color: #1E90FF;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    #mobile-menu .btn-profilku:hover,
+    #mobile-menu .btn-logout:hover {
+        background-color: #1873CC;
+    }
+
+    /* Hamburger to X animation */
+    .hamburger {
+        width: 24px;
+        height: 24px;
+        position: relative;
+    }
+
+    .hamburger span {
+        position: absolute;
+        left: 0;
+        width: 24px;
+        height: 2px;
+        background-color: #24292e;
+        transition: all 0.3s ease;
+    }
+
+    .hamburger span:nth-child(1) {
+        top: 6px;
+    }
+
+    .hamburger span:nth-child(2) {
+        top: 14px;
+    }
+
+    .hamburger span:nth-child(3) {
+        top: 22px;
+    }
+
+    .hamburger.active span:nth-child(1) {
+        transform: rotate(45deg);
+        top: 12px;
+    }
+
+    .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg);
+        top: 12px;
+    }
+}
+
+/* Penyesuaian untuk aksesibilitas */
+@media (prefers-reduced-motion: reduce) {
+    .site-header .nav-menu ul li a,
+    .dropdown-content a,
+    .btn-profilku, .btn-logout, .btn-daftar, .btn-masuk,
+    .hamburger span {
+        transition: none;
+    }
+}
+
+/* Desktop styles */
+@media (min-width: 769px) {
+    .site-header .nav-menu {
+        display: block;
+    }
+
+    .site-header .nav-menu ul {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
+    .site-header .nav-menu ul li {
+        margin: 0 10px;
+    }
+
+    .site-header .nav-menu ul li:last-child {
+        margin-right: 0;
+    }
+
+    .header-buttons {
+        display: none;
+    }
+
+    #mobile-menu {
+        display: none !important;
+    }
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+
+    .header-buttons {
+        display: flex;
+    }
+
+    #mobile-menu .btn-masuk,
+    #mobile-menu .btn-profilku,
+    #mobile-menu .btn-logout {
+        display: block;
+    }
+}

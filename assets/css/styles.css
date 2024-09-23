@@ -1,0 +1,21 @@
+/* Gaya umum untuk seluruh halaman */
+html, body {
+    height: 100%;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+    overflow-x: hidden;
+}
+
+.hidden {
+  display: none;
+}
+
+.container {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
