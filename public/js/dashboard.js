@@ -292,8 +292,10 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
   editPopup.style.zIndex = '1000';
 
   let formContent = '';
-  for (const key in currentData) {
-    if (key !== 'id' && key !== 'userId') {
+  const order = getOrderForType(type);
+
+  order.forEach(key => {
+    if (currentData.hasOwnProperty(key) && key !== 'id' && key !== 'userId') {
       const isExcluded = (
         (type === 'dailyActivities' && key === 'completed') ||
         (type === 'tasks' && key === 'completed') ||
@@ -303,35 +305,13 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
       );
 
       if (!isExcluded) {
-        let label = key;
+        let label = getLabelForKey(key, type);
         let inputType = 'text';
         let inputContent = '';
 
         switch (key) {
-          case 'name':
-            label = `Nama ${typeName}`;
-            break;
-          case 'date':
-            if (type === 'dailyActivities') {
-              label = 'Tanggal';
-            } else if (type === 'reminders') {
-              label = 'Tanggal';
-            }
-            break;
-          case 'time':
-            if (type === 'reminders') {
-              label = 'Waktu';
-            }
-            break;
-          case 'createdAt':
-            label = 'Dibuat tanggal';
-            break;
-          case 'endDate':
-            label = 'Berakhir tanggal';
-            break;
           case 'duration':
             if (type === 'weeklyPlans') {
-              label = 'Durasi';
               inputType = 'select';
               inputContent = `
                 <select id="edit-${key}">
@@ -342,17 +322,8 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
               `;
             }
             break;
-          case 'category':
-            label = 'Kategori';
-            break;
           case 'amount':
-            label = 'Jumlah';
             inputType = 'number';
-            break;
-          case 'month':
-            if (type === 'budget') {
-              label = 'Bulan';
-            }
             break;
         }
 
@@ -373,7 +344,7 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
         }
       }
     }
-  }
+  });
 
   editPopup.innerHTML = `
     <div class="edit-popup-content">
@@ -397,8 +368,8 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
   editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const updatedFields = {};
-    for (const key in currentData) {
-      if (key !== 'id' && key !== 'userId') {
+    order.forEach(key => {
+      if (currentData.hasOwnProperty(key) && key !== 'id' && key !== 'userId') {
         const input = document.getElementById(`edit-${key}`);
         if (input && !input.disabled) {
           if (input.type === 'checkbox') {
@@ -412,7 +383,7 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
           }
         }
       }
-    }
+    });
 
     try {
       await editData(type, id, updatedFields, parentId, subParentId);
@@ -425,6 +396,49 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
   });
 }
 
+function getOrderForType(type) {
+  switch (type) {
+    case 'dailyActivities':
+      return ['name', 'date'];
+    case 'weeklyPlans':
+      return ['name', 'createdAt', 'endDate', 'duration'];
+    case 'incomes':
+      return ['name', 'category', 'amount'];
+    case 'expenses':
+      return ['name', 'category', 'amount'];
+    case 'reminders':
+      return ['name', 'date', 'time'];
+    case 'budget':
+      return ['name', 'month', 'amount'];
+    default:
+      return ['name'];
+  }
+}
+
+function getLabelForKey(key, type) {
+  switch (key) {
+    case 'name':
+      return `Nama ${getTypeName(type)}`;
+    case 'date':
+      return 'Tanggal';
+    case 'time':
+      return 'Waktu';
+    case 'createdAt':
+      return 'Dibuat tanggal';
+    case 'endDate':
+      return 'Berakhir tanggal';
+    case 'duration':
+      return 'Durasi';
+    case 'category':
+      return 'Kategori';
+    case 'amount':
+      return 'Jumlah';
+    case 'month':
+      return 'Bulan';
+    default:
+      return key.charAt(0).toUpperCase() + key.slice(1);
+  }
+}
 const getTypeName = (type) => {
     switch (type) {
         case "dailyActivities":
