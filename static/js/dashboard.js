@@ -4,28 +4,43 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 import "./auth.js";
 import { renderSubActivities, addTaskForm, renderTasks, addSubActivityForm, checkExpiredDailyActivities, addDailyActivity, initUserId } from "./dailyActivities.js";
 import { renderSubWeeklyPlans, addSubWeeklyPlanForm, checkExpiredWeeklyPlans, initWeeklyPlans, renderWeeklyPlans, loadWeeklyPlans } from "./weeklyPlans.js";
-
 import { addExpense, addIncome, addBudget, addReminder, loadExpensesAndIncomes } from "./financialManagement.js";
-const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-const dailyActivitiesForm = document.getElementById("daily-activities-form");
-const dailyActivitiesInput = document.getElementById("daily-activities-input");
-const dailyActivitiesDate = document.getElementById("daily-activities-date");
-const budgetForm = document.getElementById("budget-form");
-const budgetInput = document.getElementById("budget-input");
-const budgetMonth = document.getElementById("budget-month");
-const budgetAmount = document.getElementById("budget-amount");
-const expenseForm = document.getElementById("expense-form");
-const expenseInput = document.getElementById("expense-input");
-const expenseCategory = document.getElementById("expense-category");
-const expenseAmount = document.getElementById("expense-amount");
-const incomeForm = document.getElementById("income-form");
-const incomeInput = document.getElementById("income-input");
-const incomeCategory = document.getElementById("income-category");
-const incomeAmount = document.getElementById("income-amount");
-const reminderForm = document.getElementById("reminder-form");
-const reminderInput = document.getElementById("reminder-input");
-const reminderDate = document.getElementById("reminder-date");
-const reminderTime = document.getElementById("reminder-time");
+const CONFIG = {
+  months: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
+  forms: {
+    dailyActivities: document.getElementById("daily-activities-form"),
+    budget: document.getElementById("budget-form"),
+    expense: document.getElementById("expense-form"),
+    income: document.getElementById("income-form"),
+    reminder: document.getElementById("reminder-form")
+  },
+  inputs: {
+    dailyActivities: {
+      name: document.getElementById("daily-activities-input"),
+      date: document.getElementById("daily-activities-date")
+    },
+    budget: {
+      name: document.getElementById("budget-input"),
+      month: document.getElementById("budget-month"),
+      amount: document.getElementById("budget-amount")
+    },
+    expense: {
+      name: document.getElementById("expense-input"),
+      category: document.getElementById("expense-category"),
+      amount: document.getElementById("expense-amount")
+    },
+    income: {
+      name: document.getElementById("income-input"),
+      category: document.getElementById("income-category"),
+      amount: document.getElementById("income-amount")
+    },
+    reminder: {
+      name: document.getElementById("reminder-input"),
+      date: document.getElementById("reminder-date"),
+      time: document.getElementById("reminder-time")
+    }
+  }
+};
 export let userId = null;
 const formatRupiah = (amount) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(amount);
@@ -48,170 +63,281 @@ export const checkAuth = () => {
         });
     });
 };
-export const renderList = (listElement, items, dataType, parentId = null, subParentId = null) => {
-    if (!listElement) return;
-    listElement.innerHTML = "";
-    const renderGroupedItems = (groupedItems, createHeader) => {
-        Object.keys(groupedItems).forEach((groupKey) => {
-            const header = createHeader(groupKey);
-            listElement.appendChild(header);
-            groupedItems[groupKey].forEach((item) => {
-                const li = document.createElement("li");
-                let content = `${item.name}`;
-                if (dataType === "expenses" || dataType === "incomes") {
-                    content += ` - ${formatRupiah(item.amount)}`;
-                } else if (dataType === "budget") {
-                    content += ` - ${formatRupiah(item.amount)}`;
-                } else if (dataType === "dailyActivities") {
-                    const dateToShow = formatDate(item.date);
-                    content += ` - ${dateToShow}`;
-                }
+// Helper function untuk membuat elemen list item
+const createListItem = (item, dataType, parentId = null, subParentId = null) => {
+  const li = document.createElement("li");
+  let content = item.name;
 
-                li.setAttribute("data-id", item.id);
-                li.innerHTML = `
+  // Tambahkan format khusus berdasarkan tipe data
+  if (dataType === "expenses" || dataType === "incomes" || dataType === "budget") {
+    content += ` - ${formatRupiah(item.amount)}`;
+  } else if (dataType === "dailyActivities") {
+    const dateToShow = formatDate(item.date);
+    content += ` - ${dateToShow}`;
+  }
 
-          <div class="item-content">
+  li.setAttribute("data-id", item.id);
+  li.innerHTML = `
+    <div class="item-content">
+      <span class="item-name">${content}</span>
+      <div class="item-actions">
+        <button class="edit-btn" 
+          data-id="${item.id}" 
+          data-name="${item.name}" 
+          data-type="${dataType}" 
+          data-parent-id="${parentId || ""}" 
+          data-sub-parent-id="${subParentId || ""}">
+          Edit
+        </button>
+        <button class="delete-btn" 
+          data-id="${item.id}" 
+          data-type="${dataType}">
+          Hapus
+        </button>
+      </div>
+    </div>
+  `;
 
-            <span class="item-name">${content}</span>
+  // Tambahkan form sub-activity atau sub-weekly-plan jika diperlukan
+  if (dataType === "dailyActivities") {
+    addSubActivityForm(li, item);
+  } else if (dataType === "weeklyPlans") {
+    addSubWeeklyPlanForm(li, item);
+  }
 
-            <div class="item-actions">
-
-              <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}" data-parent-id="${parentId || ""}" data-sub-parent-id="${subParentId || ""}">Edit</button>
-
-              <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
-
-            </div>
-
-          </div>`;
-                if (dataType === "dailyActivities") {
-                    addSubActivityForm(li, item);
-                } else if (dataType === "weeklyPlans") {
-                    addSubWeeklyPlanForm(li, item);
-                }
-
-                listElement.appendChild(li);
-            });
-        });
-    };
-    const formatDate = (date) => {
-        if (date === "Hari Ini") {
-            const today = new Date();
-            return `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
-        } else if (date === "Besok") {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            return `${tomorrow.getDate()} ${months[tomorrow.getMonth()]} ${tomorrow.getFullYear()}`;
-        } else {
-            return date;
-        }
-    };
-    const formatDateToIndonesian = (date) => {
-        const [year, monthIndex, day] = date.split("-");
-        const month = months[parseInt(monthIndex, 10) - 1];
-        return `${parseInt(day, 10)} ${month} ${year}`;
-    };
-    const groupedItems = items.reduce((grouped, item) => {
-        let groupKey;
-        if (dataType === "reminders") {
-            groupKey = formatDateToIndonesian(item.date);
-        } else if (dataType === "budget") {
-            groupKey = item.month;
-        } else if (dataType === "weeklyPlans") {
-            groupKey = `${item.createdAt} - ${item.endDate}`;
-        } else {
-            groupKey = "";
-        }
-
-        if (!grouped[groupKey]) {
-            grouped[groupKey] = [];
-        }
-
-        grouped[groupKey].push(item);
-        return grouped;
-    }, {});
-    if (dataType === "reminders" || dataType === "budget" || dataType === "weeklyPlans") {
-        renderGroupedItems(groupedItems, (groupKey) => {
-            const header = document.createElement("h3");
-            header.textContent = groupKey;
-            return header;
-        });
-    } else {
-        items.forEach((item) => {
-            const li = document.createElement("li");
-            let content = `${item.name}`;
-            if (dataType === "expenses" || dataType === "incomes") {
-                content += ` - ${formatRupiah(item.amount)}`;
-            } else if (dataType === "dailyActivities") {
-                const dateToShow = formatDate(item.date);
-                content += ` - ${dateToShow}`;
-            }
-
-            li.setAttribute("data-id", item.id);
-            li.innerHTML = `
-
-        <div class="item-content">
-
-          <span class="item-name">${content}</span>
-
-          <div class="item-actions">
-
-            <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}" data-parent-id="${parentId || ""}" data-sub-parent-id="${subParentId || ""}">Edit</button>
-
-            <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
-
-          </div>
-
-        </div>`;
-            if (dataType === "dailyActivities") {
-                addSubActivityForm(li, item);
-            } else if (dataType === "weeklyPlans") {
-                addSubWeeklyPlanForm(li, item);
-            }
-
-            listElement.appendChild(li);
-        });
-    }
+  return li;
 };
-incomeForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const incomeName = incomeInput.value;
-  const incomeCategoryValue = incomeCategory.value;
-  const incomeAmountValue = incomeAmount.value;
+export const renderList = (listElement, items, dataType, parentId = null, subParentId = null) => {
+  if (!listElement) return;
+  listElement.innerHTML = "";
 
-  if (incomeName.trim() && incomeCategoryValue.trim() && incomeAmountValue) {
-    try {
-      await addIncome(incomeName, incomeCategoryValue, parseFloat(incomeAmountValue));
-      incomeInput.value = "";
-      incomeCategory.value = "";
-      incomeAmount.value = "";
-    } catch (error) {
-      console.error("Error adding income:", error);
-      alert("Terjadi kesalahan saat menambahkan pendapatan. Silakan coba lagi.");
-    }
-  } else {
-    alert("Mohon isi semua field pendapatan.");
-  }
-});
-expenseForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const expenseName = expenseInput.value;
-  const expenseCategoryValue = expenseCategory.value;
-  const expenseAmountValue = expenseAmount.value;
+  const createListItem = (item, groupKey = "") => {
+    const li = document.createElement("li");
+    let content = item.name;
 
-  if (expenseName.trim() && expenseCategoryValue.trim() && expenseAmountValue) {
-    try {
-      await addExpense(expenseName, expenseCategoryValue, parseFloat(expenseAmountValue));
-      expenseInput.value = "";
-      expenseCategory.value = "";
-      expenseAmount.value = "";
-    } catch (error) {
-      console.error("Error adding expense:", error);
-      alert("Terjadi kesalahan saat menambahkan pengeluaran. Silakan coba lagi.");
+    // Add additional content based on data type
+    if (["expenses", "incomes", "budget"].includes(dataType)) {
+      content += ` - ${formatRupiah(item.amount)}`;
+    } else if (dataType === "dailyActivities") {
+      const dateToShow = formatDate(item.date);
+      content += ` - ${dateToShow}`;
     }
+
+    li.setAttribute("data-id", item.id);
+    li.innerHTML = `
+      <div class="item-content">
+        <span class="item-name">${content}</span>
+        <div class="item-actions">
+          <button class="edit-btn" 
+            data-id="${item.id}" 
+            data-name="${item.name}" 
+            data-type="${dataType}" 
+            data-parent-id="${parentId || ""}" 
+            data-sub-parent-id="${subParentId || ""}">Edit</button>
+          <button class="delete-btn" 
+            data-id="${item.id}" 
+            data-type="${dataType}">Hapus</button>
+        </div>
+      </div>`;
+
+    // Add form handlers for specific data types
+    if (dataType === "dailyActivities") {
+      addSubActivityForm(li, item);
+    } else if (dataType === "weeklyPlans") {
+      addSubWeeklyPlanForm(li, item);
+    }
+
+    return li;
+  };
+
+  const formatDate = (date) => {
+    if (date === "Hari Ini") {
+      const today = new Date();
+      return `${today.getDate()} ${CONFIG.months[today.getMonth()]} ${today.getFullYear()}`;
+    } else if (date === "Besok") {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return `${tomorrow.getDate()} ${CONFIG.months[tomorrow.getMonth()]} ${tomorrow.getFullYear()}`;
+    }
+    return date;
+  };
+
+  const formatDateToIndonesian = (date) => {
+    const [year, monthIndex, day] = date.split("-");
+    const month = CONFIG.months[parseInt(monthIndex, 10) - 1];
+    return `${parseInt(day, 10)} ${month} ${year}`;
+  };
+
+  // Handle grouped items (reminders, budget, weeklyPlans)
+  if (["reminders", "budget", "weeklyPlans"].includes(dataType)) {
+    const groupedItems = items.reduce((grouped, item) => {
+      let groupKey;
+      if (dataType === "reminders") {
+        groupKey = formatDateToIndonesian(item.date);
+      } else if (dataType === "budget") {
+        groupKey = item.month;
+      } else if (dataType === "weeklyPlans") {
+        groupKey = `${item.createdAt} - ${item.endDate}`;
+      }
+
+      if (!grouped[groupKey]) {
+        grouped[groupKey] = [];
+      }
+      grouped[groupKey].push(item);
+      return grouped;
+    }, {});
+
+    // Render grouped items
+    Object.entries(groupedItems).forEach(([groupKey, groupItems]) => {
+      const header = document.createElement("h3");
+      header.textContent = groupKey;
+      listElement.appendChild(header);
+
+      groupItems.forEach(item => {
+        listElement.appendChild(createListItem(item, groupKey));
+      });
+    });
   } else {
-    alert("Mohon isi semua field pengeluaran.");
+    // Render ungrouped items
+    items.forEach(item => {
+      listElement.appendChild(createListItem(item));
+    });
   }
-});
+};
+// Helper function to handle form submissions
+const handleFormSubmission = async (formData) => {
+  const { 
+    formType, 
+    nameInput, 
+    categoryInput = null, 
+    amountInput = null, 
+    monthInput = null, 
+    dateInput = null,
+    timeInput = null 
+  } = formData;
+
+  if (!nameInput.trim()) {
+    alert(`Mohon isi nama ${getTypeName(formType).toLowerCase()}.`);
+    return false;
+  }
+
+  try {
+    let success = false;
+    switch (formType) {
+      case 'incomes':
+        if (!categoryInput?.trim() || !amountInput) {
+          alert('Mohon isi semua field pendapatan.');
+          return false;
+        }
+        success = await addIncome(nameInput, categoryInput, parseFloat(amountInput));
+        break;
+
+      case 'expenses': 
+        if (!categoryInput?.trim() || !amountInput) {
+          alert('Mohon isi semua field pengeluaran.');
+          return false;
+        }
+        success = await addExpense(nameInput, categoryInput, parseFloat(amountInput));
+        break;
+
+      case 'budget':
+        if (!monthInput?.trim() || !amountInput) {
+          alert('Mohon isi semua field anggaran.');
+          return false;
+        }
+        success = await addBudget(nameInput, monthInput, parseFloat(amountInput));
+        break;
+
+      case 'reminders':
+        if (!dateInput?.trim() || !timeInput?.trim()) {
+          alert('Mohon isi semua field pengingat.');
+          return false;
+        }
+        success = await addReminder(nameInput, dateInput, timeInput);
+        break;
+
+      case 'dailyActivities':
+        if (!dateInput?.trim()) {
+          alert('Mohon isi tanggal aktivitas.');
+          return false;
+        }
+        success = await addDailyActivity(nameInput, dateInput);
+        break;
+
+      default:
+        console.error('Form type tidak dikenali:', formType);
+        return false;
+    }
+
+    if (success) {
+      // Clear form inputs
+      const inputs = {
+        nameInput: '',
+        categoryInput: categoryInput ? '' : null,
+        amountInput: amountInput ? '' : null,
+        monthInput: monthInput ? 'Januari' : null,
+        dateInput: dateInput ? (formType === 'dailyActivities' ? 'today' : '') : null,
+        timeInput: timeInput ? '' : null
+      };
+
+      return inputs;
+    }
+
+    return false;
+
+  } catch (error) {
+    console.error(`Error adding ${formType}:`, error);
+    alert(`Terjadi kesalahan saat menambahkan ${getTypeName(formType).toLowerCase()}. Silakan coba lagi.`);
+    return false;
+  }
+};
+// Event handler setup function
+const setupFormHandler = (formElement, formType) => {
+  formElement.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const nameInput = formElement.querySelector(`#${formType}-input`);
+    const categoryInput = formElement.querySelector(`#${formType}-category`);
+    const amountInput = formElement.querySelector(`#${formType}-amount`);
+    const monthInput = formElement.querySelector(`#${formType}-month`);
+    const dateInput = formElement.querySelector(`#${formType}-date`);
+    const timeInput = formElement.querySelector(`#${formType}-time`);
+
+    const formData = {
+      formType,
+      nameInput: nameInput.value,
+      categoryInput: categoryInput?.value,
+      amountInput: amountInput?.value,
+      monthInput: monthInput?.value,
+      dateInput: dateInput?.value,
+      timeInput: timeInput?.value
+    };
+
+    const clearedInputs = await handleFormSubmission(formData);
+
+    if (clearedInputs) {
+      // Clear all inputs that exist
+      nameInput.value = clearedInputs.nameInput;
+      if (categoryInput) categoryInput.value = clearedInputs.categoryInput;
+      if (amountInput) amountInput.value = clearedInputs.amountInput;
+      if (monthInput) monthInput.value = clearedInputs.monthInput;
+      if (dateInput) dateInput.value = clearedInputs.dateInput;
+      if (timeInput) timeInput.value = clearedInputs.timeInput;
+    }
+  });
+};
+const setupFormHandlers = () => {
+  Object.entries(CONFIG.forms).forEach(([formType, form]) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = getFormData(formType);
+      const success = await handleFormSubmission(formData);
+      if (success) {
+        clearFormInputs(formType);
+      }
+    });
+  });
+};
 const editData = async (dataType, id, updatedFields, parentId = null, subParentId = null) => {
     try {
         const user = await checkAuth();
@@ -242,21 +368,18 @@ const editData = async (dataType, id, updatedFields, parentId = null, subParentI
             default:
                 throw new Error(`Tipe data tidak dikenal: ${dataType}`);
         }
-
         const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) {
             throw new Error(`Dokumen dengan ID ${id} tidak ditemukan`);
         }
-
         const currentData = docSnap.data();
         const updatedData = { ...currentData, ...updatedFields };
         if (dataType === "weeklyPlans" && updatedFields.duration !== undefined) {
             const createdAtDate = new Date(currentData.createdAt.split(" ").reverse().join("-"));
             const endDate = new Date(createdAtDate);
             endDate.setDate(endDate.getDate() + updatedFields.duration * 7 - 1);
-            updatedData.endDate = `${endDate.getDate()} ${months[endDate.getMonth()]} ${endDate.getFullYear()}`;
+            updatedData.endDate = `${endDate.getDate()} ${CONFIG.months[endDate.getMonth()]} ${endDate.getFullYear()}`;
         }
-
         const hasChanges = Object.keys(updatedFields).some((key) => {
             const isAllowedToChange = !(
                 (dataType === "dailyActivities" && (key === "date" || key === "completed")) ||
@@ -271,7 +394,6 @@ const editData = async (dataType, id, updatedFields, parentId = null, subParentI
         } else {
             console.log(`Tidak ada perubahan yang diizinkan untuk ${dataType} dengan ID ${id}`);
         }
-
         return updatedData;
     } catch (error) {
         console.error(`Error mengupdate ${dataType}:`, error);
@@ -306,39 +428,98 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
 
       if (!isExcluded) {
         let label = getLabelForKey(key, type);
-        let inputType = 'text';
         let inputContent = '';
 
         switch (key) {
           case 'duration':
             if (type === 'weeklyPlans') {
-              inputType = 'select';
               inputContent = `
                 <select id="edit-${key}">
-                  <option value="1" ${currentData[key] === 1 ? 'selected' : ''}>1 minggu</option>
-                  <option value="2" ${currentData[key] === 2 ? 'selected' : ''}>2 minggu</option>
-                  <option value="3" ${currentData[key] === 3 ? 'selected' : ''}>3 minggu</option>
+                  <option value="1" ${currentData[key] === 1 ? 'selected' : ''}>1 Minggu</option>
+                  <option value="2" ${currentData[key] === 2 ? 'selected' : ''}>2 Minggu</option>
+                  <option value="3" ${currentData[key] === 3 ? 'selected' : ''}>3 Minggu</option>
                 </select>
               `;
             }
             break;
-          case 'amount':
-            inputType = 'number';
+
+          case 'category':
+            if (type === 'incomes') {
+              inputContent = `
+                <select id="edit-${key}" class="category-selector" data-current-value="${currentData[key]}">
+                  <option value="Gaji" ${currentData[key] === 'Gaji' ? 'selected' : ''}>Gaji</option>
+                  <option value="Passive income" ${currentData[key] === 'Passive income' ? 'selected' : ''}>Passive income</option>
+                  <option value="Uang kos-kosan" ${currentData[key] === 'Uang kos-kosan' ? 'selected' : ''}>Uang kos-kosan</option>
+                  <option value="custom">Tulis kategori kustom</option>
+                </select>
+                <input type="text" id="custom-${key}" class="custom-category" 
+                       style="display: ${!['Gaji', 'Passive income', 'Uang kos-kosan'].includes(currentData[key]) ? 'block' : 'none'}" 
+                       value="${!['Gaji', 'Passive income', 'Uang kos-kosan'].includes(currentData[key]) ? currentData[key] : ''}"
+                       placeholder="Tulis kategori kustom">
+              `;
+            } else if (type === 'expenses') {
+              inputContent = `
+                <select id="edit-${key}" class="category-selector" data-current-value="${currentData[key]}">
+                  <option value="Uang jajan" ${currentData[key] === 'Uang jajan' ? 'selected' : ''}>Uang jajan</option>
+                  <option value="Bayar apartemen" ${currentData[key] === 'Bayar apartemen' ? 'selected' : ''}>Bayar apartemen</option>
+                  <option value="Uang spend bulanan" ${currentData[key] === 'Uang spend bulanan' ? 'selected' : ''}>Uang spend bulanan</option>
+                  <option value="Uang kebutuhan bulanan" ${currentData[key] === 'Uang kebutuhan bulanan' ? 'selected' : ''}>Uang kebutuhan bulanan</option>
+                  <option value="custom">Tulis kategori kustom</option>
+                </select>
+                <input type="text" id="custom-${key}" class="custom-category" 
+                       style="display: ${!['Uang jajan', 'Bayar apartemen', 'Uang spend bulanan', 'Uang kebutuhan bulanan'].includes(currentData[key]) ? 'block' : 'none'}" 
+                       value="${!['Uang jajan', 'Bayar apartemen', 'Uang spend bulanan', 'Uang kebutuhan bulanan'].includes(currentData[key]) ? currentData[key] : ''}"
+                       placeholder="Tulis kategori kustom">
+              `;
+            }
             break;
+
+          case 'amount':
+            inputContent = `
+              <div class="amount-input-wrapper" style="position: relative;">
+                <span style="position: absolute; left: 8px; top: 40%; transform: translateY(-50%);">Rp.</span>
+                <input type="text" id="edit-${key}" value="${formatNumber(currentData[key])}" 
+                       style="padding-left: 40px;"
+                       oninput="this.value = formatNumberInput(this.value)">
+              </div>
+            `;
+            break;
+
+          case 'date':
+            if (type === 'reminders') {
+              inputContent = `<input type="date" id="edit-${key}" value="${currentData[key]}">`;
+            }
+            break;
+
+          case 'time':
+            if (type === 'reminders') {
+              const timeZoneLabel = getTimeZoneLabel(currentData.timeZone || 'Asia/Makassar');
+              label = `${label} (${timeZoneLabel})`;
+              inputContent = `<input type="time" id="edit-${key}" value="${currentData[key]}">`;
+            }
+            break;
+
+          case 'month':
+            if (type === 'budget') {
+              inputContent = `
+                <select id="edit-${key}">
+                  ${CONFIG.months.map(month => `
+                    <option value="${month}" ${currentData[key] === month ? 'selected' : ''}>${month}</option>
+                  `).join('')}
+                </select>
+              `;
+            }
+            break;
+
+          default:
+            inputContent = `<input type="text" id="edit-${key}" value="${currentData[key]}">`;
         }
 
-        if (inputType === 'select') {
+        if (inputContent) {
           formContent += `
-            <div>
+            <div class="form-group">
               <label for="edit-${key}">${label}:</label>
               ${inputContent}
-            </div>
-          `;
-        } else {
-          formContent += `
-            <div>
-              <label for="edit-${key}">${label}:</label>
-              <input type="${inputType}" id="edit-${key}" value="${currentData[key]}" ${key === 'date' || key === 'createdAt' || key === 'endDate' ? 'disabled' : ''}>
             </div>
           `;
         }
@@ -351,13 +532,60 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
       <h3>Edit ${typeName}</h3>
       <form id="edit-form">
         ${formContent}
-        <button type="submit">Simpan</button>
-        <button type="button" id="cancel-edit">Batal</button>
+        <div class="button-group">
+          <button type="submit">Simpan</button>
+          <button type="button" id="cancel-edit">Batal</button>
+        </div>
       </form>
     </div>
   `;
 
   document.body.appendChild(editPopup);
+
+  // Handle category selector changes
+  const categorySelectors = editPopup.querySelectorAll('.category-selector');
+  categorySelectors.forEach(selector => {
+    const currentValue = selector.getAttribute('data-current-value');
+    const customInput = selector.parentElement.querySelector('.custom-category');
+    
+    // Set initial state
+    if (customInput && !['Gaji', 'Passive income', 'Uang kos-kosan', 'Uang jajan', 'Bayar apartemen', 'Uang spend bulanan', 'Uang kebutuhan bulanan'].includes(currentValue)) {
+      selector.value = 'custom';
+      customInput.style.display = 'block';
+      customInput.value = currentValue;
+    } else {
+      selector.value = currentValue;
+    }
+
+    selector.addEventListener('change', (e) => {
+      if (customInput) {
+        customInput.style.display = e.target.value === 'custom' ? 'block' : 'none';
+        if (e.target.value !== 'custom') {
+          customInput.value = '';
+        }
+      }
+    });
+  });
+
+  function getTimeZoneLabel(timeZone) {
+    const timeZoneMap = {
+      'Asia/Jakarta': 'WIB',
+      'Asia/Makassar': 'WITA',
+      'Asia/Jayapura': 'WIT'
+    };
+    return timeZoneMap[timeZone] || 'WITA';
+  }
+
+  function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  function formatNumberInput(value) {
+    value = value.replace(/\./g, '').replace(/[^\d]/g, '');
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  window.formatNumberInput = formatNumberInput;
 
   const cancelButton = editPopup.querySelector('#cancel-edit');
   cancelButton.addEventListener('click', () => {
@@ -368,15 +596,17 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
   editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const updatedFields = {};
+
     order.forEach(key => {
       if (currentData.hasOwnProperty(key) && key !== 'id' && key !== 'userId') {
         const input = document.getElementById(`edit-${key}`);
         if (input && !input.disabled) {
-          if (input.type === 'checkbox') {
-            updatedFields[key] = input.checked;
-          } else if (input.type === 'number') {
-            updatedFields[key] = parseFloat(input.value);
-          } else if (input.tagName.toLowerCase() === 'select') {
+          if (key === 'category') {
+            const customInput = document.getElementById(`custom-${key}`);
+            updatedFields[key] = input.value === 'custom' ? customInput.value : input.value;
+          } else if (key === 'amount') {
+            updatedFields[key] = parseFloat(input.value.replace(/\./g, ''));
+          } else if (key === 'duration') {
             updatedFields[key] = parseInt(input.value);
           } else {
             updatedFields[key] = input.value.trim();
@@ -396,12 +626,13 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
   });
 }
 
+// Helper functions
 function getOrderForType(type) {
   switch (type) {
     case 'dailyActivities':
       return ['name', 'date'];
     case 'weeklyPlans':
-      return ['name', 'createdAt', 'endDate', 'duration'];
+      return ['name', 'duration'];
     case 'incomes':
       return ['name', 'category', 'amount'];
     case 'expenses':
@@ -423,10 +654,6 @@ function getLabelForKey(key, type) {
       return 'Tanggal';
     case 'time':
       return 'Waktu';
-    case 'createdAt':
-      return 'Dibuat tanggal';
-    case 'endDate':
-      return 'Berakhir tanggal';
     case 'duration':
       return 'Durasi';
     case 'category':
@@ -469,15 +696,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!userId) {
             throw new Error("User not authenticated");
         }
-
         const user = await checkAuth();
         const userDocRef = doc(db, "users", user.uid);
+        setupFormHandlers();
         const loadAndRenderSubActivities = (activityElement, activityId) => {
             if (!activityId) {
                 console.error("Activity ID is null or undefined.");
                 return;
             }
-
             const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", activityId), "subActivities");
             const unsubscribe = onSnapshot(subActivitiesRef, (snapshot) => {
                 const subActivities = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -559,7 +785,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (error) {
         console.error("Error loading user data:", error);
     }
-
     document.addEventListener("submit", async (e) => {
         if (e.target.classList.contains("sub-activity-form")) {
             e.preventDefault();
@@ -574,7 +799,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                         if (!userId) {
                             userId = user.uid;
                         }
-
                         const dailyActivityRef = doc(db, "users", userId, "dailyActivities", activityId);
                         const subActivitiesRef = collection(dailyActivityRef, "subActivities");
                         const existingSubActivity = await getDocs(query(subActivitiesRef, where("name", "==", subActivityName)));
@@ -591,48 +815,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
     });
-});
-dailyActivitiesForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const activityName = dailyActivitiesInput.value;
-    const activityDate = dailyActivitiesDate.value;
-    const success = await addDailyActivity(activityName, activityDate);
-    if (success) {
-        dailyActivitiesInput.value = "";
-        dailyActivitiesDate.value = "today";
-    }
-});
-budgetForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const budgetName = budgetInput.value;
-    const budgetMonthValue = budgetMonth.value;
-    const budgetAmountValue = budgetAmount.value;
-    if (budgetName.trim() && budgetAmountValue) {
-        try {
-            await addBudget(budgetName, budgetMonthValue, parseFloat(budgetAmountValue));
-            budgetInput.value = "";
-            budgetMonth.value = "Januari";
-            budgetAmount.value = "";
-        } catch (error) {
-            console.error("Error adding budget:", error);
-        }
-    }
-});
-reminderForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const reminderName = reminderInput.value;
-    const reminderDateValue = reminderDate.value;
-    const reminderTimeValue = reminderTime.value;
-    if (reminderName.trim()) {
-        try {
-            await addReminder(reminderName, reminderDateValue, reminderTimeValue);
-            reminderInput.value = "";
-            reminderDate.value = "";
-            reminderTime.value = "";
-        } catch (error) {
-            console.error("Error adding reminder:", error);
-        }
-    }
 });
 const deleteData = async (dataType, dataId, parentId, subParentId) => {
     console.log("Deleting:", { dataType, dataId, parentId, subParentId, userId });
@@ -664,7 +846,6 @@ const deleteData = async (dataType, dataId, parentId, subParentId) => {
                 console.error("Error saat memeriksa dokumen setelah error izin:", checkError);
             }
         }
-
         throw error;
     }
 };
@@ -672,7 +853,6 @@ const getDocRef = (dataType, dataId, parentId, subParentId) => {
     if (!userId) {
         throw new Error("User ID is not set. User might not be authenticated.");
     }
-
     const userDocRef = doc(db, "users", userId);
     switch (dataType) {
         case "dailyActivities":

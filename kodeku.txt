@@ -1,0 +1,369 @@
+html:
+{{ define "main" }}
+<main>
+  <h1>Dashboard</h1>
+  <!-- Selector Aplikasi -->
+  <div class="app-selector">
+    <button class="app-btn active" data-target="daily-activities">Aktivitas Harian</button>
+    <button class="app-btn" data-target="weekly-plans">Rencana Mingguan</button>
+    <button class="app-btn" data-target="financial-management">Pengelola Keuangan</button>
+  </div>
+
+  <!-- Aktivitas Harian -->
+  <section id="daily-activities" class="app-section visible">
+    <h2>Aktivitas Harian</h2>
+    <div id="daily-calendar"></div>
+    <ul id="daily-activities-list" class="activity-list"></ul>
+    <form id="daily-activities-form" class="add-form">
+      <input type="text" id="daily-activities-input" placeholder="Tambah Aktivitas Harian" required>
+      <select id="daily-activities-date">
+        <option value="today">Hari Ini</option>
+        <option value="tomorrow">Besok</option>
+      </select>
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+  
+  <!-- Template untuk sub-aktivitas -->
+  <template id="sub-activity-template">
+    <li class="sub-activity-item slide-in-right">
+      <span class="sub-activity-text"></span>
+      <button class="edit-sub-btn">Edit</button>
+      <button class="delete-sub-btn">Hapus</button>
+      <form class="sub-activity-form add-form">
+        <input type="text" class="sub-activity-input" placeholder="Tambah Sub-Aktivitas" required>
+        <button type="submit">Tambah</button>
+      </form>
+      <ul class="sub-activity-list"></ul>
+    </li>
+  </template>
+  
+  <!-- Template untuk tasks -->
+  <template id="task-template">
+    <li class="task-item slide-in-right">
+      <span class="task-text"></span>
+      <button class="edit-task-btn">Edit</button>
+      <button class="delete-task-btn">Hapus</button>
+      <form class="task-form">
+        <input type="text" class="task-input" placeholder="Add new task">
+        <button type="submit">Add Task</button>
+      </form>
+    </li>
+  </template>
+  
+  <!-- Rencana Mingguan -->
+  <section id="weekly-plans" class="app-section">
+    <h2>Rencana Mingguan</h2>
+    <div id="weekly-calendar"></div>
+    <ul id="weekly-plans-list"></ul>
+    <form id="weekly-plans-form">
+      <input type="text" id="weekly-plans-input" placeholder="Tambah Rencana Mingguan">
+      <select id="weekly-plans-duration">
+        <option value="1">1 Minggu</option>
+        <option value="2">2 Minggu</option>
+        <option value="3">3 Minggu</option>
+      </select>
+      <button type="submit">Tambah</button>
+    </form>
+  </section>
+  
+  <!-- Template untuk sub-rencana mingguan -->
+  <template id="sub-weeklyPlan-template">
+  <div class="sub-weeklyPlan-container">
+    <form class="sub-weeklyPlan-form">
+      <input type="text" class="sub-weeklyPlan-input" placeholder="Tambah Sub-Rencana Mingguan">
+      <button type="submit">Tambah</button>
+    </form>
+    <ul class="sub-weeklyPlan-list"></ul>
+  </div>
+  </template>
+  
+  <!-- Pengelolaan Keuangan -->
+  <section id="financial-management" class="app-section">
+    <h2>Pengelolaan Keuangan</h2>
+    <div class="selector">
+      <button class="selector-btn" data-target="incomes">Pendapatan</button>
+      <button class="selector-btn" data-target="expenses">Pengeluaran</button>
+      <button class="selector-btn" data-target="reminders">Pengingat</button>
+      <button class="selector-btn" data-target="budget">Anggaran Bulanan</button>
+    </div>
+
+    <div id="incomes" class="financial-section">
+      <h3>Pendapatan</h3>
+      <ul id="incomes-list"></ul>
+      <form id="income-form">
+        <input type="text" id="income-input" placeholder="Nama Pendapatan">
+        <input type="text" id="income-category" placeholder="Kategori Pendapatan">
+        <input type="number" id="income-amount" placeholder="Jumlah Pendapatan">
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+
+    <div id="expenses" class="financial-section hidden">
+      <h3>Pengeluaran</h3>
+      <ul id="expenses-list"></ul>
+      <form id="expense-form">
+        <input type="text" id="expense-input" placeholder="Nama Pengeluaran">
+        <input type="text" id="expense-category" placeholder="Kategori Pengeluaran">
+        <input type="number" id="expense-amount" placeholder="Jumlah Pengeluaran">
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+
+    <div id="reminders" class="financial-section hidden">
+      <h3>Pengingat Pembayaran</h3>
+      <ul id="reminders-list"></ul>
+      <form id="reminder-form">
+        <input type="text" id="reminder-input" placeholder="Nama Pengingat">
+        <input type="date" id="reminder-date" required="">
+        <input type="time" id="reminder-time" required>
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+
+    <div id="budget" class="financial-section hidden">
+      <h3>Anggaran Bulanan</h3>
+      <ul id="budget-list"></ul>
+      <form id="budget-form">
+        <input type="text" id="budget-input" placeholder="Nama Anggaran">
+        <select id="budget-month" name="budgetMonth">
+          <option value="Januari">Januari</option>
+          <option value="Februari">Februari</option>
+          <option value="Maret">Maret</option>
+          <option value="April">April</option>
+          <option value="Mei">Mei</option>
+          <option value="Juni">Juni</option>
+          <option value="Juli">Juli</option>
+          <option value="Agustus">Agustus</option>
+          <option value="September">September</option>
+          <option value="Oktober">Oktober</option>
+          <option value="November">November</option>
+          <option value="Desember">Desember</option>
+        </select>
+        <input type="number" id="budget-amount" placeholder="Jumlah Anggaran">
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+  </section>
+  
+  <ul id="remindersList"></ul>
+</main>
+<link rel="stylesheet" href="{{ "css/dashboard.css" | relURL }}">
+<script type="module" src="{{ "js/dashboard.js" | relURL }}"></script>
+<script type="module" src="{{ "js/dailyActivities.js" | relURL }}"></script>
+<script type="module" src="{{ "js/auth.js" | relURL }}"></script>
+{{ end }}
+
+firestore rules:
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Aturan untuk koleksi pengguna
+    match /users/{userId} {
+      // Izinkan create hanya jika pengguna terautentikasi
+      allow create: if request.auth != null;
+
+      // Izinkan read dan write hanya jika pengguna terautentikasi dan UID sesuai dengan userId
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Aturan untuk subkoleksi aktivitas
+      match /aktivitas/{activityId} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Aturan untuk subkoleksi aktivitas harian
+      match /dailyActivities/{activityId} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+
+        // Aturan untuk subkoleksi sub-aktivitas harian
+        match /subActivities/{subActivityId} {
+          allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+
+          // Aturan untuk subkoleksi tugas
+          match /tasks/{taskId} {
+            allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+          }
+        }
+      }
+
+      // Aturan untuk subkoleksi rencana mingguan
+      match /weeklyPlans/{planId} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+
+        // Aturan untuk subkoleksi sub-rencana mingguan
+        match /subWeeklyPlans/{subPlanId} {
+          allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      // Aturan untuk subkoleksi anggaran bulanan
+      match /budget/{budgetId} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Aturan untuk subkoleksi pengeluaran
+      match /expenses/{expenseId} {
+        allow create: if request.auth != null && 
+                        request.auth.uid == userId && 
+                        request.resource.data.keys().hasAll(['name', 'category', 'amount', 'date']) &&
+                        request.resource.data.name is string &&
+                        request.resource.data.category is string &&
+                        request.resource.data.amount is number &&
+                        request.resource.data.date is timestamp;
+        allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Aturan untuk subkoleksi pendapatan
+      match /incomes/{incomeId} {
+        allow create: if request.auth != null && 
+                        request.auth.uid == userId && 
+                        request.resource.data.keys().hasAll(['name', 'category', 'amount', 'date']) &&
+                        request.resource.data.name is string &&
+                        request.resource.data.category is string &&
+                        request.resource.data.amount is number &&
+                        request.resource.data.date is timestamp;
+        allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Aturan untuk subkoleksi pengingat
+      match /reminders/{reminderId} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Aturan untuk subkoleksi subscription
+      match /subscriptions/{subscriptionId} {
+        // Izinkan CRUD hanya jika pengguna terautentikasi dan UID sesuai dengan userId
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+
+        // Validasi data subscription
+        allow create: if request.resource.data.keys().hasAll(['endpoint', 'keys']) &&
+                        request.resource.data.keys.endpoint is string &&
+                        request.resource.data.keys.keys == ['p256dh', 'auth'] &&
+                        request.resource.data.keys.p256dh is string &&
+                        request.resource.data.keys.auth is string;
+      }
+    }
+  }
+}
+
+dashboard.js:
+import{auth,db,messaging}from "./firebaseConfig.js";import{getDocs,addDoc,collection,doc,updateDoc,deleteDoc,onSnapshot,getDoc,arrayUnion}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";import{onAuthStateChanged}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";import "./auth.js";import{renderSubActivities,addTaskForm,renderTasks,addSubActivityForm,checkExpiredDailyActivities,addDailyActivity,initUserId}from "./dailyActivities.js";import{renderSubWeeklyPlans,addSubWeeklyPlanForm,checkExpiredWeeklyPlans,initWeeklyPlans,renderWeeklyPlans,loadWeeklyPlans}from "./weeklyPlans.js";import{addExpense,addIncome,addBudget,addReminder,loadExpensesAndIncomes}from "./financialManagement.js";const months=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];const dailyActivitiesForm=document.getElementById("daily-activities-form");const dailyActivitiesInput=document.getElementById("daily-activities-input");const dailyActivitiesDate=document.getElementById("daily-activities-date");const budgetForm=document.getElementById("budget-form");const budgetInput=document.getElementById("budget-input");const budgetMonth=document.getElementById("budget-month");const budgetAmount=document.getElementById("budget-amount");const expenseForm=document.getElementById("expense-form");const expenseInput=document.getElementById("expense-input");const expenseCategory=document.getElementById("expense-category");const expenseAmount=document.getElementById("expense-amount");const incomeForm=document.getElementById("income-form");const incomeInput=document.getElementById("income-input");const incomeCategory=document.getElementById("income-category");const incomeAmount=document.getElementById("income-amount");const reminderForm=document.getElementById("reminder-form");const reminderInput=document.getElementById("reminder-input");const reminderDate=document.getElementById("reminder-date");const reminderTime=document.getElementById("reminder-time");export let userId=null;const formatRupiah=(amount)=>{return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR"}).format(amount)};export const checkAuth=()=>{return new Promise((resolve,reject)=>{onAuthStateChanged(auth,async(user)=>{if(user){userId=user.uid;try{resolve(user)}catch(error){console.error("Error checking expired daily activities:",error);reject(error)}}else{userId=null;reject("Tidak ada pengguna yang login.")}})})};export const renderList=(listElement,items,dataType,parentId=null,subParentId=null)=>{if(!listElement)return;listElement.innerHTML="";const renderGroupedItems=(groupedItems,createHeader)=>{Object.keys(groupedItems).forEach((groupKey)=>{const header=createHeader(groupKey);listElement.appendChild(header);groupedItems[groupKey].forEach((item)=>{const li=document.createElement("li");let content=`${item.name}`;if(dataType==="expenses"||dataType==="incomes"){content+=` - ${formatRupiah(item.amount)}`}else if(dataType==="budget"){content+=` - ${formatRupiah(item.amount)}`}else if(dataType==="dailyActivities"){const dateToShow=formatDate(item.date);content+=` - ${dateToShow}`}
+li.setAttribute("data-id",item.id);li.innerHTML=`
+
+          <div class="item-content">
+
+            <span class="item-name">${content}</span>
+
+            <div class="item-actions">
+
+              <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}" data-parent-id="${parentId || ""}" data-sub-parent-id="${subParentId || ""}">Edit</button>
+
+              <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
+
+            </div>
+
+          </div>`;if(dataType==="dailyActivities"){addSubActivityForm(li,item)}else if(dataType==="weeklyPlans"){addSubWeeklyPlanForm(li,item)}
+listElement.appendChild(li)})})};const formatDate=(date)=>{if(date==="Hari Ini"){const today=new Date();return `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`}else if(date==="Besok"){const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);return `${tomorrow.getDate()} ${months[tomorrow.getMonth()]} ${tomorrow.getFullYear()}`}else{return date}};const formatDateToIndonesian=(date)=>{const[year,monthIndex,day]=date.split("-");const month=months[parseInt(monthIndex,10)-1];return `${parseInt(day, 10)} ${month} ${year}`};const groupedItems=items.reduce((grouped,item)=>{let groupKey;if(dataType==="reminders"){groupKey=formatDateToIndonesian(item.date)}else if(dataType==="budget"){groupKey=item.month}else if(dataType==="weeklyPlans"){groupKey=`${item.createdAt} - ${item.endDate}`}else{groupKey=""}
+if(!grouped[groupKey]){grouped[groupKey]=[]}
+grouped[groupKey].push(item);return grouped},{});if(dataType==="reminders"||dataType==="budget"||dataType==="weeklyPlans"){renderGroupedItems(groupedItems,(groupKey)=>{const header=document.createElement("h3");header.textContent=groupKey;return header})}else{items.forEach((item)=>{const li=document.createElement("li");let content=`${item.name}`;if(dataType==="expenses"||dataType==="incomes"){content+=` - ${formatRupiah(item.amount)}`}else if(dataType==="dailyActivities"){const dateToShow=formatDate(item.date);content+=` - ${dateToShow}`}
+li.setAttribute("data-id",item.id);li.innerHTML=`
+
+        <div class="item-content">
+
+          <span class="item-name">${content}</span>
+
+          <div class="item-actions">
+
+            <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}" data-parent-id="${parentId || ""}" data-sub-parent-id="${subParentId || ""}">Edit</button>
+
+            <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
+
+          </div>
+
+        </div>`;if(dataType==="dailyActivities"){addSubActivityForm(li,item)}else if(dataType==="weeklyPlans"){addSubWeeklyPlanForm(li,item)}
+listElement.appendChild(li)})}};incomeForm.addEventListener("submit",async(e)=>{e.preventDefault();const incomeName=incomeInput.value;const incomeCategoryValue=incomeCategory.value;const incomeAmountValue=incomeAmount.value;if(incomeName.trim()&&incomeCategoryValue.trim()&&incomeAmountValue){try{await addIncome(incomeName,incomeCategoryValue,parseFloat(incomeAmountValue));incomeInput.value="";incomeCategory.value="";incomeAmount.value=""}catch(error){console.error("Error adding income:",error);alert("Terjadi kesalahan saat menambahkan pendapatan. Silakan coba lagi.")}}else{alert("Mohon isi semua field pendapatan.")}});expenseForm.addEventListener("submit",async(e)=>{e.preventDefault();const expenseName=expenseInput.value;const expenseCategoryValue=expenseCategory.value;const expenseAmountValue=expenseAmount.value;if(expenseName.trim()&&expenseCategoryValue.trim()&&expenseAmountValue){try{await addExpense(expenseName,expenseCategoryValue,parseFloat(expenseAmountValue));expenseInput.value="";expenseCategory.value="";expenseAmount.value=""}catch(error){console.error("Error adding expense:",error);alert("Terjadi kesalahan saat menambahkan pengeluaran. Silakan coba lagi.")}}else{alert("Mohon isi semua field pengeluaran.")}});const editData=async(dataType,id,updatedFields,parentId=null,subParentId=null)=>{try{const user=await checkAuth();if(!user)throw new Error("User tidak terautentikasi");let docRef;const userDocRef=doc(db,"users",user.uid);switch(dataType){case "dailyActivities":case "weeklyPlans":case "budget":case "expenses":case "incomes":case "reminders":docRef=doc(userDocRef,dataType,id);break;case "subActivities":if(!parentId)throw new Error("parentId diperlukan untuk subActivities");docRef=doc(userDocRef,"dailyActivities",parentId,"subActivities",id);break;case "subWeeklyPlans":if(!parentId)throw new Error("parentId diperlukan untuk subWeeklyPlans");docRef=doc(userDocRef,"weeklyPlans",parentId,"subWeeklyPlans",id);break;case "tasks":if(!parentId||!subParentId)throw new Error("parentId dan subParentId diperlukan untuk tasks");docRef=doc(userDocRef,"dailyActivities",parentId,"subActivities",subParentId,"tasks",id);break;default:throw new Error(`Tipe data tidak dikenal: ${dataType}`)}
+const docSnap=await getDoc(docRef);if(!docSnap.exists()){throw new Error(`Dokumen dengan ID ${id} tidak ditemukan`)}
+const currentData=docSnap.data();const updatedData={...currentData,...updatedFields};if(dataType==="weeklyPlans"&&updatedFields.duration!==undefined){const createdAtDate=new Date(currentData.createdAt.split(" ").reverse().join("-"));const endDate=new Date(createdAtDate);endDate.setDate(endDate.getDate()+updatedFields.duration*7-1);updatedData.endDate=`${endDate.getDate()} ${months[endDate.getMonth()]} ${endDate.getFullYear()}`}
+const hasChanges=Object.keys(updatedFields).some((key)=>{const isAllowedToChange=!((dataType==="dailyActivities"&&(key==="date"||key==="completed"))||(dataType==="weeklyPlans"&&(key==="createdAt"||key==="completed"))||(dataType==="reminders"&&(key==="timeZone"||key==="notificationSent")));return isAllowedToChange&&currentData[key]!==updatedFields[key]});if(hasChanges){await updateDoc(docRef,updatedData);console.log(`${dataType} dengan ID ${id} berhasil diperbarui`)}else{console.log(`Tidak ada perubahan yang diizinkan untuk ${dataType} dengan ID ${id}`)}
+return updatedData}catch(error){console.error(`Error mengupdate ${dataType}:`,error);throw error}};function showEditPopup(id,type,currentData,parentId,subParentId){const typeName=getTypeName(type);const editPopup=document.createElement('div');editPopup.classList.add('edit-popup');editPopup.style.position='fixed';editPopup.style.top='50%';editPopup.style.left='50%';editPopup.style.transform='translate(-50%, -50%)';editPopup.style.backgroundColor='white';editPopup.style.padding='20px';editPopup.style.boxShadow='0 0 10px rgba(0,0,0,0.1)';editPopup.style.zIndex='1000';let formContent='';const order=getOrderForType(type);order.forEach(key=>{if(currentData.hasOwnProperty(key)&&key!=='id'&&key!=='userId'){const isExcluded=((type==='dailyActivities'&&key==='completed')||(type==='tasks'&&key==='completed')||(type==='weeklyPlans'&&key==='completed')||(type==='incomes'&&(key==='date'||key==='notes'))||(type==='reminders'&&(key==='timeZone'||key==='notificationSent')));if(!isExcluded){let label=getLabelForKey(key,type);let inputContent='';switch(key){case 'category':if(type==='incomes'){inputContent=`
+                <select id="edit-${key}" class="category-selector">
+                  <option value="Gaji">Gaji</option>
+                  <option value="Passive income">Passive income</option>
+                  <option value="Uang kos-kosan">Uang kos-kosan</option>
+                  <option value="custom">Tulis kategori kustom</option>
+                </select>
+                <input type="text" id="custom-${key}" class="custom-category" style="display: none;" placeholder="Tulis kategori kustom">
+              `}else if(type==='expenses'){inputContent=`
+                <select id="edit-${key}" class="category-selector">
+                  <option value="Uang jajan">Uang jajan</option>
+                  <option value="Bayar apartemen">Bayar apartemen</option>
+                  <option value="Uang spend bulanan">Uang spend bulanan</option>
+                  <option value="Uang kebutuhan bulanan">Uang kebutuhan bulanan</option>
+                  <option value="custom">Tulis kategori kustom</option>
+                </select>
+                <input type="text" id="custom-${key}" class="custom-category" style="display: none;" placeholder="Tulis kategori kustom">
+              `}
+break;case 'amount':inputContent=`
+              <input type="text" id="edit-${key}" value="${formatNumber(currentData[key])}" 
+                     oninput="this.value = formatNumberInput(this.value)">
+            `;break;case 'date':if(type==='reminders'){inputContent=`<input type="date" id="edit-${key}" value="${currentData[key]}">`}
+break;case 'time':if(type==='reminders'){inputContent=`<input type="time" id="edit-${key}" value="${currentData[key]}">`}
+break;case 'month':if(type==='budget'){inputContent=`
+                <select id="edit-${key}">
+                  <option value="Januari" ${currentData[key] === 'Januari' ? 'selected' : ''}>Januari</option>
+                  <option value="Februari" ${currentData[key] === 'Februari' ? 'selected' : ''}>Februari</option>
+                  <option value="Maret" ${currentData[key] === 'Maret' ? 'selected' : ''}>Maret</option>
+                  <option value="April" ${currentData[key] === 'April' ? 'selected' : ''}>April</option>
+                  <option value="Mei" ${currentData[key] === 'Mei' ? 'selected' : ''}>Mei</option>
+                  <option value="Juni" ${currentData[key] === 'Juni' ? 'selected' : ''}>Juni</option>
+                  <option value="Juli" ${currentData[key] === 'Juli' ? 'selected' : ''}>Juli</option>
+                  <option value="Agustus" ${currentData[key] === 'Agustus' ? 'selected' : ''}>Agustus</option>
+                  <option value="September" ${currentData[key] === 'September' ? 'selected' : ''}>September</option>
+                  <option value="Oktober" ${currentData[key] === 'Oktober' ? 'selected' : ''}>Oktober</option>
+                  <option value="November" ${currentData[key] === 'November' ? 'selected' : ''}>November</option>
+                  <option value="Desember" ${currentData[key] === 'Desember' ? 'selected' : ''}>Desember</option>
+                </select>
+              `}
+break;default:inputContent=`<input type="text" id="edit-${key}" value="${currentData[key]}">`}
+if(inputContent){formContent+=`
+            <div class="form-group">
+              <label for="edit-${key}">${label}:</label>
+              ${inputContent}
+            </div>
+          `}}}});editPopup.innerHTML=`
+    <div class="edit-popup-content">
+      <h3>Edit ${typeName}</h3>
+      <form id="edit-form">
+        ${formContent}
+        <div class="button-group">
+          <button type="submit">Simpan</button>
+          <button type="button" id="cancel-edit">Batal</button>
+        </div>
+      </form>
+    </div>
+  `;document.body.appendChild(editPopup);const categorySelectors=editPopup.querySelectorAll('.category-selector');categorySelectors.forEach(selector=>{selector.addEventListener('change',(e)=>{const customInput=e.target.parentElement.querySelector('.custom-category');if(customInput){customInput.style.display=e.target.value==='custom'?'block':'none'}})});function formatNumber(num){return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g,".")}
+function formatNumberInput(value){value=value.replace(/\./g,'').replace(/[^\d]/g,'');return value.replace(/\B(?=(\d{3})+(?!\d))/g,".")}
+window.formatNumberInput=formatNumberInput;const cancelButton=editPopup.querySelector('#cancel-edit');cancelButton.addEventListener('click',()=>{document.body.removeChild(editPopup)});const editForm=editPopup.querySelector('#edit-form');editForm.addEventListener('submit',async(e)=>{e.preventDefault();const updatedFields={};order.forEach(key=>{if(currentData.hasOwnProperty(key)&&key!=='id'&&key!=='userId'){const input=document.getElementById(`edit-${key}`);if(input&&!input.disabled){if(key==='category'){const customInput=document.getElementById(`custom-${key}`);updatedFields[key]=input.value==='custom'?customInput.value:input.value}else if(key==='amount'){updatedFields[key]=parseFloat(input.value.replace(/\./g,''))}else{updatedFields[key]=input.value.trim()}}}});try{await editData(type,id,updatedFields,parentId,subParentId);document.body.removeChild(editPopup);alert('Perubahan berhasil disimpan')}catch(error){console.error('Error saat menyimpan perubahan:',error);alert('Terjadi kesalahan saat menyimpan perubahan. Silakan coba lagi.')}})}
+function getOrderForType(type){switch(type){case 'dailyActivities':return['name','date'];case 'weeklyPlans':return['name','createdAt','endDate','duration'];case 'incomes':return['name','category','amount'];case 'expenses':return['name','category','amount'];case 'reminders':return['name','date','time'];case 'budget':return['name','month','amount'];default:return['name']}}
+function getLabelForKey(key,type){switch(key){case 'name':return `Nama ${getTypeName(type)}`;case 'date':return'Tanggal';case 'time':return'Waktu';case 'createdAt':return'Dibuat tanggal';case 'endDate':return'Berakhir tanggal';case 'duration':return'Durasi';case 'category':return'Kategori';case 'amount':return'Jumlah';case 'month':return'Bulan';default:return key.charAt(0).toUpperCase()+key.slice(1)}}
+const getTypeName=(type)=>{switch(type){case "dailyActivities":return"Aktivitas Harian";case "weeklyPlans":return"Rencana Mingguan";case "budget":return"Anggaran";case "expenses":return"Pengeluaran";case "incomes":return"Pendapatan";case "reminders":return"Pengingat";case "subActivities":return"Sub-aktivitas";case "subWeeklyPlans":return"Sub-rencana";case "tasks":return"Tugas";default:return"Item"}};document.addEventListener("DOMContentLoaded",async()=>{try{await initUserId();if(!userId){throw new Error("User not authenticated")}
+const user=await checkAuth();const userDocRef=doc(db,"users",user.uid);const loadAndRenderSubActivities=(activityElement,activityId)=>{if(!activityId){console.error("Activity ID is null or undefined.");return}
+const subActivitiesRef=collection(doc(db,"users",userId,"dailyActivities",activityId),"subActivities");const unsubscribe=onSnapshot(subActivitiesRef,(snapshot)=>{const subActivities=snapshot.docs.map((doc)=>({id:doc.id,...doc.data()}));renderSubActivities(activityElement,subActivities)});activityElement.setAttribute("data-unsubscribe",unsubscribe)};const taskTemplate=document.createElement("template");taskTemplate.id="task-template";taskTemplate.innerHTML=`
+
+      <form class="task-form">
+
+        <input type="text" class="task-input" placeholder="Tambah tugas baru">
+
+        <button type="submit">Tambah Tugas</button>
+
+      </form>
+
+      <ul class="task-list"></ul>
+
+    `;document.body.appendChild(taskTemplate);await checkExpiredDailyActivities();const dailyActivitiesRef=collection(userDocRef,"dailyActivities");onSnapshot(dailyActivitiesRef,(snapshot)=>{const dailyActivities=snapshot.docs.map((doc)=>({id:doc.id,...doc.data()}));renderList(document.getElementById("daily-activities-list"),dailyActivities,"dailyActivities")});const weeklyPlansRef=collection(userDocRef,"weeklyPlans");onSnapshot(weeklyPlansRef,(snapshot)=>{const weeklyPlans=snapshot.docs.map((doc)=>({id:doc.id,...doc.data()}));renderList(document.getElementById("weekly-plans-list"),weeklyPlans,"weeklyPlans")});const budgetRef=collection(userDocRef,"budget");onSnapshot(budgetRef,(snapshot)=>{const budget=snapshot.docs.map((doc)=>({id:doc.id,...doc.data()}));renderList(document.getElementById("budget-list"),budget,"budget")});const remindersRef=collection(userDocRef,"reminders");onSnapshot(remindersRef,(snapshot)=>{const reminders=snapshot.docs.map((doc)=>({id:doc.id,...doc.data()}));renderList(document.getElementById("reminders-list"),reminders,"reminders")});const appButtons=document.querySelectorAll(".app-btn");const appSections=document.querySelectorAll(".app-section");appButtons.forEach((button)=>{button.addEventListener("click",()=>{appButtons.forEach((btn)=>btn.classList.remove("active"));button.classList.add("active");appSections.forEach((section)=>{section.classList.remove("visible");setTimeout(()=>{section.style.display="none"},300)});const targetId=button.getAttribute("data-target");const targetSection=document.getElementById(targetId);setTimeout(()=>{targetSection.style.display="block";setTimeout(()=>{targetSection.classList.add("visible")},50)},300)})});const selectors=document.querySelectorAll(".selector-btn");const sections=document.querySelectorAll(".financial-section");selectors.forEach((selector)=>{selector.addEventListener("click",()=>{sections.forEach((section)=>{section.classList.add("hidden")});const targetId=selector.getAttribute("data-target");document.getElementById(targetId).classList.remove("hidden")})});await loadExpensesAndIncomes(userDocRef)}catch(error){console.error("Error loading user data:",error)}
+document.addEventListener("submit",async(e)=>{if(e.target.classList.contains("sub-activity-form")){e.preventDefault();const liElement=e.target.closest("li");if(liElement){const activityId=liElement.getAttribute("data-id");const subActivityInput=e.target.querySelector(".sub-activity-input");const subActivityName=subActivityInput.value.trim();if(subActivityName&&activityId){try{const user=await checkAuth();if(!userId){userId=user.uid}
+const dailyActivityRef=doc(db,"users",userId,"dailyActivities",activityId);const subActivitiesRef=collection(dailyActivityRef,"subActivities");const existingSubActivity=await getDocs(query(subActivitiesRef,where("name","==",subActivityName)));if(existingSubActivity.empty){await addDoc(subActivitiesRef,{name:subActivityName});subActivityInput.value=""}else{console.log("Sub-activity with this name already exists")}}catch(error){console.error("Error adding sub-activity:",error)}}}}})});dailyActivitiesForm.addEventListener("submit",async(e)=>{e.preventDefault();const activityName=dailyActivitiesInput.value;const activityDate=dailyActivitiesDate.value;const success=await addDailyActivity(activityName,activityDate);if(success){dailyActivitiesInput.value="";dailyActivitiesDate.value="today"}});budgetForm.addEventListener("submit",async(e)=>{e.preventDefault();const budgetName=budgetInput.value;const budgetMonthValue=budgetMonth.value;const budgetAmountValue=budgetAmount.value;if(budgetName.trim()&&budgetAmountValue){try{await addBudget(budgetName,budgetMonthValue,parseFloat(budgetAmountValue));budgetInput.value="";budgetMonth.value="Januari";budgetAmount.value=""}catch(error){console.error("Error adding budget:",error)}}});reminderForm.addEventListener("submit",async(e)=>{e.preventDefault();const reminderName=reminderInput.value;const reminderDateValue=reminderDate.value;const reminderTimeValue=reminderTime.value;if(reminderName.trim()){try{await addReminder(reminderName,reminderDateValue,reminderTimeValue);reminderInput.value="";reminderDate.value="";reminderTime.value=""}catch(error){console.error("Error adding reminder:",error)}}});const deleteData=async(dataType,dataId,parentId,subParentId)=>{console.log("Deleting:",{dataType,dataId,parentId,subParentId,userId});try{const docRef=getDocRef(dataType,dataId,parentId,subParentId);console.log("Document reference:",docRef.path);await deleteDoc(docRef);console.log(`${dataType} dengan ID ${dataId} berhasil dihapus`);await new Promise((resolve)=>setTimeout(resolve,1000));const docSnap=await getDoc(docRef);if(!docSnap.exists()){console.log("Dokumen berhasil dihapus dan tidak ada lagi")}else{console.warn("Dokumen masih ada setelah dihapus, mungkin karena caching")}}catch(error){console.error(`Error deleting ${dataType}:`,error);if(error.code==="permission-denied"){console.error("Error izin saat menghapus dokumen:",error);try{const docRef=getDocRef(dataType,dataId,parentId,subParentId);const docSnap=await getDoc(docRef);if(!docSnap.exists()){console.log("Dokumen sudah terhapus meskipun ada error izin")}else{console.warn("Dokumen masih ada setelah mencoba menghapus")}}catch(checkError){console.error("Error saat memeriksa dokumen setelah error izin:",checkError)}}
+throw error}};const getDocRef=(dataType,dataId,parentId,subParentId)=>{if(!userId){throw new Error("User ID is not set. User might not be authenticated.")}
+const userDocRef=doc(db,"users",userId);switch(dataType){case "dailyActivities":case "weeklyPlans":case "budget":case "expenses":case "incomes":case "reminders":return doc(userDocRef,dataType,dataId);case "subActivities":return doc(userDocRef,"dailyActivities",parentId,"subActivities",dataId);case "subWeeklyPlans":return doc(userDocRef,"weeklyPlans",parentId,"subWeeklyPlans",dataId);case "tasks":return doc(userDocRef,"dailyActivities",parentId,"subActivities",subParentId,"tasks",dataId);default:throw new Error(`Tipe data tidak dikenal: ${dataType}`)}};document.addEventListener("click",async(e)=>{if(e.target.classList.contains("edit-btn")){e.preventDefault();const dataType=e.target.getAttribute("data-type");const dataId=e.target.getAttribute("data-id");const parentId=e.target.getAttribute("data-parent-id")||"";const subParentId=e.target.getAttribute("data-sub-parent-id")||"";console.log("Edit button clicked:",{dataType,dataId,parentId,subParentId});try{await checkAuth();const docRef=getDocRef(dataType,dataId,parentId,subParentId);const docSnap=await getDoc(docRef);if(docSnap.exists()){const currentData=docSnap.data();showEditPopup(dataId,dataType,currentData,parentId,subParentId)}else{console.log("Dokumen tidak ditemukan");alert("Data tidak ditemukan. Mungkin telah dihapus.")}}catch(error){console.error("Error in editData:",error);alert("Terjadi kesalahan saat mengambil data. Silakan coba lagi.")}}});document.addEventListener("click",async(e)=>{if(e.target.classList.contains("delete-btn")){const dataType=e.target.getAttribute("data-type");const dataId=e.target.getAttribute("data-id");const parentId=e.target.getAttribute("data-parent-id");const subParentId=e.target.getAttribute("data-sub-parent-id");console.log("Delete button clicked:",{dataType,dataId,parentId,subParentId});try{await checkAuth();await deleteData(dataType,dataId,parentId,subParentId)}catch(error){console.error("Error in deleteData:",error)}}})
