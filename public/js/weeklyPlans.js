@@ -145,6 +145,8 @@ export const initWeeklyPlans = async () => {
           duration: planDuration,
           createdAt: createdAtFormatted,
           endDate: endDate,
+          status: "",
+          prioritas: "",
           completed: false,
         });
 

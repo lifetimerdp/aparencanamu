@@ -11,8 +11,10 @@ export const addExpense = async (name, category, amount) => {
       name,
       category,
       amount,
-      date: new Date(), // Menambahkan timestamp saat ini
-      userId: user.uid
+      date: new Date(),
+      userId: user.uid,
+      status: "",
+      prioritas: ""
     };
 
     const expensesRef = collection(db, "users", user.uid, "expenses");
@@ -33,8 +35,10 @@ export const addIncome = async (name, category, amount) => {
       name,
       category,
       amount,
-      date: new Date(), // Menambahkan timestamp saat ini
-      userId: user.uid
+      date: new Date(),
+      userId: user.uid,
+      status: "",
+      prioritas: ""
     };
 
     const incomesRef = collection(db, "users", user.uid, "incomes");
@@ -51,7 +55,9 @@ export const addBudget = async (name, month, amount) => {
   await addDoc(collection(doc(db, "users", user.uid), "budget"), {
     name,
     month,
-    amount
+    amount,
+    status: "",
+    prioritas: ""
   });
 };
 
@@ -63,7 +69,9 @@ export const addReminder = async (name, date, time) => {
     date,
     time,
     timeZone: userTimeZone,
-    notificationSent: false
+    notificationSent: false,
+    status: "",
+    prioritas: ""
   });
 };
 

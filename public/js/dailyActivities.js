@@ -230,6 +230,8 @@ export const addDailyActivity = async (activityName, activityDate) => {
       await addDoc(collection(doc(db, "users", userId), "dailyActivities"), {
         name: activityName.trim(),
         date: formattedDate,
+        status: "",
+        prioritas: "",
         completed: false,
       });
       return true;

@@ -1,14 +1,12 @@
 {{ define "main" }}
 <main>
   <h1>Dashboard</h1>
-  
   <!-- Selector Aplikasi -->
   <div class="app-selector">
     <button class="app-btn active" data-target="daily-activities">Aktivitas Harian</button>
     <button class="app-btn" data-target="weekly-plans">Rencana Mingguan</button>
     <button class="app-btn" data-target="financial-management">Pengelola Keuangan</button>
   </div>
-
   <!-- Aktivitas Harian -->
   <section id="daily-activities" class="app-section visible">
     <h2>Aktivitas Harian</h2>
@@ -23,7 +21,6 @@
       <button type="submit">Tambah</button>
     </form>
   </section>
-  
   <!-- Template untuk sub-aktivitas -->
   <template id="sub-activity-template">
     <li class="sub-activity-item slide-in-right">
@@ -37,7 +34,6 @@
       <ul class="sub-activity-list"></ul>
     </li>
   </template>
-  
   <!-- Template untuk tasks -->
   <template id="task-template">
     <li class="task-item slide-in-right">
@@ -50,7 +46,6 @@
       </form>
     </li>
   </template>
-  
   <!-- Rencana Mingguan -->
   <section id="weekly-plans" class="app-section">
     <h2>Rencana Mingguan</h2>
@@ -66,7 +61,6 @@
       <button type="submit">Tambah</button>
     </form>
   </section>
-  
   <!-- Template untuk sub-rencana mingguan -->
   <template id="sub-weeklyPlan-template">
   <div class="sub-weeklyPlan-container">
@@ -77,7 +71,6 @@
     <ul class="sub-weeklyPlan-list"></ul>
   </div>
   </template>
-  
   <!-- Pengelolaan Keuangan -->
   <section id="financial-management" class="app-section">
     <h2>Pengelolaan Keuangan</h2>
@@ -87,7 +80,6 @@
       <button class="selector-btn" data-target="reminders">Pengingat</button>
       <button class="selector-btn" data-target="budget">Anggaran Bulanan</button>
     </div>
-
     <div id="incomes" class="financial-section">
       <h3>Pendapatan</h3>
       <ul id="incomes-list"></ul>
@@ -98,7 +90,6 @@
         <button type="submit">Tambah</button>
       </form>
     </div>
-
     <div id="expenses" class="financial-section hidden">
       <h3>Pengeluaran</h3>
       <ul id="expenses-list"></ul>
@@ -109,7 +100,6 @@
         <button type="submit">Tambah</button>
       </form>
     </div>
-
     <div id="reminders" class="financial-section hidden">
       <h3>Pengingat Pembayaran</h3>
       <ul id="reminders-list"></ul>
@@ -120,7 +110,6 @@
         <button type="submit">Tambah</button>
       </form>
     </div>
-
     <div id="budget" class="financial-section hidden">
       <h3>Anggaran Bulanan</h3>
       <ul id="budget-list"></ul>
@@ -145,11 +134,9 @@
       </form>
     </div>
   </section>
-  
   <ul id="remindersList"></ul>
 </main>
 <link rel="stylesheet" href="{{ "css/dashboard.css" | relURL }}">
 <script type="module" src="{{ "js/dashboard.js" | relURL }}"></script>
-<script type="module" src="{{ "js/dailyActivities.js" | relURL }}"></script>
 <script type="module" src="{{ "js/auth.js" | relURL }}"></script>
 {{ end }}
