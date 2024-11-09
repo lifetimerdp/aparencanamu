@@ -368,3 +368,22 @@ button:hover {
     font-size: 0.75em;
   }
 }
+
+.priority-selector {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.priority-label {
+  margin-right: 5px;
+  font-size: 14px;
+  color: #666;
+}
+
+.priority-select {
+  padding: 2px 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}

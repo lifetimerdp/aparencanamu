@@ -14,7 +14,7 @@ export const addExpense = async (name, category, amount) => {
       date: new Date(),
       userId: user.uid,
       status: "",
-      prioritas: ""
+      priority: ""
     };
 
     const expensesRef = collection(db, "users", user.uid, "expenses");
@@ -38,7 +38,7 @@ export const addIncome = async (name, category, amount) => {
       date: new Date(),
       userId: user.uid,
       status: "",
-      prioritas: ""
+      priority: ""
     };
 
     const incomesRef = collection(db, "users", user.uid, "incomes");
@@ -57,7 +57,7 @@ export const addBudget = async (name, month, amount) => {
     month,
     amount,
     status: "",
-    prioritas: ""
+    priority: ""
   });
 };
 
@@ -71,7 +71,7 @@ export const addReminder = async (name, date, time) => {
     timeZone: userTimeZone,
     notificationSent: false,
     status: "",
-    prioritas: ""
+    priority: ""
   });
 };
 

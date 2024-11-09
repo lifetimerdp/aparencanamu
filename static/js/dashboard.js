@@ -47,130 +47,231 @@ export const checkAuth = () => {
         });
     });
 };
-export const renderList = (listElement, items, dataType, parentId = null, subParentId = null) => {
-    if (!listElement) return;
-    listElement.innerHTML = "";
-    const renderGroupedItems = (groupedItems, createHeader) => {
-        Object.keys(groupedItems).forEach((groupKey) => {
-            const header = createHeader(groupKey);
-            listElement.appendChild(header);
-            groupedItems[groupKey].forEach((item) => {
-                const li = document.createElement("li");
-                let content = `${item.name}`;
-                if (dataType === "expenses" || dataType === "incomes") {
-                    content += ` - ${formatRupiah(item.amount)}`;
-                } else if (dataType === "budget") {
-                    content += ` - ${formatRupiah(item.amount)}`;
-                } else if (dataType === "dailyActivities") {
-                    const dateToShow = formatDate(item.date);
-                    content += ` - ${dateToShow}`;
-                }
-
-                li.setAttribute("data-id", item.id);
-                li.innerHTML = `
-
-          <div class="item-content">
-
-            <span class="item-name">${content}</span>
-
-            <div class="item-actions">
-
-              <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}" data-parent-id="${parentId || ""}" data-sub-parent-id="${subParentId || ""}">Edit</button>
-
-              <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
-
-            </div>
-
-          </div>`;
-                if (dataType === "dailyActivities") {
-                    addSubActivityForm(li, item);
-                } else if (dataType === "weeklyPlans") {
-                    addSubWeeklyPlanForm(li, item);
-                }
-
-                listElement.appendChild(li);
-            });
-        });
-    };
-    const formatDate = (date) => {
-        if (date === "Hari Ini") {
-            const today = new Date();
-            return `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
-        } else if (date === "Besok") {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            return `${tomorrow.getDate()} ${months[tomorrow.getMonth()]} ${tomorrow.getFullYear()}`;
-        } else {
-            return date;
-        }
-    };
-    const formatDateToIndonesian = (date) => {
-        const [year, monthIndex, day] = date.split("-");
-        const month = months[parseInt(monthIndex, 10) - 1];
-        return `${parseInt(day, 10)} ${month} ${year}`;
-    };
-    const groupedItems = items.reduce((grouped, item) => {
-        let groupKey;
-        if (dataType === "reminders") {
-            groupKey = formatDateToIndonesian(item.date);
-        } else if (dataType === "budget") {
-            groupKey = item.month;
-        } else if (dataType === "weeklyPlans") {
-            groupKey = `${item.createdAt} - ${item.endDate}`;
-        } else {
-            groupKey = "";
-        }
-
-        if (!grouped[groupKey]) {
-            grouped[groupKey] = [];
-        }
-
-        grouped[groupKey].push(item);
-        return grouped;
-    }, {});
-    if (dataType === "reminders" || dataType === "budget" || dataType === "weeklyPlans") {
-        renderGroupedItems(groupedItems, (groupKey) => {
-            const header = document.createElement("h3");
-            header.textContent = groupKey;
-            return header;
-        });
-    } else {
-        items.forEach((item) => {
-            const li = document.createElement("li");
-            let content = `${item.name}`;
-            if (dataType === "expenses" || dataType === "incomes") {
-                content += ` - ${formatRupiah(item.amount)}`;
-            } else if (dataType === "dailyActivities") {
-                const dateToShow = formatDate(item.date);
-                content += ` - ${dateToShow}`;
-            }
-
-            li.setAttribute("data-id", item.id);
-            li.innerHTML = `
-
-        <div class="item-content">
-
-          <span class="item-name">${content}</span>
-
-          <div class="item-actions">
-
-            <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" data-type="${dataType}" data-parent-id="${parentId || ""}" data-sub-parent-id="${subParentId || ""}">Edit</button>
-
-            <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
-
-          </div>
-
-        </div>`;
-            if (dataType === "dailyActivities") {
-                addSubActivityForm(li, item);
-            } else if (dataType === "weeklyPlans") {
-                addSubWeeklyPlanForm(li, item);
-            }
-
-            listElement.appendChild(li);
-        });
-    }
+const PRIORITY_COLORS = {
+  high: '#FF4B4B',
+  medium: '#FFB23F',
+  low: '#4CAF50'
 };
+const PRIORITY_LABELS = {
+  high: 'Tinggi',
+  medium: 'Sedang',
+  low: 'Rendah'
+};
+export const renderList = (listElement, items, dataType, parentId = null, subParentId = null) => {
+  if (!listElement) return;
+  listElement.innerHTML = "";
+  
+  const activeItems = items.filter(item => item.status !== 'selesai');
+  
+  const renderGroupedItems = (groupedItems, createHeader) => {
+    Object.keys(groupedItems).forEach((groupKey) => {
+      const header = createHeader(groupKey);
+      listElement.appendChild(header);
+      
+      groupedItems[groupKey].forEach((item) => {
+        const li = document.createElement('li');
+        let content = `${item.name}`;
+        
+        if (dataType === 'expenses' || dataType === 'incomes') {
+          content += ` - ${formatRupiah(item.amount)}`;
+        } else if (dataType === 'budget') {
+          content += ` - ${formatRupiah(item.amount)}`;
+        } else if (dataType === 'dailyActivities') {
+          const dateToShow = formatDate(item.date);
+          content += ` - ${dateToShow}`;
+        }
+        
+        li.setAttribute('data-id', item.id);
+        li.style.borderLeft = `4px solid ${PRIORITY_COLORS[item.priority || 'low']}`;
+        li.innerHTML = `
+          <div class="item-content">
+            <div class="item-left">
+              <span class="item-name">${content}</span>
+            </div>
+            <div class="item-actions">
+              <div class="priority-selector">
+                <label for="priority-${item.id}" class="priority-label">Prioritas:</label>
+                <select id="priority-${item.id}" class="priority-select" data-id="${item.id}" data-type="${dataType}">
+                  <option value="high" ${item.priority === "high" ? "selected" : ""}>
+                    ${PRIORITY_LABELS.high}
+                  </option>
+                  <option value="medium" ${item.priority === "medium" ? "selected" : ""}>
+                    ${PRIORITY_LABELS.medium}
+                  </option>
+                  <option value="low" ${(item.priority === "low" || !item.priority) ? "selected" : ""}>
+                    ${PRIORITY_LABELS.low}
+                  </option>
+                </select>
+              </div>
+              <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" 
+                data-type="${dataType}" data-parent-id="${parentId || ''}" 
+                data-sub-parent-id="${subParentId || ''}">Edit</button>
+              <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
+              <input type="checkbox" 
+                class="status-checkbox" 
+                ${item.status === 'selesai' ? 'checked' : ''}
+                data-id="${item.id}" 
+                data-type="${dataType}">
+            </div>
+          </div>
+        `;
+        
+        if (dataType === 'dailyActivities') {
+          addSubActivityForm(li, item);
+        } else if (dataType === 'weeklyPlans') {
+          addSubWeeklyPlanForm(li, item);
+        }
+        
+        listElement.appendChild(li);
+      });
+    });
+  };
+  
+  // Format the date
+  const formatDate = (date) => {
+    if (date === "Hari Ini") {
+      const today = new Date();
+      return `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+    } else if (date === "Besok") {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return `${tomorrow.getDate()} ${months[tomorrow.getMonth()]} ${tomorrow.getFullYear()}`;
+    } else {
+      return date;
+    }
+  };
+
+  const formatDateToIndonesian = (date) => {
+    const [year, monthIndex, day] = date.split("-");
+    const month = months[parseInt(monthIndex, 10) - 1];
+    return `${parseInt(day, 10)} ${month} ${year}`;
+  };
+
+  // Group items
+  const groupedItems = items.reduce((grouped, item) => {
+    let groupKey;
+    if (dataType === "reminders") {
+      groupKey = formatDateToIndonesian(item.date);
+    } else if (dataType === "budget") {
+      groupKey = item.month;
+    } else if (dataType === "weeklyPlans") {
+      groupKey = `${item.createdAt} - ${item.endDate}`;
+    } else {
+      groupKey = "";
+    }
+    
+    if (!grouped[groupKey]) {
+      grouped[groupKey] = [];
+    }
+    grouped[groupKey].push(item);
+    return grouped;
+  }, {});
+
+  if (dataType === "reminders" || dataType === "budget" || dataType === "weeklyPlans") {
+    renderGroupedItems(groupedItems, (groupKey) => {
+      const header = document.createElement("h3");
+      header.textContent = groupKey;
+      return header;
+    });
+  } else {
+    items.forEach((item) => {
+      const li = document.createElement("li");
+      let content = `${item.name}`;
+      
+      if (dataType === "expenses" || dataType === "incomes") {
+        content += ` - ${formatRupiah(item.amount)}`;
+      } else if (dataType === "budget") {
+        content += ` - ${formatRupiah(item.amount)}`;
+      } else if (dataType === "dailyActivities") {
+        const dateToShow = formatDate(item.date);
+        content += ` - ${dateToShow}`;
+      }
+      
+      li.setAttribute("data-id", item.id);
+      li.style.borderLeft = `4px solid ${PRIORITY_COLORS[item.priority || "low"]}`;
+      li.innerHTML = `
+        <div class="item-content">
+          <div class="item-left">
+            <span class="item-name">${content}</span>
+          </div>
+          <div class="item-actions">
+            <div class="priority-selector">
+              <select class="priority-select" data-id="${item.id}" data-type="${dataType}">
+                <option value="high" ${item.priority === "high" ? "selected" : ""}>
+                  ${PRIORITY_LABELS.high}
+                </option>
+                <option value="medium" ${item.priority === "medium" ? "selected" : ""}>
+                  ${PRIORITY_LABELS.medium}
+                </option>
+                <option value="low" ${(item.priority === "low" || !item.priority) ? "selected" : ""}>
+                  ${PRIORITY_LABELS.low}
+                </option>
+              </select>
+            </div>
+            <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" 
+              data-type="${dataType}" data-parent-id="${parentId || ""}" 
+              data-sub-parent-id="${subParentId || ""}">Edit</button>
+            <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
+            <input type="checkbox" 
+              class="status-checkbox" 
+              ${item.status === "selesai" ? "checked" : ""}
+              data-id="${item.id}" 
+              data-type="${dataType}">
+          </div>
+        </div>
+      `;
+      
+      if (dataType === "dailyActivities") {
+        addSubActivityForm(li, item);
+      } else if (dataType === "weeklyPlans") {
+        addSubWeeklyPlanForm(li, item);
+      }
+      
+      listElement.appendChild(li);
+    });
+  }
+};
+document.addEventListener('change', async (e) => {
+  if (e.target.classList.contains('status-checkbox')) {
+    const id = e.target.getAttribute('data-id');
+    const type = e.target.getAttribute('data-type');
+    const status = e.target.checked ? 'selesai' : 'aktif';
+    
+    try {
+      const docRef = getDocRef(type, id);
+      await updateDoc(docRef, { status });
+      
+      // If status is 'selesai', animate and remove the item
+      if (status === 'selesai') {
+        const listItem = e.target.closest('li');
+        listItem.style.animation = 'fadeOut 0.5s';
+        setTimeout(() => {
+          listItem.remove();
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      e.target.checked = !e.target.checked; // Revert checkbox if update fails
+    }
+  }
+  
+  if (e.target.classList.contains('priority-select')) {
+    const id = e.target.getAttribute('data-id');
+    const type = e.target.getAttribute('data-type');
+    const priority = e.target.value;
+    
+    try {
+      const docRef = getDocRef(type, id);
+      await updateDoc(docRef, { priority });
+      
+      // Update the visual indicator
+      const listItem = e.target.closest('li');
+      listItem.style.borderLeft = `4px solid ${PRIORITY_COLORS[priority]}`;
+    } catch (error) {
+      console.error('Error updating priority:', error);
+    }
+  }
+});
 incomeForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const incomeName = incomeInput.value;

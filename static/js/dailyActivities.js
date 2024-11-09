@@ -231,7 +231,7 @@ export const addDailyActivity = async (activityName, activityDate) => {
         name: activityName.trim(),
         date: formattedDate,
         status: "",
-        prioritas: "",
+        priority: "",
         completed: false,
       });
       return true;
