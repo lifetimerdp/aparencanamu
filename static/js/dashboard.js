@@ -82,7 +82,7 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
         }
         
         li.setAttribute('data-id', item.id);
-        li.style.borderLeft = `4px solid ${PRIORITY_COLORS[item.priority || 'low']}`;
+        li.style.borderLeft = `4px solid ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}`;
         li.innerHTML = `
           <div class="item-content">
             <div class="item-left">
@@ -90,15 +90,15 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
             </div>
             <div class="item-actions">
               <div class="priority-selector">
-                <label for="priority-${item.id}" class="priority-label">Prioritas:</label>
-                <select id="priority-${item.id}" class="priority-select" data-id="${item.id}" data-type="${dataType}">
+                <select class="priority-select" data-id="${item.id}" data-type="${dataType}">
+                  <option value="">Pilih Prioritas</option>
                   <option value="high" ${item.priority === "high" ? "selected" : ""}>
                     ${PRIORITY_LABELS.high}
                   </option>
                   <option value="medium" ${item.priority === "medium" ? "selected" : ""}>
                     ${PRIORITY_LABELS.medium}
                   </option>
-                  <option value="low" ${(item.priority === "low" || !item.priority) ? "selected" : ""}>
+                  <option value="low" ${item.priority === "low" ? "selected" : ""}>
                     ${PRIORITY_LABELS.low}
                   </option>
                 </select>
@@ -188,7 +188,7 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
       }
       
       li.setAttribute("data-id", item.id);
-      li.style.borderLeft = `4px solid ${PRIORITY_COLORS[item.priority || "low"]}`;
+      li.style.borderLeft = `4px solid ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}`;
       li.innerHTML = `
         <div class="item-content">
           <div class="item-left">
@@ -197,13 +197,14 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
           <div class="item-actions">
             <div class="priority-selector">
               <select class="priority-select" data-id="${item.id}" data-type="${dataType}">
+                <option value="">Pilih Prioritas</option>
                 <option value="high" ${item.priority === "high" ? "selected" : ""}>
                   ${PRIORITY_LABELS.high}
                 </option>
                 <option value="medium" ${item.priority === "medium" ? "selected" : ""}>
                   ${PRIORITY_LABELS.medium}
                 </option>
-                <option value="low" ${(item.priority === "low" || !item.priority) ? "selected" : ""}>
+                <option value="low" ${item.priority === "low" ? "selected" : ""}>
                   ${PRIORITY_LABELS.low}
                 </option>
               </select>
@@ -236,25 +237,22 @@ document.addEventListener('change', async (e) => {
     const id = e.target.getAttribute('data-id');
     const type = e.target.getAttribute('data-type');
     const status = e.target.checked ? 'selesai' : 'aktif';
-    
     try {
       const docRef = getDocRef(type, id);
       await updateDoc(docRef, { status });
-      
-      // If status is 'selesai', animate and remove the item
       if (status === 'selesai') {
         const listItem = e.target.closest('li');
         listItem.style.animation = 'fadeOut 0.5s';
         setTimeout(() => {
-          listItem.remove();
+          listItem.remove()
         }, 500);
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      e.target.checked = !e.target.checked; // Revert checkbox if update fails
+      e.target.checked = !e.target.checked;
     }
   }
-  
+
   if (e.target.classList.contains('priority-select')) {
     const id = e.target.getAttribute('data-id');
     const type = e.target.getAttribute('data-type');
@@ -262,16 +260,35 @@ document.addEventListener('change', async (e) => {
     
     try {
       const docRef = getDocRef(type, id);
-      await updateDoc(docRef, { priority });
-      
-      // Update the visual indicator
-      const listItem = e.target.closest('li');
-      listItem.style.borderLeft = `4px solid ${PRIORITY_COLORS[priority]}`;
+      if (priority) {
+        // Jika priority dipilih (high/medium/low)
+        await updateDoc(docRef, {
+          priority,
+          status: 'aktif'
+        });
+        const listItem = e.target.closest('li');
+        listItem.style.borderLeft = `4px solid ${PRIORITY_COLORS[priority]}`;
+      } else {
+        // Jika "Pilih Prioritas" dipilih
+        await updateDoc(docRef, {
+          priority: null, // Set ke null daripada 'low'
+          status: 'aktif'
+        });
+        const listItem = e.target.closest('li');
+        listItem.style.borderLeft = '4px solid #ccc'; // Warna default untuk tidak ada priority
+      }
     } catch (error) {
       console.error('Error updating priority:', error);
+      e.target.value = e.target.getAttribute('data-previous-value') || '';
     }
+    e.target.setAttribute('data-previous-value', e.target.value);
   }
 });
+document.addEventListener('focus', (e) => {
+  if (e.target.classList.contains('priority-select')) {
+    e.target.setAttribute('data-previous-value', e.target.value);
+  }
+}, true);
 incomeForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const incomeName = incomeInput.value;
