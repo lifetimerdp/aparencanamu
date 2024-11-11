@@ -387,3 +387,15 @@ button:hover {
   border-radius: 4px;
   font-size: 14px;
 }
+
+.list-item-transition {
+  transition: opacity 0.3s ease;
+}
+
+.list-item-completing {
+  opacity: 0.5;
+}
+
+.sub-activities-container {
+  transition: opacity 0.3s ease;
+}

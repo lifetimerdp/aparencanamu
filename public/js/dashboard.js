@@ -59,10 +59,16 @@ const PRIORITY_LABELS = {
 };
 export const renderList = (listElement, items, dataType, parentId = null, subParentId = null) => {
   if (!listElement) return;
+  
+  // Simpan referensi unsubscribe sebelumnya
+  const previousUnsubscribe = listElement.getAttribute('data-unsubscribe');
+  if (previousUnsubscribe) {
+    previousUnsubscribe();
+  }
+
   listElement.innerHTML = "";
-  
   const activeItems = items.filter(item => item.status !== 'selesai');
-  
+
   const renderGroupedItems = (groupedItems, createHeader) => {
     Object.keys(groupedItems).forEach((groupKey) => {
       const header = createHeader(groupKey);
@@ -80,9 +86,13 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
           const dateToShow = formatDate(item.date);
           content += ` - ${dateToShow}`;
         }
-        
+
         li.setAttribute('data-id', item.id);
         li.style.borderLeft = `4px solid ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}`;
+        
+        // Tambahkan class untuk transisi opacity
+        li.classList.add('list-item-transition');
+        
         li.innerHTML = `
           <div class="item-content">
             <div class="item-left">
@@ -115,9 +125,24 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
             </div>
           </div>
         `;
-        
+
         if (dataType === 'dailyActivities') {
+          const subActivitiesContainer = document.createElement('div');
+          subActivitiesContainer.classList.add('sub-activities-container');
+          li.appendChild(subActivitiesContainer);
           addSubActivityForm(li, item);
+          
+          // Buat subscription baru untuk subaktivitas
+          const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", item.id), "subActivities");
+          const unsubscribe = onSnapshot(subActivitiesRef, (snapshot) => {
+            const subActivities = snapshot.docs
+              .map((doc) => ({id: doc.id, ...doc.data()}))
+              .filter(subActivity => subActivity.status !== 'selesai');
+            renderSubActivities(subActivitiesContainer, subActivities, item.id);
+          });
+          
+          // Simpan fungsi unsubscribe di elemen
+          li.setAttribute('data-unsubscribe', unsubscribe);
         } else if (dataType === 'weeklyPlans') {
           addSubWeeklyPlanForm(li, item);
         }
@@ -237,22 +262,44 @@ document.addEventListener('change', async (e) => {
     const id = e.target.getAttribute('data-id');
     const type = e.target.getAttribute('data-type');
     const status = e.target.checked ? 'selesai' : 'aktif';
+    const listItem = e.target.closest('li');
+    
     try {
+      e.target.disabled = true;
+      
+      // Tambahkan class untuk transisi
+      if (status === 'selesai') {
+        listItem.classList.add('list-item-completing');
+      } else {
+        listItem.classList.remove('list-item-completing');
+      }
+      
+      // Update status di Firestore
       const docRef = getDocRef(type, id);
       await updateDoc(docRef, { status });
+      
+      // Jika item selesai, hapus dari tampilan dengan animasi
       if (status === 'selesai') {
-        const listItem = e.target.closest('li');
-        listItem.style.animation = 'fadeOut 0.5s';
         setTimeout(() => {
-          listItem.remove()
-        }, 500);
+          if (listItem && listItem.parentNode) {
+            // Batalkan subscription sebelum menghapus elemen
+            const unsubscribe = listItem.getAttribute('data-unsubscribe');
+            if (unsubscribe) {
+              unsubscribe();
+            }
+            listItem.parentNode.removeChild(listItem);
+          }
+        }, 300);
       }
     } catch (error) {
       console.error('Error updating status:', error);
       e.target.checked = !e.target.checked;
+      listItem.classList.remove('list-item-completing');
+      alert('Gagal mengubah status. Silakan coba lagi.');
+    } finally {
+      e.target.disabled = false;
     }
   }
-
   if (e.target.classList.contains('priority-select')) {
     const id = e.target.getAttribute('data-id');
     const type = e.target.getAttribute('data-type');
