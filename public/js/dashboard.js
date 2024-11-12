@@ -59,25 +59,22 @@ const PRIORITY_LABELS = {
 };
 export const renderList = (listElement, items, dataType, parentId = null, subParentId = null) => {
   if (!listElement) return;
-  
-  // Simpan referensi unsubscribe sebelumnya
   const previousUnsubscribe = listElement.getAttribute('data-unsubscribe');
   if (previousUnsubscribe) {
     previousUnsubscribe();
   }
 
   listElement.innerHTML = "";
+
   const activeItems = items.filter(item => item.status !== 'selesai');
 
   const renderGroupedItems = (groupedItems, createHeader) => {
     Object.keys(groupedItems).forEach((groupKey) => {
       const header = createHeader(groupKey);
       listElement.appendChild(header);
-      
       groupedItems[groupKey].forEach((item) => {
         const li = document.createElement('li');
         let content = `${item.name}`;
-        
         if (dataType === 'expenses' || dataType === 'incomes') {
           content += ` - ${formatRupiah(item.amount)}`;
         } else if (dataType === 'budget') {
@@ -86,13 +83,9 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
           const dateToShow = formatDate(item.date);
           content += ` - ${dateToShow}`;
         }
-
         li.setAttribute('data-id', item.id);
         li.style.borderLeft = `4px solid ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}`;
-        
-        // Tambahkan class untuk transisi opacity
         li.classList.add('list-item-transition');
-        
         li.innerHTML = `
           <div class="item-content">
             <div class="item-left">
@@ -125,34 +118,25 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
             </div>
           </div>
         `;
-
         if (dataType === 'dailyActivities') {
           const subActivitiesContainer = document.createElement('div');
           subActivitiesContainer.classList.add('sub-activities-container');
           li.appendChild(subActivitiesContainer);
           addSubActivityForm(li, item);
-          
-          // Buat subscription baru untuk subaktivitas
           const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", item.id), "subActivities");
           const unsubscribe = onSnapshot(subActivitiesRef, (snapshot) => {
-            const subActivities = snapshot.docs
-              .map((doc) => ({id: doc.id, ...doc.data()}))
-              .filter(subActivity => subActivity.status !== 'selesai');
+            const subActivities = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter(subActivity => subActivity.status !== 'selesai');
             renderSubActivities(subActivitiesContainer, subActivities, item.id);
           });
-          
-          // Simpan fungsi unsubscribe di elemen
           li.setAttribute('data-unsubscribe', unsubscribe);
         } else if (dataType === 'weeklyPlans') {
           addSubWeeklyPlanForm(li, item);
         }
-        
         listElement.appendChild(li);
       });
     });
   };
-  
-  // Format the date
+
   const formatDate = (date) => {
     if (date === "Hari Ini") {
       const today = new Date();
@@ -172,7 +156,6 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
     return `${parseInt(day, 10)} ${month} ${year}`;
   };
 
-  // Group items
   const groupedItems = items.reduce((grouped, item) => {
     let groupKey;
     if (dataType === "reminders") {
@@ -184,7 +167,6 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
     } else {
       groupKey = "";
     }
-    
     if (!grouped[groupKey]) {
       grouped[groupKey] = [];
     }
@@ -199,10 +181,9 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
       return header;
     });
   } else {
-    items.forEach((item) => {
+    activeItems.forEach((item) => {
       const li = document.createElement("li");
       let content = `${item.name}`;
-      
       if (dataType === "expenses" || dataType === "incomes") {
         content += ` - ${formatRupiah(item.amount)}`;
       } else if (dataType === "budget") {
@@ -211,7 +192,6 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
         const dateToShow = formatDate(item.date);
         content += ` - ${dateToShow}`;
       }
-      
       li.setAttribute("data-id", item.id);
       li.style.borderLeft = `4px solid ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}`;
       li.innerHTML = `
@@ -246,13 +226,11 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
           </div>
         </div>
       `;
-      
       if (dataType === "dailyActivities") {
         addSubActivityForm(li, item);
       } else if (dataType === "weeklyPlans") {
         addSubWeeklyPlanForm(li, item);
       }
-      
       listElement.appendChild(li);
     });
   }
@@ -377,70 +355,62 @@ expenseForm.addEventListener("submit", async (e) => {
   }
 });
 const editData = async (dataType, id, updatedFields, parentId = null, subParentId = null) => {
-    try {
-        const user = await checkAuth();
-        if (!user) throw new Error("User tidak terautentikasi");
-        let docRef;
-        const userDocRef = doc(db, "users", user.uid);
-        switch (dataType) {
-            case "dailyActivities":
-            case "weeklyPlans":
-            case "budget":
-            case "expenses":
-            case "incomes":
-            case "reminders":
-                docRef = doc(userDocRef, dataType, id);
-                break;
-            case "subActivities":
-                if (!parentId) throw new Error("parentId diperlukan untuk subActivities");
-                docRef = doc(userDocRef, "dailyActivities", parentId, "subActivities", id);
-                break;
-            case "subWeeklyPlans":
-                if (!parentId) throw new Error("parentId diperlukan untuk subWeeklyPlans");
-                docRef = doc(userDocRef, "weeklyPlans", parentId, "subWeeklyPlans", id);
-                break;
-            case "tasks":
-                if (!parentId || !subParentId) throw new Error("parentId dan subParentId diperlukan untuk tasks");
-                docRef = doc(userDocRef, "dailyActivities", parentId, "subActivities", subParentId, "tasks", id);
-                break;
-            default:
-                throw new Error(`Tipe data tidak dikenal: ${dataType}`);
-        }
-
-        const docSnap = await getDoc(docRef);
-        if (!docSnap.exists()) {
-            throw new Error(`Dokumen dengan ID ${id} tidak ditemukan`);
-        }
-
-        const currentData = docSnap.data();
-        const updatedData = { ...currentData, ...updatedFields };
-        if (dataType === "weeklyPlans" && updatedFields.duration !== undefined) {
-            const createdAtDate = new Date(currentData.createdAt.split(" ").reverse().join("-"));
-            const endDate = new Date(createdAtDate);
-            endDate.setDate(endDate.getDate() + updatedFields.duration * 7 - 1);
-            updatedData.endDate = `${endDate.getDate()} ${months[endDate.getMonth()]} ${endDate.getFullYear()}`;
-        }
-
-        const hasChanges = Object.keys(updatedFields).some((key) => {
-            const isAllowedToChange = !(
-                (dataType === "dailyActivities" && (key === "date" || key === "completed")) ||
-                (dataType === "weeklyPlans" && (key === "createdAt" || key === "completed")) ||
-                (dataType === "reminders" && (key === "timeZone" || key === "notificationSent"))
-            );
-            return isAllowedToChange && currentData[key] !== updatedFields[key];
-        });
-        if (hasChanges) {
-            await updateDoc(docRef, updatedData);
-            console.log(`${dataType} dengan ID ${id} berhasil diperbarui`);
-        } else {
-            console.log(`Tidak ada perubahan yang diizinkan untuk ${dataType} dengan ID ${id}`);
-        }
-
-        return updatedData;
-    } catch (error) {
-        console.error(`Error mengupdate ${dataType}:`, error);
-        throw error;
+  try {
+    const user = await checkAuth();
+    if (!user) throw new Error("User tidak terautentikasi");
+    let docRef;
+    const userDocRef = doc(db, "users", user.uid);
+    switch (dataType) {
+      case "dailyActivities":
+      case "weeklyPlans":
+      case "budget":
+      case "expenses":
+      case "incomes":
+      case "reminders":
+        docRef = doc(userDocRef, dataType, id);
+        break;
+      case "subActivities":
+        if (!parentId) throw new Error("parentId diperlukan untuk subActivities");
+        docRef = doc(userDocRef, "dailyActivities", parentId, "subActivities", id);
+        break;
+      case "subWeeklyPlans":
+        if (!parentId) throw new Error("parentId diperlukan untuk subWeeklyPlans");
+        docRef = doc(userDocRef, "weeklyPlans", parentId, "subWeeklyPlans", id);
+        break;
+      case "tasks":
+        if (!parentId || !subParentId) throw new Error("parentId dan subParentId diperlukan untuk tasks");
+        docRef = doc(userDocRef, "dailyActivities", parentId, "subActivities", subParentId, "tasks", id);
+        break;
+      default:
+        throw new Error(`Tipe data tidak dikenal: ${dataType}`);
     }
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+      throw new Error(`Dokumen dengan ID ${id} tidak ditemukan`);
+    }
+    const currentData = docSnap.data();
+    const updatedData = { ...currentData, ...updatedFields };
+    if (dataType === "weeklyPlans" && updatedFields.duration !== undefined) {
+      const createdAtDate = new Date(currentData.createdAt.split(" ").reverse().join("-"));
+      const endDate = new Date(createdAtDate);
+      endDate.setDate(endDate.getDate() + updatedFields.duration * 7 - 1);
+      updatedData.endDate = `${endDate.getDate()} ${months[endDate.getMonth()]} ${endDate.getFullYear()}`;
+    }
+    const hasChanges = Object.keys(updatedFields).some((key) => {
+      const isAllowedToChange = !((dataType === "dailyActivities" && (key === "date" || key === "completed")) || (dataType === "weeklyPlans" && (key === "createdAt" || key === "completed")) || (dataType === "reminders" && (key === "timeZone" || key === "notificationSent")));
+      return isAllowedToChange && currentData[key] !== updatedFields[key];
+    });
+    if (hasChanges) {
+      await updateDoc(docRef, updatedData);
+      console.log(`${dataType} dengan ID ${id} berhasil diperbarui`);
+    } else {
+      console.log(`Tidak ada perubahan yang diizinkan untuk ${dataType} dengan ID ${id}`);
+    }
+    return updatedData;
+  } catch (error) {
+    console.error(`Error mengupdate ${dataType}:`, error);
+    throw error;
+  }
 };
 function showEditPopup(id, type, currentData, parentId, subParentId) {
   const typeName = getTypeName(type);
