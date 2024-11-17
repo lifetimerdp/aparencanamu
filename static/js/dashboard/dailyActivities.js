@@ -1,4 +1,4 @@
-import { db } from './firebaseConfig.js';
+import { db } from '../firebaseConfig.js';
 import { getDocs, addDoc, collection, doc, updateDoc, deleteDoc, onSnapshot, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { checkAuth } from "./dashboard.js";
 let userId = null;

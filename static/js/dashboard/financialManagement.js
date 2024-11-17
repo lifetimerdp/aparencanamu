@@ -1,4 +1,4 @@
-import { auth, db } from './firebaseConfig.js';
+import { auth, db } from '../firebaseConfig.js';
 import { doc, addDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { checkAuth, renderList } from './dashboard.js';
 
