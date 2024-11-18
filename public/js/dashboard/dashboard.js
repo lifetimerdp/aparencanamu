@@ -2,10 +2,24 @@ import { auth, db, messaging } from "../firebaseConfig.js";
 import { getDocs, addDoc, collection, doc, updateDoc, deleteDoc, onSnapshot, getDoc, arrayUnion, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import "../auth.js";
+import {
+  formatRupiah,
+  formatDate,
+  formatDateToIndonesian,
+  formatNumber,
+  unformatNumber,
+  getTypeName,
+  getOrderForType,
+  getLabelForKey,
+  getDocRef,
+  months,
+  PRIORITY_COLORS,
+  PRIORITY_LABELS,
+  categories
+} from "./utility.js"
 import { renderSubActivities, addTaskForm, renderTasks, addSubActivityForm, checkExpiredDailyActivities, addDailyActivity, initUserId } from "./dailyActivities.js";
 import { renderSubWeeklyPlans, addSubWeeklyPlanForm, checkExpiredWeeklyPlans, initWeeklyPlans, renderWeeklyPlans, loadWeeklyPlans } from "./weeklyPlans.js";
 import { addExpense, addIncome, addBudget, addReminder, loadExpensesAndIncomes } from "./financialManagement.js";
-const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 const dailyActivitiesForm = document.getElementById("daily-activities-form");
 const dailyActivitiesInput = document.getElementById("daily-activities-input");
 const dailyActivitiesDate = document.getElementById("daily-activities-date");
@@ -26,9 +40,6 @@ const reminderInput = document.getElementById("reminder-input");
 const reminderDate = document.getElementById("reminder-date");
 const reminderTime = document.getElementById("reminder-time");
 export let userId = null;
-const formatRupiah = (amount) => {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(amount);
-};
 export const checkAuth = () => {
     return new Promise((resolve, reject) => {
         onAuthStateChanged(auth, async (user) => {
@@ -46,16 +57,6 @@ export const checkAuth = () => {
             }
         });
     });
-};
-const PRIORITY_COLORS = {
-  high: '#FF4B4B',
-  medium: '#FFB23F',
-  low: '#4CAF50'
-};
-const PRIORITY_LABELS = {
-  high: 'Tinggi',
-  medium: 'Sedang',
-  low: 'Rendah'
 };
 export const renderList = (listElement, items, dataType, parentId = null, subParentId = null) => {
   if (!listElement) return;
@@ -135,25 +136,6 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
         listElement.appendChild(li);
       });
     });
-  };
-
-  const formatDate = (date) => {
-    if (date === "Hari Ini") {
-      const today = new Date();
-      return `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
-    } else if (date === "Besok") {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return `${tomorrow.getDate()} ${months[tomorrow.getMonth()]} ${tomorrow.getFullYear()}`;
-    } else {
-      return date;
-    }
-  };
-
-  const formatDateToIndonesian = (date) => {
-    const [year, monthIndex, day] = date.split("-");
-    const month = months[parseInt(monthIndex, 10) - 1];
-    return `${parseInt(day, 10)} ${month} ${year}`;
   };
 
   const groupedItems = items.reduce((grouped, item) => {
@@ -435,10 +417,6 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
 
   let formContent = '';
   const order = getOrderForType(type);
-  const categories = {
-    incomes: ['Gaji', 'Bonus', 'Investasi', 'Penjualan', 'Hadiah', 'Lainnya'],
-    expenses: ['Makanan', 'Transportasi', 'Belanja', 'Tagihan', 'Hiburan', 'Kesehatan', 'Lainnya']
-  };
 
   order.forEach(key => {
     if (currentData.hasOwnProperty(key) && key !== 'id' && key !== 'userId') {
@@ -627,73 +605,6 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
     }
   });
 }
-function getOrderForType(type) {
-  switch (type) {
-    case 'dailyActivities':
-      return ['name', 'date'];
-    case 'weeklyPlans':
-      return ['name', 'createdAt', 'endDate', 'duration'];
-    case 'incomes':
-      return ['name', 'category', 'amount'];
-    case 'expenses':
-      return ['name', 'category', 'amount'];
-    case 'reminders':
-      return ['name', 'date', 'time'];
-    case 'budget':
-      return ['name', 'month', 'amount'];
-    default:
-      return ['name'];
-  }
-}
-
-function getLabelForKey(key, type) {
-  switch (key) {
-    case 'name':
-      return `Nama ${getTypeName(type)}`;
-    case 'date':
-      return 'Tanggal';
-    case 'time':
-      return 'Waktu';
-    case 'createdAt':
-      return 'Dibuat tanggal';
-    case 'endDate':
-      return 'Berakhir tanggal';
-    case 'duration':
-      return 'Durasi';
-    case 'category':
-      return 'Kategori';
-    case 'amount':
-      return 'Jumlah';
-    case 'month':
-      return 'Bulan';
-    default:
-      return key.charAt(0).toUpperCase() + key.slice(1);
-  }
-}
-const getTypeName = (type) => {
-    switch (type) {
-        case "dailyActivities":
-            return "Aktivitas Harian";
-        case "weeklyPlans":
-            return "Rencana Mingguan";
-        case "budget":
-            return "Anggaran";
-        case "expenses":
-            return "Pengeluaran";
-        case "incomes":
-            return "Pendapatan";
-        case "reminders":
-            return "Pengingat";
-        case "subActivities":
-            return "Sub-aktivitas";
-        case "subWeeklyPlans":
-            return "Sub-rencana";
-        case "tasks":
-            return "Tugas";
-        default:
-            return "Item";
-    }
-};
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         await initUserId();
@@ -975,30 +886,6 @@ const deleteData = async (dataType, dataId, parentId, subParentId) => {
         throw error;
     }
 };
-const getDocRef = (dataType, dataId, parentId, subParentId) => {
-    if (!userId) {
-        throw new Error("User ID is not set. User might not be authenticated.");
-    }
-
-    const userDocRef = doc(db, "users", userId);
-    switch (dataType) {
-        case "dailyActivities":
-        case "weeklyPlans":
-        case "budget":
-        case "expenses":
-        case "incomes":
-        case "reminders":
-            return doc(userDocRef, dataType, dataId);
-        case "subActivities":
-            return doc(userDocRef, "dailyActivities", parentId, "subActivities", dataId);
-        case "subWeeklyPlans":
-            return doc(userDocRef, "weeklyPlans", parentId, "subWeeklyPlans", dataId);
-        case "tasks":
-            return doc(userDocRef, "dailyActivities", parentId, "subActivities", subParentId, "tasks", dataId);
-        default:
-            throw new Error(`Tipe data tidak dikenal: ${dataType}`);
-    }
-};
 document.addEventListener("click", async (e) => {
     if (e.target.classList.contains("edit-btn")) {
         e.preventDefault();
@@ -1077,8 +964,8 @@ async function requestNotificationPermission() {
 // 4. Fungsi untuk Mendaftar dan Mengatur Subscription
 async function registerServiceWorkerAndSubscribe() {
     try {
-        const registration = await navigator.serviceWorker.register('/js/push-notification.js', {
-            scope: '/js/'
+        const registration = await navigator.serviceWorker.register('/js/dashboard/push-notification.js', {
+            scope: '/js/dashboard/'
         });
         await registration.update();
         let pushSubscription = await registration.pushManager.getSubscription();
