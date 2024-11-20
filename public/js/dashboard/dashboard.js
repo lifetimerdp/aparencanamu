@@ -60,161 +60,105 @@ export const checkAuth = () => {
 };
 export const renderList = (listElement, items, dataType, parentId = null, subParentId = null) => {
   if (!listElement) return;
+  
+  // Cleanup previous listener
   const previousUnsubscribe = listElement.getAttribute('data-unsubscribe');
-  if (previousUnsubscribe) {
-    previousUnsubscribe();
-  }
+  if (previousUnsubscribe) previousUnsubscribe();
+  listElement.innerHTML = '';
 
-  listElement.innerHTML = "";
+  // Helper functions
+  const createItemContent = (item) => {
+    const content = item.name + 
+      ((dataType === 'expenses' || dataType === 'incomes' || dataType === 'budget') ? 
+        ` - ${formatRupiah(item.amount)}` : 
+        (dataType === 'dailyActivities' ? ` - ${formatDate(item.date)}` : ''));
+    
+    return `
+      <div class="item-content">
+        <div class="item-left">
+          <span class="item-name">${content}</span>
+        </div>
+        <div class="item-actions">
+          ${createPrioritySelector(item, dataType)}
+          <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" 
+            data-type="${dataType}" data-parent-id="${parentId || ''}" 
+            data-sub-parent-id="${subParentId || ''}">Edit</button>
+          <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
+          <input type="checkbox" class="status-checkbox" 
+            ${item.status === 'selesai' ? 'checked' : ''}
+            data-id="${item.id}" data-type="${dataType}">
+        </div>
+      </div>
+    `;
+  };
 
-  const activeItems = items.filter(item => item.status !== 'selesai');
+  const createPrioritySelector = (item, dataType) => `
+    <div class="priority-selector">
+      <select class="priority-select" data-id="${item.id}" data-type="${dataType}">
+        <option value="">Pilih Prioritas</option>
+        ${Object.entries(PRIORITY_LABELS).map(([key, label]) => 
+          `<option value="${key}" ${item.priority === key ? "selected" : ""}>${label}</option>`
+        ).join('')}
+      </select>
+    </div>
+  `;
 
-  const renderGroupedItems = (groupedItems, createHeader) => {
-    Object.keys(groupedItems).forEach((groupKey) => {
-      const header = createHeader(groupKey);
-      listElement.appendChild(header);
-      groupedItems[groupKey].forEach((item) => {
-        const li = document.createElement('li');
-        let content = `${item.name}`;
-        if (dataType === 'expenses' || dataType === 'incomes') {
-          content += ` - ${formatRupiah(item.amount)}`;
-        } else if (dataType === 'budget') {
-          content += ` - ${formatRupiah(item.amount)}`;
-        } else if (dataType === 'dailyActivities') {
-          const dateToShow = formatDate(item.date);
-          content += ` - ${dateToShow}`;
-        }
-        li.setAttribute('data-id', item.id);
-        li.style.borderLeft = `4px solid ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}`;
-        li.classList.add('list-item-transition');
-        li.innerHTML = `
-          <div class="item-content">
-            <div class="item-left">
-              <span class="item-name">${content}</span>
-            </div>
-            <div class="item-actions">
-              <div class="priority-selector">
-                <select class="priority-select" data-id="${item.id}" data-type="${dataType}">
-                  <option value="">Pilih Prioritas</option>
-                  <option value="high" ${item.priority === "high" ? "selected" : ""}>
-                    ${PRIORITY_LABELS.high}
-                  </option>
-                  <option value="medium" ${item.priority === "medium" ? "selected" : ""}>
-                    ${PRIORITY_LABELS.medium}
-                  </option>
-                  <option value="low" ${item.priority === "low" ? "selected" : ""}>
-                    ${PRIORITY_LABELS.low}
-                  </option>
-                </select>
-              </div>
-              <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" 
-                data-type="${dataType}" data-parent-id="${parentId || ''}" 
-                data-sub-parent-id="${subParentId || ''}">Edit</button>
-              <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
-              <input type="checkbox" 
-                class="status-checkbox" 
-                ${item.status === 'selesai' ? 'checked' : ''}
-                data-id="${item.id}" 
-                data-type="${dataType}">
-            </div>
-          </div>
-        `;
-        if (dataType === 'dailyActivities') {
-          const subActivitiesContainer = document.createElement('div');
-          subActivitiesContainer.classList.add('sub-activities-container');
-          li.appendChild(subActivitiesContainer);
-          addSubActivityForm(li, item);
-          const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", item.id), "subActivities");
-          const unsubscribe = onSnapshot(subActivitiesRef, (snapshot) => {
-            const subActivities = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter(subActivity => subActivity.status !== 'selesai');
-            renderSubActivities(subActivitiesContainer, subActivities, item.id);
-          });
-          li.setAttribute('data-unsubscribe', unsubscribe);
-        } else if (dataType === 'weeklyPlans') {
-          addSubWeeklyPlanForm(li, item);
-        }
-        listElement.appendChild(li);
-      });
+  const createListItem = (item) => {
+    const li = document.createElement('li');
+    li.setAttribute('data-id', item.id);
+    li.style.borderLeft = `4px solid ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}`;
+    li.classList.add('list-item-transition');
+    li.innerHTML = createItemContent(item);
+
+    if (dataType === 'dailyActivities') {
+      setupDailyActivity(li, item);
+    } else if (dataType === 'weeklyPlans') {
+      addSubWeeklyPlanForm(li, item);
+    }
+
+    return li;
+  };
+
+  const setupDailyActivity = (li, item) => {
+    const container = document.createElement('div');
+    container.classList.add('sub-activities-container');
+    li.appendChild(container);
+    addSubActivityForm(li, item);
+
+    const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", item.id), "subActivities");
+    const unsubscribe = onSnapshot(subActivitiesRef, (snapshot) => {
+      const subActivities = snapshot.docs
+        .map(doc => ({id: doc.id, ...doc.data()}))
+        .filter(subActivity => subActivity.status !== 'selesai');
+      renderSubActivities(container, subActivities, item.id);
+    });
+    li.setAttribute('data-unsubscribe', unsubscribe);
+  };
+
+  const renderGroupedItems = (groupedItems) => {
+    Object.entries(groupedItems).forEach(([groupKey, groupItems]) => {
+      if (groupKey) {
+        const header = document.createElement("h3");
+        header.textContent = groupKey;
+        listElement.appendChild(header);
+      }
+      groupItems.forEach(item => listElement.appendChild(createListItem(item)));
     });
   };
 
-  const groupedItems = items.reduce((grouped, item) => {
-    let groupKey;
-    if (dataType === "reminders") {
-      groupKey = formatDateToIndonesian(item.date);
-    } else if (dataType === "budget") {
-      groupKey = item.month;
-    } else if (dataType === "weeklyPlans") {
-      groupKey = `${item.createdAt} - ${item.endDate}`;
-    } else {
-      groupKey = "";
-    }
-    if (!grouped[groupKey]) {
-      grouped[groupKey] = [];
-    }
-    grouped[groupKey].push(item);
-    return grouped;
-  }, {});
-
+  // Main rendering logic
+  const activeItems = items.filter(item => item.status !== 'selesai');
+  
   if (dataType === "reminders" || dataType === "budget" || dataType === "weeklyPlans") {
-    renderGroupedItems(groupedItems, (groupKey) => {
-      const header = document.createElement("h3");
-      header.textContent = groupKey;
-      return header;
-    });
+    const groupedItems = activeItems.reduce((grouped, item) => {
+      const groupKey = dataType === "reminders" ? formatDateToIndonesian(item.date) :
+                      dataType === "budget" ? item.month :
+                      dataType === "weeklyPlans" ? `${item.createdAt} - ${item.endDate}` : "";
+      return { ...grouped, [groupKey]: [...(grouped[groupKey] || []), item] };
+    }, {});
+    renderGroupedItems(groupedItems);
   } else {
-    activeItems.forEach((item) => {
-      const li = document.createElement("li");
-      let content = `${item.name}`;
-      if (dataType === "expenses" || dataType === "incomes") {
-        content += ` - ${formatRupiah(item.amount)}`;
-      } else if (dataType === "budget") {
-        content += ` - ${formatRupiah(item.amount)}`;
-      } else if (dataType === "dailyActivities") {
-        const dateToShow = formatDate(item.date);
-        content += ` - ${dateToShow}`;
-      }
-      li.setAttribute("data-id", item.id);
-      li.style.borderLeft = `4px solid ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}`;
-      li.innerHTML = `
-        <div class="item-content">
-          <div class="item-left">
-            <span class="item-name">${content}</span>
-          </div>
-          <div class="item-actions">
-            <div class="priority-selector">
-              <select class="priority-select" data-id="${item.id}" data-type="${dataType}">
-                <option value="">Pilih Prioritas</option>
-                <option value="high" ${item.priority === "high" ? "selected" : ""}>
-                  ${PRIORITY_LABELS.high}
-                </option>
-                <option value="medium" ${item.priority === "medium" ? "selected" : ""}>
-                  ${PRIORITY_LABELS.medium}
-                </option>
-                <option value="low" ${item.priority === "low" ? "selected" : ""}>
-                  ${PRIORITY_LABELS.low}
-                </option>
-              </select>
-            </div>
-            <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" 
-              data-type="${dataType}" data-parent-id="${parentId || ""}" 
-              data-sub-parent-id="${subParentId || ""}">Edit</button>
-            <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
-            <input type="checkbox" 
-              class="status-checkbox" 
-              ${item.status === "selesai" ? "checked" : ""}
-              data-id="${item.id}" 
-              data-type="${dataType}">
-          </div>
-        </div>
-      `;
-      if (dataType === "dailyActivities") {
-        addSubActivityForm(li, item);
-      } else if (dataType === "weeklyPlans") {
-        addSubWeeklyPlanForm(li, item);
-      }
-      listElement.appendChild(li);
-    });
+    activeItems.forEach(item => listElement.appendChild(createListItem(item)));
   }
 };
 document.addEventListener('change', async (e) => {
@@ -395,163 +339,106 @@ const editData = async (dataType, id, updatedFields, parentId = null, subParentI
   }
 };
 function showEditPopup(id, type, currentData, parentId, subParentId) {
-  const typeName = getTypeName(type);
-  const editPopup = document.createElement('div');
-  editPopup.classList.add('edit-popup');
-  editPopup.style.position = 'fixed';
-  editPopup.style.top = '50%';
-  editPopup.style.left = '50%';
-  editPopup.style.transform = 'translate(-50%, -50%)';
-  editPopup.style.backgroundColor = 'white';
-  editPopup.style.padding = '20px';
-  editPopup.style.boxShadow = '0 0 10px rgba(0,0,0,0.1)';
-  editPopup.style.zIndex = '1000';
-
-  const formatNumber = (num) => {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  };
-
-  const unformatNumber = (str) => {
-    return parseFloat(str.replace(/[^\d]/g, ''));
-  };
-
-  let formContent = '';
-  const order = getOrderForType(type);
-
-  order.forEach(key => {
-    if (currentData.hasOwnProperty(key) && key !== 'id' && key !== 'userId') {
-      const isExcluded = (
-        (type === 'incomes' && (key === 'date' || key === 'notes')) ||
-        (type === 'reminders' && (key === 'timeZone' || key === 'notificationSent'))
-      );
-
-      if (!isExcluded) {
-        let label = getLabelForKey(key, type);
-        let inputContent = '';
-
-        switch (key) {
-          case 'createdAt':
-          case 'endDate':
-            // Make these fields read-only
-            inputContent = `
-              <input type="text" id="edit-${key}" 
-                value="${currentData[key]}" 
-                disabled
-                style="background-color: #f0f0f0;">
-            `;
-            break;
-
-          case 'duration':
-            // Convert duration to dropdown with 1-3 weeks
-            inputContent = `
-              <select id="edit-${key}">
-                <option value="1" ${currentData[key] === 1 ? 'selected' : ''}>1 Minggu</option>
-                <option value="2" ${currentData[key] === 2 ? 'selected' : ''}>2 Minggu</option>
-                <option value="3" ${currentData[key] === 3 ? 'selected' : ''}>3 Minggu</option>
-              </select>
-            `;
-            break;
-
-          case 'date':
-            if (type === 'weeklyPlans') {
-              // Add date selector for ±1 day from original date
-              const originalDate = new Date(currentData[key].split(' ').reverse().join('-'));
-              const prevDay = new Date(originalDate);
-              prevDay.setDate(prevDay.getDate() - 1);
-              const nextDay = new Date(originalDate);
-              nextDay.setDate(nextDay.getDate() + 1);
-
-              const formatDateOption = (date) => {
-                return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
-              };
-
-              inputContent = `
-                <select id="edit-${key}">
-                  <option value="${formatDateOption(prevDay)}">${formatDateOption(prevDay)}</option>
-                  <option value="${formatDateOption(originalDate)}" selected>${formatDateOption(originalDate)}</option>
-                  <option value="${formatDateOption(nextDay)}">${formatDateOption(nextDay)}</option>
-                </select>
-              `;
-            } else if (type === 'reminders') {
-              inputContent = `
-                <input type="date" id="edit-${key}" 
-                  value="${currentData[key]}" 
-                  min="${new Date().toISOString().split('T')[0]}">
-              `;
+  const createInput = (key, value) => {
+    const commonProps = `id="edit-${key}" ${key === 'createdAt' || key === 'endDate' ? 'disabled style="background-color: #f0f0f0;"' : ''}`;
+    
+    const inputs = {
+      duration: `<select ${commonProps}>${[1,2,3].map(n => 
+        `<option value="${n}" ${value===n?'selected':''}>${n} Minggu</option>`).join('')}</select>`,
+      
+      date: type === 'weeklyPlans' ? 
+        (() => {
+          // Pastikan value adalah string dan ada sebelum mencoba split
+          let date;
+          try {
+            if (typeof value === 'string') {
+              // Jika format adalah "DD Bulan YYYY"
+              const parts = value.split(' ');
+              if (parts.length === 3) {
+                const monthIndex = months.indexOf(parts[1]);
+                if (monthIndex !== -1) {
+                  date = new Date(parts[2], monthIndex, parseInt(parts[0]));
+                }
+              }
             }
-            break;
-
-          case 'category':
-            if (type === 'incomes' || type === 'expenses') {
-              const categoryList = type === 'incomes' ? categories.incomes : categories.expenses;
-              const currentCategory = currentData[key];
-              const isCustom = !categoryList.includes(currentCategory);
-              inputContent = `
-                <select id="edit-${key}" onchange="this.nextElementSibling.style.display = this.value === 'custom' ? 'block' : 'none'">
-                  ${categoryList.map(cat => `<option value="${cat}" ${cat === currentCategory ? 'selected' : ''}>${cat}</option>`).join('')}
-                  <option value="custom" ${isCustom ? 'selected' : ''}>Kategori Kustom</option>
-                </select>
-                <input type="text" id="edit-${key}-custom" 
-                  style="display: ${isCustom ? 'block' : 'none'}; margin-top: 5px;" 
-                  value="${isCustom ? currentCategory : ''}" 
-                  placeholder="Masukkan kategori kustom">
-              `;
+            // Jika parsing gagal, gunakan tanggal sekarang
+            if (!date || isNaN(date.getTime())) {
+              date = new Date();
             }
-            break;
+          } catch (error) {
+            console.error('Error parsing date:', error);
+            date = new Date();
+          }
 
-          case 'amount':
-            inputContent = `
-              <div style="position: relative;">
-                <input type="text" id="edit-${key}" 
-                  value="Rp. ${formatNumber(currentData[key])}"
-                  oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')"
-                  onkeyup="if(this.value !== '') this.value = 'Rp. ' + this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')">
-              </div>
-            `;
-            break;
-
-          case 'time':
-            if (type === 'reminders') {
-              inputContent = `
-                <input type="time" id="edit-${key}" 
-                  value="${currentData[key]}">
-              `;
-            }
-            break;
-
-          case 'month':
-            if (type === 'budget') {
-              inputContent = `
-                <select id="edit-${key}">
-                  ${months.map((month, index) => `
-                    <option value="${month}" ${month === currentData[key] ? 'selected' : ''}>${month}</option>
-                  `).join('')}
-                </select>
-              `;
-            }
-            break;
-
-          default:
-            inputContent = `
-              <input type="text" id="edit-${key}" value="${currentData[key]}">
-            `;
-        }
-
-        if (inputContent) {
-          formContent += `
-            <div>
-              <label for="edit-${key}">${label}:</label>
-              ${inputContent}
-            </div>
+          return `<select ${commonProps}>${[-1,0,1].map(d => {
+            const newDate = new Date(date);
+            newDate.setDate(date.getDate() + d);
+            const formatted = `${newDate.getDate()} ${months[newDate.getMonth()]} ${newDate.getFullYear()}`;
+            return `<option value="${formatted}" ${d===0?'selected':''}>${formatted}</option>`;
+          }).join('')}</select>`;
+        })() :
+        type === 'reminders' ?
+          `<input type="date" ${commonProps} value="${value}" min="${new Date().toISOString().split('T')[0]}">` :
+          '',
+      
+      category: (type === 'incomes' || type === 'expenses') ?
+        (() => {
+          const cats = type === 'incomes' ? categories.incomes : categories.expenses;
+          const isCustom = !cats.includes(value);
+          return `
+            <select ${commonProps} onchange="this.nextElementSibling.style.display = this.value === 'custom' ? 'block' : 'none'">
+              ${cats.map(c => `<option value="${c}" ${c===value?'selected':''}>${c}</option>`).join('')}
+              <option value="custom" ${isCustom ? 'selected' : ''}>Kategori Kustom</option>
+            </select>
+            <input type="text" id="edit-${key}-custom" style="display: ${isCustom ? 'block' : 'none'}; margin-top: 5px;" 
+              value="${isCustom ? value : ''}" placeholder="Masukkan kategori kustom">
           `;
-        }
-      }
-    }
+        })() : '',
+      
+      amount: `<input type="text" ${commonProps} value="Rp. ${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}"
+        oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')"
+        onkeyup="if(this.value !== '') this.value = 'Rp. ' + this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')">`,
+      
+      time: type === 'reminders' ? `<input type="time" ${commonProps} value="${value}">` : '',
+      
+      month: type === 'budget' ? 
+        `<select ${commonProps}>${months.map(m => `<option value="${m}" ${m===value?'selected':''}>${m}</option>`).join('')}</select>` : ''
+    };
+
+    return inputs[key] || `<input type="text" ${commonProps} value="${value}">`;
+  };
+
+  const popup = document.createElement('div');
+  popup.className = 'edit-popup';
+  Object.assign(popup.style, {
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    backgroundColor: 'white',
+    padding: '20px',
+    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+    zIndex: '1000'
   });
 
-  editPopup.innerHTML = `
+  const formContent = getOrderForType(type)
+    .filter(key => 
+      currentData.hasOwnProperty(key) && 
+      key !== 'id' && 
+      key !== 'userId' &&
+      !((type === 'incomes' && (key === 'date' || key === 'notes')) ||
+        (type === 'reminders' && (key === 'timeZone' || key === 'notificationSent')))
+    )
+    .map(key => `
+      <div>
+        <label for="edit-${key}">${getLabelForKey(key, type)}:</label>
+        ${createInput(key, currentData[key])}
+      </div>
+    `).join('');
+
+  popup.innerHTML = `
     <div class="edit-popup-content">
-      <h3>Edit ${typeName}</h3>
+      <h3>Edit ${getTypeName(type)}</h3>
       <form id="edit-form">
         ${formContent}
         <button type="submit">Simpan</button>
@@ -560,50 +447,43 @@ function showEditPopup(id, type, currentData, parentId, subParentId) {
     </div>
   `;
 
-  document.body.appendChild(editPopup);
+  document.body.appendChild(popup);
 
-  const cancelButton = editPopup.querySelector('#cancel-edit');
-  cancelButton.addEventListener('click', () => {
-    document.body.removeChild(editPopup);
-  });
+  popup.querySelector('#cancel-edit').onclick = () => document.body.removeChild(popup);
 
-  const editForm = editPopup.querySelector('#edit-form');
-  editForm.addEventListener('submit', async (e) => {
+  popup.querySelector('#edit-form').onsubmit = async (e) => {
     e.preventDefault();
-    const updatedFields = {};
-
-    order.forEach(key => {
-      if (currentData.hasOwnProperty(key) && key !== 'id' && key !== 'userId') {
+    const updatedFields = getOrderForType(type)
+      .filter(key => 
+        currentData.hasOwnProperty(key) && 
+        key !== 'id' && 
+        key !== 'userId'
+      )
+      .reduce((acc, key) => {
         const input = document.getElementById(`edit-${key}`);
         if (input && !input.disabled) {
           if (key === 'amount') {
-            updatedFields[key] = unformatNumber(input.value);
-          } else if (key === 'category') {
-            const selectedValue = input.value;
-            if (selectedValue === 'custom') {
-              const customInput = document.getElementById(`edit-${key}-custom`);
-              updatedFields[key] = customInput.value.trim();
-            } else {
-              updatedFields[key] = selectedValue;
-            }
+            acc[key] = parseFloat(input.value.replace(/[^\d]/g, ''));
+          } else if (key === 'category' && input.value === 'custom') {
+            acc[key] = document.getElementById(`edit-${key}-custom`).value.trim();
           } else if (key === 'duration') {
-            updatedFields[key] = parseInt(input.value);
+            acc[key] = parseInt(input.value);
           } else {
-            updatedFields[key] = input.value.trim();
+            acc[key] = input.value.trim();
           }
         }
-      }
-    });
+        return acc;
+      }, {});
 
     try {
       await editData(type, id, updatedFields, parentId, subParentId);
-      document.body.removeChild(editPopup);
+      document.body.removeChild(popup);
       alert('Perubahan berhasil disimpan');
     } catch (error) {
       console.error('Error saat menyimpan perubahan:', error);
       alert('Terjadi kesalahan saat menyimpan perubahan. Silakan coba lagi.');
     }
-  });
+  };
 }
 document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -893,7 +773,6 @@ document.addEventListener("click", async (e) => {
         const dataId = e.target.getAttribute("data-id");
         const parentId = e.target.getAttribute("data-parent-id") || "";
         const subParentId = e.target.getAttribute("data-sub-parent-id") || "";
-        console.log("Edit button clicked:", { dataType, dataId, parentId, subParentId });
         try {
             await checkAuth();
             const docRef = getDocRef(dataType, dataId, parentId, subParentId);

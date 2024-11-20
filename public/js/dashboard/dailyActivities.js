@@ -20,17 +20,26 @@ export const initUserId = async () => {
     return null;
   }
 };
-
 export const renderSubActivities = (parentElement, subActivities) => {
-  const subActivityList = parentElement.querySelector('.sub-activity-list');
-  const parentId = parentElement.getAttribute('data-id');
-  if (!subActivityList) {
-    console.error('Sub-activity list element not found');
+  // Pastikan parentElement ada
+  if (!parentElement) {
+    console.error('Parent element not found');
     return;
   }
-  subActivityList.innerHTML = ''; // Clear existing sub-activities
 
-  const renderedSubActivities = new Set(); // To keep track of rendered sub-activities
+  // Cari atau buat sub-activity-list
+  let subActivityList = parentElement.querySelector('.sub-activity-list');
+  if (!subActivityList) {
+    // Jika belum ada, buat elemen baru
+    subActivityList = document.createElement('ul');
+    subActivityList.className = 'sub-activity-list';
+    parentElement.appendChild(subActivityList);
+  }
+
+  // Bersihkan konten yang ada
+  subActivityList.innerHTML = '';
+
+  const renderedSubActivities = new Set();
 
   subActivities.forEach(subActivity => {
     if (subActivity.name && subActivity.name.trim() !== '' && !renderedSubActivities.has(subActivity.id)) {
@@ -40,8 +49,13 @@ export const renderSubActivities = (parentElement, subActivities) => {
         <div class="item-content">
           <span class="item-name">${subActivity.name}</span>
           <div class="item-actions">
-            <button class="edit-btn" data-id="${subActivity.id}" data-name="${subActivity.name}" data-type="subActivities" data-parent-id="${parentId}">Edit</button>
-            <button class="delete-btn" data-id="${subActivity.id}" data-type="subActivities" data-parent-id="${parentId}">Hapus</button>
+            <button class="edit-btn" data-id="${subActivity.id}" 
+              data-name="${subActivity.name}" 
+              data-type="subActivities" 
+              data-parent-id="${parentElement.closest('[data-id]')?.getAttribute('data-id') || ''}">Edit</button>
+            <button class="delete-btn" data-id="${subActivity.id}" 
+              data-type="subActivities" 
+              data-parent-id="${parentElement.closest('[data-id]')?.getAttribute('data-id') || ''}">Hapus</button>
           </div>
         </div>
       `;
@@ -51,18 +65,18 @@ export const renderSubActivities = (parentElement, subActivities) => {
       li.appendChild(taskList);
 
       // Add task form for each sub-activity
-      addTaskForm(li, parentId, subActivity.id);
+      const parentId = parentElement.closest('[data-id]')?.getAttribute('data-id');
+      if (parentId) {
+        addTaskForm(li, parentId, subActivity.id);
+        // Load and render tasks
+        loadAndRenderTasks(taskList, parentId, subActivity.id);
+      }
 
       subActivityList.appendChild(li);
-
-      // Load and render tasks for this sub-activity
-      loadAndRenderTasks(taskList, parentId, subActivity.id);
-
-      renderedSubActivities.add(subActivity.id); // Mark this sub-activity as rendered
+      renderedSubActivities.add(subActivity.id);
     }
   });
 };
-
 const loadAndRenderTasks = (taskList, activityId, subActivityId) => {
   const tasksRef = collection(db, "users", userId, "dailyActivities", activityId, "subActivities", subActivityId, "tasks");
   onSnapshot(tasksRef, (snapshot) => {
@@ -122,19 +136,24 @@ export const addTaskForm = (subActivityElement, activityId, subActivityId) => {
     }
   });
 };
-
 export const addSubActivityForm = (li, item) => {
+  // Buat container untuk sub-activities
+  const subActivitiesContainer = document.createElement('div');
+  subActivitiesContainer.className = 'sub-activities-container';
+  
+  // Buat form
   const subActivityForm = document.createElement('form');
   subActivityForm.className = 'sub-activity-form';
   subActivityForm.innerHTML = `
     <input type="text" class="sub-activity-input" placeholder="Tambah sub-aktivitas baru">
     <button type="submit">Tambah Sub-Aktivitas</button>
   `;
-  li.appendChild(subActivityForm);
-
-  const subActivitiesList = document.createElement('ul');
-  subActivitiesList.className = 'sub-activity-list';
-  li.appendChild(subActivitiesList);
+  
+  // Tambahkan form ke container
+  subActivitiesContainer.appendChild(subActivityForm);
+  
+  // Tambahkan container ke li
+  li.appendChild(subActivitiesContainer);
 
   if (!userId) {
     console.error('User ID is not initialized');
@@ -160,12 +179,12 @@ export const addSubActivityForm = (li, item) => {
     }
   });
 
+  // Setup listener untuk sub-activities
   onSnapshot(subActivitiesRef, (snapshot) => {
     const subActivities = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderSubActivities(li, subActivities);
+    renderSubActivities(subActivitiesContainer, subActivities);
   });
 };
-
 export const checkExpiredDailyActivities = async () => {
   try {
     if (!userId) {
@@ -245,5 +264,4 @@ export const addDailyActivity = async (activityName, activityDate) => {
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initUserId();
-  // Kode lain yang perlu dijalankan setelah userId diinisialisasi
 });
