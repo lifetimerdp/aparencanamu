@@ -1,219 +1,205 @@
 import { db } from '../firebaseConfig.js';
 import { getDocs, addDoc, collection, doc, updateDoc, deleteDoc, onSnapshot, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { checkAuth } from "./dashboard.js";
-let userId = null;
 
 const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+let userId = null;
+
+// Helper functions
+const createElementWithHTML = (tag, className, html) => {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (html) element.innerHTML = html;
+  return element;
+};
+
+const getFirestoreRef = (path) => {
+  return collection(db, "users", userId, ...path);
+};
+
+// Main functions
 export const initUserId = async () => {
   try {
     const user = await checkAuth();
-    if (user) {
-      userId = user.uid;
-      return userId;
-    } else {
-      userId = null;
-      return null;
-    }
+    userId = user?.uid || null;
+    return userId;
   } catch (error) {
     console.error('Error initializing userId:', error);
-    userId = null;
     return null;
   }
 };
+
 export const renderSubActivities = (parentElement, subActivities) => {
-  // Pastikan parentElement ada
-  if (!parentElement) {
-    console.error('Parent element not found');
-    return;
-  }
+  if (!parentElement) return;
+  // Gunakan Set untuk memastikan ID unik
+  const uniqueSubActivities = Array.from(new Set(
+    subActivities
+      .filter(sa => sa.status !== 'selesai')
+      .map(sa => sa.id)
+  )).map(id => subActivities.find(sa => sa.id === id));
 
-  // Cari atau buat sub-activity-list
-  let subActivityList = parentElement.querySelector('.sub-activity-list');
-  if (!subActivityList) {
-    // Jika belum ada, buat elemen baru
-    subActivityList = document.createElement('ul');
-    subActivityList.className = 'sub-activity-list';
-    parentElement.appendChild(subActivityList);
-  }
+  let subActivityList = parentElement.querySelector('.sub-activity-list') || (() => {
+    const list = createElementWithHTML('ul', 'sub-activity-list');
+    parentElement.appendChild(list);
+    return list;
+  })();
 
-  // Bersihkan konten yang ada
   subActivityList.innerHTML = '';
+  uniqueSubActivities.forEach(subActivity => {
+        if (!subActivity.name?.trim()) return;
 
-  const renderedSubActivities = new Set();
+        const parentId = parentElement.closest('[data-id]')?.getAttribute('data-id') || '';
+        
+        const li = createElementWithHTML('li', '', `
+            <div class="item-content">
+                <span class="item-name">${subActivity.name}</span>
+                <div class="item-actions">
+                    <button class="edit-btn" data-id="${subActivity.id}" 
+                        data-name="${subActivity.name}" 
+                        data-type="subActivities" 
+                        data-parent-id="${parentId}">Edit</button>
+                    <button class="delete-btn" data-id="${subActivity.id}" 
+                        data-type="subActivities" 
+                        data-parent-id="${parentId}">Hapus</button>
+                </div>
+            </div>
+        `);
+        
+        li.setAttribute('data-id', subActivity.id);
+        
+        const taskList = createElementWithHTML('ul', 'task-list');
+        li.appendChild(taskList);
 
-  subActivities.forEach(subActivity => {
-    if (subActivity.name && subActivity.name.trim() !== '' && !renderedSubActivities.has(subActivity.id)) {
-      const li = document.createElement('li');
-      li.setAttribute('data-id', subActivity.id);
-      li.innerHTML = `
-        <div class="item-content">
-          <span class="item-name">${subActivity.name}</span>
-          <div class="item-actions">
-            <button class="edit-btn" data-id="${subActivity.id}" 
-              data-name="${subActivity.name}" 
-              data-type="subActivities" 
-              data-parent-id="${parentElement.closest('[data-id]')?.getAttribute('data-id') || ''}">Edit</button>
-            <button class="delete-btn" data-id="${subActivity.id}" 
-              data-type="subActivities" 
-              data-parent-id="${parentElement.closest('[data-id]')?.getAttribute('data-id') || ''}">Hapus</button>
-          </div>
-        </div>
-      `;
+        if (parentId) {
+            addTaskForm(li, parentId, subActivity.id);
+            loadAndRenderTasks(taskList, parentId, subActivity.id);
+        }
 
-      const taskList = document.createElement('ul');
-      taskList.className = 'task-list';
-      li.appendChild(taskList);
-
-      // Add task form for each sub-activity
-      const parentId = parentElement.closest('[data-id]')?.getAttribute('data-id');
-      if (parentId) {
-        addTaskForm(li, parentId, subActivity.id);
-        // Load and render tasks
-        loadAndRenderTasks(taskList, parentId, subActivity.id);
-      }
-
-      subActivityList.appendChild(li);
-      renderedSubActivities.add(subActivity.id);
-    }
-  });
+        subActivityList.appendChild(li);
+    });
 };
+
 const loadAndRenderTasks = (taskList, activityId, subActivityId) => {
-  const tasksRef = collection(db, "users", userId, "dailyActivities", activityId, "subActivities", subActivityId, "tasks");
-  onSnapshot(tasksRef, (snapshot) => {
-    const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderTasks(taskList, tasks, activityId, subActivityId);
-  });
+  onSnapshot(
+    getFirestoreRef(['dailyActivities', activityId, 'subActivities', subActivityId, 'tasks']),
+    (snapshot) => {
+      const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderTasks(taskList, tasks, activityId, subActivityId);
+    }
+  );
 };
 
 export const renderTasks = (taskList, tasks, activityId, subActivityId) => {
+  // Gunakan Set untuk memastikan ID unik
+  const uniqueTasks = Array.from(new Set(
+    tasks
+      .filter(task => !task.completed)
+      .map(task => task.id)
+  )).map(id => tasks.find(task => task.id === id));
+
   taskList.innerHTML = '';
-  tasks.forEach(task => {
-    const li = document.createElement('li');
-    li.setAttribute('data-id', task.id);
-    li.innerHTML = `
-      <div class="item-content">
-        <span class="item-name">${task.name}</span>
-        <div class="item-actions">
-          <button class="edit-btn" data-id="${task.id}" data-name="${task.name}" data-type="tasks" data-parent-id="${activityId}" data-sub-parent-id="${subActivityId}">Edit</button>
-          <button class="delete-btn" data-id="${task.id}" data-type="tasks" data-parent-id="${activityId}" data-sub-parent-id="${subActivityId}">Hapus</button>
+  uniqueTasks.forEach(task => {
+    const li = createElementWithHTML('li', '', `
+        <div class="item-content">
+            <span class="item-name">${task.name}</span>
+            <div class="item-actions">
+                <button class="edit-btn" data-id="${task.id}" data-name="${task.name}" 
+                    data-type="tasks" data-parent-id="${activityId}" 
+                    data-sub-parent-id="${subActivityId}">Edit</button>
+                <button class="delete-btn" data-id="${task.id}" data-type="tasks" 
+                    data-parent-id="${activityId}" 
+                    data-sub-parent-id="${subActivityId}">Hapus</button>
+            </div>
         </div>
-      </div>
-    `;
+    `);
+    
+    li.setAttribute('data-id', task.id);
     taskList.appendChild(li);
   });
 };
 
 export const addTaskForm = (subActivityElement, activityId, subActivityId) => {
-  const taskForm = document.createElement('form');
-  taskForm.className = 'task-form';
-  taskForm.innerHTML = `
+  const taskForm = createElementWithHTML('form', 'task-form', `
     <input type="text" class="task-input" placeholder="Tambah tugas baru">
     <button type="submit">Tambah Tugas</button>
-  `;
+  `);
 
   subActivityElement.appendChild(taskForm);
-
   taskForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const taskInput = taskForm.querySelector('.task-input');
-    const taskName = taskInput.value.trim();
-
+    const taskName = taskForm.querySelector('.task-input').value.trim();
+    
     if (taskName && activityId && subActivityId) {
       try {
-        const taskRef = collection(db, "users", userId, "dailyActivities", activityId, "subActivities", subActivityId, "tasks");
-
-        await addDoc(taskRef, {
-          name: taskName,
-          completed: false
-        });
-
-        taskInput.value = '';
+        await addDoc(
+          getFirestoreRef(['dailyActivities', activityId, 'subActivities', subActivityId, 'tasks']),
+          { name: taskName, completed: false }
+        );
+        taskForm.querySelector('.task-input').value = '';
       } catch (error) {
         console.error('Error adding task:', error);
       }
-    } else {
-      console.error('Task name, activity ID, or sub-activity ID is missing.');
     }
   });
 };
-export const addSubActivityForm = (li, item) => {
-  // Buat container untuk sub-activities
-  const subActivitiesContainer = document.createElement('div');
-  subActivitiesContainer.className = 'sub-activities-container';
-  
-  // Buat form
-  const subActivityForm = document.createElement('form');
-  subActivityForm.className = 'sub-activity-form';
-  subActivityForm.innerHTML = `
+
+const createSubActivityForm = (li, item) => {
+  const container = createElementWithHTML('div', 'sub-activities-container');
+  const form = createElementWithHTML('form', 'sub-activity-form', `
     <input type="text" class="sub-activity-input" placeholder="Tambah sub-aktivitas baru">
     <button type="submit">Tambah Sub-Aktivitas</button>
-  `;
-  
-  // Tambahkan form ke container
-  subActivitiesContainer.appendChild(subActivityForm);
-  
-  // Tambahkan container ke li
-  li.appendChild(subActivitiesContainer);
+  `);
+  container.appendChild(form);
+  li.appendChild(container);
 
-  if (!userId) {
-    console.error('User ID is not initialized');
-    return;
-  }
-
-  const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", item.id), "subActivities");
-  
-  subActivityForm.addEventListener('submit', async (e) => {
+  const subActivitiesRef = getFirestoreRef(['dailyActivities', item.id, 'subActivities']);
+  form.addEventListener('submit', async(e) => {
     e.preventDefault();
-    const subActivityInput = subActivityForm.querySelector('.sub-activity-input');
-    const subActivityName = subActivityInput.value.trim();
-    
-    if (subActivityName !== '') {
+    const subActivityName = form.querySelector('.sub-activity-input').value.trim();
+    if (subActivityName) {
       try {
-        await addDoc(subActivitiesRef, {
-          name: subActivityName
-        });
-        subActivityInput.value = '';
+        await addDoc(subActivitiesRef, { name: subActivityName });
+        form.querySelector('.sub-activity-input').value = '';
       } catch (error) {
         console.error('Error adding sub-activity:', error);
       }
     }
   });
-
-  // Setup listener untuk sub-activities
+  
   onSnapshot(subActivitiesRef, (snapshot) => {
-    const subActivities = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderSubActivities(subActivitiesContainer, subActivities);
+    const subActivities = snapshot.docs.map(doc => ({
+      id: doc.id, 
+      ...doc.data()
+    })).filter(sa => sa.status !== 'selesai');  // Tambahkan filter
+
+    renderSubActivities(container, subActivities);
   });
 };
+
+export const addSubActivityForm = (li, item) => {
+  // Pastikan userId sudah diinisialisasi
+  if (!userId) {
+    initUserId().then(() => {
+      // Jalankan logika setelah userId diinisialisasi
+      createSubActivityForm(li, item);
+    });
+    return;
+  }
+  createSubActivityForm(li, item);
+};
+
 export const checkExpiredDailyActivities = async () => {
+  if (!userId) return;
+
   try {
-    if (!userId) {
-      console.error("User ID is not initialized");
-      return;
-    }
-
-    const userDocRef = doc(db, "users", userId);
-    const dailyActivitiesRef = collection(userDocRef, 'dailyActivities');
-    const snapshot = await getDocs(dailyActivitiesRef);
-
+    const snapshot = await getDocs(collection(doc(db, "users", userId), 'dailyActivities'));
     snapshot.forEach(async (doc) => {
       const activity = doc.data();
-      if (!activity.date || typeof activity.date !== 'string') {
-        console.error(`Invalid date format for activity ${doc.id}`);
-        return;
-      }
+      if (!activity.date || typeof activity.date !== 'string') return;
 
       const [day, month, year] = activity.date.split(' ');
-      if (!day || !month || !year) {
-        console.error(`Invalid date format for activity ${doc.id}: ${activity.date}`);
-        return;
-      }
-
       const monthIndex = months.indexOf(month);
-      if (monthIndex === -1) {
-        console.error(`Invalid month for activity ${doc.id}: ${month}`);
-        return;
-      }
+      if (monthIndex === -1) return;
 
       const activityDate = new Date(year, monthIndex, parseInt(day));
       const today = new Date();
@@ -229,39 +215,27 @@ export const checkExpiredDailyActivities = async () => {
 };
 
 export const addDailyActivity = async (activityName, activityDate) => {
-  if (!userId) {
-    await initUserId();
-  }
+  if (!userId && !(await initUserId())) return false;
+  if (!activityName.trim()) return false;
+
+  const dateToAdd = new Date();
+  if (activityDate === 'tomorrow') dateToAdd.setDate(dateToAdd.getDate() + 1);
   
-  if (!userId) {
-    console.error('User ID is still not initialized after attempt to initialize');
+  const formattedDate = `${dateToAdd.getDate()} ${months[dateToAdd.getMonth()]} ${dateToAdd.getFullYear()}`;
+  
+  try {
+    await addDoc(getFirestoreRef(['dailyActivities']), {
+      name: activityName.trim(),
+      date: formattedDate,
+      status: "",
+      priority: "",
+      completed: false,
+    });
+    return true;
+  } catch (error) {
+    console.error('Error adding daily activity:', error);
     return false;
   }
-
-  if (activityName.trim()) {
-    let dateToAdd = new Date();
-    if (activityDate === 'tomorrow') {
-      dateToAdd.setDate(dateToAdd.getDate() + 1);
-    }
-    const formattedDate = `${dateToAdd.getDate()} ${months[dateToAdd.getMonth()]} ${dateToAdd.getFullYear()}`;
-
-    try {
-      await addDoc(collection(doc(db, "users", userId), "dailyActivities"), {
-        name: activityName.trim(),
-        date: formattedDate,
-        status: "",
-        priority: "",
-        completed: false,
-      });
-      return true;
-    } catch (error) {
-      console.error('Error adding daily activity:', error);
-      return false;
-    }
-  }
-  return false;
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-  await initUserId();
-});
+document.addEventListener('DOMContentLoaded', initUserId);

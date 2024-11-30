@@ -17,7 +17,16 @@ import {
   PRIORITY_LABELS,
   categories
 } from "./utility.js"
-import { renderSubActivities, addTaskForm, renderTasks, addSubActivityForm, checkExpiredDailyActivities, addDailyActivity, initUserId } from "./dailyActivities.js";
+import { DataFilter } from './filterDashboard.js';
+import { 
+  addSubActivityForm, 
+  renderSubActivities, 
+  addTaskForm, 
+  renderTasks, 
+  checkExpiredDailyActivities, 
+  addDailyActivity, 
+  initUserId 
+} from "./dailyActivities.js";
 import { renderSubWeeklyPlans, addSubWeeklyPlanForm, checkExpiredWeeklyPlans, initWeeklyPlans, renderWeeklyPlans, loadWeeklyPlans } from "./weeklyPlans.js";
 import { addExpense, addIncome, addBudget, addReminder, loadExpensesAndIncomes } from "./financialManagement.js";
 const dailyActivitiesForm = document.getElementById("daily-activities-form");
@@ -61,9 +70,10 @@ export const checkAuth = () => {
 export const renderList = (listElement, items, dataType, parentId = null, subParentId = null) => {
   if (!listElement) return;
   
-  // Cleanup previous listener
   const previousUnsubscribe = listElement.getAttribute('data-unsubscribe');
-  if (previousUnsubscribe) previousUnsubscribe();
+  if (typeof previousUnsubscribe === 'function') {
+    previousUnsubscribe();
+  }
   listElement.innerHTML = '';
 
   // Helper functions
@@ -120,19 +130,9 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
   };
 
   const setupDailyActivity = (li, item) => {
-    const container = document.createElement('div');
-    container.classList.add('sub-activities-container');
-    li.appendChild(container);
-    addSubActivityForm(li, item);
-
-    const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", item.id), "subActivities");
-    const unsubscribe = onSnapshot(subActivitiesRef, (snapshot) => {
-      const subActivities = snapshot.docs
-        .map(doc => ({id: doc.id, ...doc.data()}))
-        .filter(subActivity => subActivity.status !== 'selesai');
-      renderSubActivities(container, subActivities, item.id);
-    });
-    li.setAttribute('data-unsubscribe', unsubscribe);
+    if (!li.querySelector('.sub-activity-form')) {
+      addSubActivityForm(li, item);
+    }
   };
 
   const renderGroupedItems = (groupedItems) => {
@@ -493,55 +493,56 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         const user = await checkAuth();
         const userDocRef = doc(db, "users", user.uid);
-        const loadAndRenderSubActivities = (activityElement, activityId) => {
-            if (!activityId) {
-                console.error("Activity ID is null or undefined.");
-                return;
-            }
-
-            const subActivitiesRef = collection(doc(db, "users", userId, "dailyActivities", activityId), "subActivities");
-            const unsubscribe = onSnapshot(subActivitiesRef, (snapshot) => {
-                const subActivities = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-                renderSubActivities(activityElement, subActivities);
-            });
-            activityElement.setAttribute("data-unsubscribe", unsubscribe);
-        };
         const taskTemplate = document.createElement("template");
         taskTemplate.id = "task-template";
         taskTemplate.innerHTML = `
-
       <form class="task-form">
-
         <input type="text" class="task-input" placeholder="Tambah tugas baru">
-
         <button type="submit">Tambah Tugas</button>
-
       </form>
-
       <ul class="task-list"></ul>
-
     `;
         document.body.appendChild(taskTemplate);
         await checkExpiredDailyActivities();
+        const dataFilter = new DataFilter();
+        dataFilter.setRenderCallback('dailyActivities', renderList);
+        dataFilter.setRenderCallback('weeklyPlans', renderList);
+        dataFilter.setRenderCallback('budget', renderList);
+        dataFilter.setRenderCallback('reminders', renderList);
+        dataFilter.setRenderCallback('expenses', renderList);
+        dataFilter.setRenderCallback('incomes', renderList);
+    
         const dailyActivitiesRef = collection(userDocRef, "dailyActivities");
         onSnapshot(dailyActivitiesRef, (snapshot) => {
-            const dailyActivities = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-            renderList(document.getElementById("daily-activities-list"), dailyActivities, "dailyActivities");
+          const dailyActivities = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          dataFilter.updateData('dailyActivities', dailyActivities);
         });
         const weeklyPlansRef = collection(userDocRef, "weeklyPlans");
         onSnapshot(weeklyPlansRef, (snapshot) => {
-            const weeklyPlans = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-            renderList(document.getElementById("weekly-plans-list"), weeklyPlans, "weeklyPlans");
+          const weeklyPlans = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          dataFilter.updateData('weeklyPlans', weeklyPlans);
         });
         const budgetRef = collection(userDocRef, "budget");
         onSnapshot(budgetRef, (snapshot) => {
-            const budget = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-            renderList(document.getElementById("budget-list"), budget, "budget");
+          const budget = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          dataFilter.updateData('budget', budget);
         });
         const remindersRef = collection(userDocRef, "reminders");
         onSnapshot(remindersRef, (snapshot) => {
-            const reminders = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-            renderList(document.getElementById("reminders-list"), reminders, "reminders");
+          const reminders = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          dataFilter.updateData('reminders', reminders);
         });
         const appButtons = document.querySelectorAll(".app-btn");
         const appSections = document.querySelectorAll(".app-section");
@@ -580,38 +581,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (error) {
         console.error("Error loading user data:", error);
     }
-
-    document.addEventListener("submit", async (e) => {
-        if (e.target.classList.contains("sub-activity-form")) {
-            e.preventDefault();
-            const liElement = e.target.closest("li");
-            if (liElement) {
-                const activityId = liElement.getAttribute("data-id");
-                const subActivityInput = e.target.querySelector(".sub-activity-input");
-                const subActivityName = subActivityInput.value.trim();
-                if (subActivityName && activityId) {
-                    try {
-                        const user = await checkAuth();
-                        if (!userId) {
-                            userId = user.uid;
-                        }
-
-                        const dailyActivityRef = doc(db, "users", userId, "dailyActivities", activityId);
-                        const subActivitiesRef = collection(dailyActivityRef, "subActivities");
-                        const existingSubActivity = await getDocs(query(subActivitiesRef, where("name", "==", subActivityName)));
-                        if (existingSubActivity.empty) {
-                            await addDoc(subActivitiesRef, { name: subActivityName });
-                            subActivityInput.value = "";
-                        } else {
-                            console.log("Sub-activity with this name already exists");
-                        }
-                    } catch (error) {
-                        console.error("Error adding sub-activity:", error);
-                    }
-                }
-            }
-        }
-    });
 });
 dailyActivitiesForm.addEventListener("submit", async (e) => {
     e.preventDefault();

@@ -64,6 +64,40 @@
     <button class="app-btn" data-target="financial-management">Pengelola Keuangan</button>
   </div>
   
+  <div class="filter-section">
+    <div class="filter-controls">
+      <input type="text" id="search-filter" placeholder="Cari...">
+      <select id="status-filter">
+        <option value="">Semua Status</option>
+        <option value="aktif">Aktif</option>
+        <option value="selesai">Selesai</option>
+      </select>
+      <select id="priority-filter">
+        <option value="">Semua Prioritas</option>
+        <option value="rendah">Rendah</option>
+        <option value="sedang">Sedang</option>
+        <option value="tinggi">Tinggi</option>
+      </select>
+      <select id="type-filter">
+        <option value="">Semua Tipe</option>
+        <option value="dailyActivities">Aktivitas Harian</option>
+        <option value="weeklyPlans">Rencana Mingguan</option>
+        <option value="expenses">Pengeluaran</option>
+        <option value="incomes">Pendapatan</option>
+        <option value="reminders">Pengingat</option>
+        <option value="budget">Anggaran</option>
+      </select>
+      <div class="date-filter">
+        <input type="date" id="date-from" placeholder="Dari Tanggal">
+        <input type="date" id="date-to" placeholder="Sampai Tanggal">
+        <input type="time" id="time-from" placeholder="Dari Jam">
+        <input type="time" id="time-to" placeholder="Sampai Jam">
+      </div>
+      <button id="apply-filter">Terapkan Filter</button>
+      <button id="reset-filter">Reset Filter</button>
+    </div>
+  </div>
+  
   <section id="daily-activities" class="app-section visible">
     <h2>Aktivitas Harian</h2>
     <div id="daily-calendar"></div>
