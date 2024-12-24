@@ -1,31 +1,180 @@
- Berdasarkan kode yang Anda bagikan, masalah duplikasi data pada subaktivitas dan tugas di halaman dashboard disebabkan oleh logika filter yang tidak tepat dalam fungsi `renderSubActivities` dan `renderTasks`.
+terdapat bug difilter dashboard, saya lihat dibrowser konsol, filter berubah saat data difilter tetapi data asli yang terlihat di halaman dashbasli tidak berubah. seharusnya, beberapa data disembunyikan atau tidak dirender saat filter ditetapkan.
 
-Di file `dailyActivities.js`, Anda menggunakan `Array.from(new Map(...))` untuk membuat array unik, tetapi filter yang Anda gunakan hanya memfilter status 'selesai':
+berikut log konsolnya:
+priority filter changed to: high
+2
+filterDashboard.js:72 priority filter changed to: medium
 
-```javascript
-const uniqueSubActivities = Array.from(new Map(
-  subActivities.filter(sa => sa.status !== 'selesai')
-    .map(sa => [sa.id, sa])
-)).values());
-```
+html bagian filter:
+<!-- Filter Section -->
+<div class="filter-section">
+  <div class="filter-controls">
+    <div class="filter-group">
+      <label for="status-filter">Status:</label>
+      <select id="status-filter" data-filter-type="status">
+        <option value="">Semua Status</option>
+        <option value="active">Aktif</option>
+        <option value="completed">Selesai</option>
+      </select>
+    </div>
 
-Ini berarti jika ada subaktivitas atau tugas dengan ID yang sama tetapi status berbeda, keduanya akan tetap ditampilkan.
+    <div class="filter-group">
+      <label for="priority-filter">Prioritas:</label>
+      <select id="priority-filter" data-filter-type="priority">
+        <option value="">Semua Prioritas</option>
+        <option value="low">Rendah</option>
+        <option value="medium">Sedang</option>
+        <option value="high">Tinggi</option>
+      </select>
+    </div>
 
-Untuk mengatasi masalah ini, Anda bisa memodifikasi filter untuk memastikan hanya satu item dengan ID unik yang ditampilkan. Berikut adalah perbaikan yang disarankan:
+    <div class="filter-group date-filter">
+      <div class="date-input">
+        <label for="date-from">Dari Tanggal:</label>
+        <input type="date" id="date-from" data-filter-type="dateFrom">
+      </div>
+      
+      <div class="date-input">
+        <label for="date-to">Sampai Tanggal:</label>
+        <input type="date" id="date-to" data-filter-type="dateTo">
+      </div>
+    </div>
 
-Di `dailyActivities.js`, perbarui fungsi `renderSubActivities` dan `renderTasks`:
+    <div class="filter-actions">
+      <button id="apply-filter-btn" class="button primary">Terapkan Filter</button>
+      <button id="reset-filter" class="button secondary">Reset Filter</button>
+    </div>
+  </div>
+</div>
 
-```javascript
+lihat data Firestore menggunakan config:
+const firebaseConfig = {
+  apiKey: "AIzaSyAeUpI8hb-mLbp4xYldcu5q89vPxGj1EY8",
+  authDomain: "aparencanamu.firebaseapp.com",
+  projectId: "aparencanamu",
+  storageBucket: "aparencanamu.appspot.com",
+  messagingSenderId: "1082769981395",
+  appId: "1:1082769981395:web:611ad60b17e104b7d83926",
+  measurementId: "G-3PGV4HD1BP"
+};
 
-```
+css:
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4}h1,h2,h3{color:#2c3e50}.app-selector{display:flex;justify-content:center;background-color:#ecf0f1;border-radius:30px;padding:10px;margin-bottom:30px;box-shadow:0 4px 6px rgb(0 0 0 / .1)}.app-btn{background-color:#fff0;border:none;padding:12px 24px;margin:0 8px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;position:relative;overflow:hidden;font-size:16px;font-weight:600;color:#7f8c8d}.app-btn::after{content:'';position:absolute;bottom:0;left:0;width:100%;height:3px;background-color:#3498db;transform:scaleX(0);transition:transform 0.3s ease}.app-btn.active{background-color:#3498db;color:#fff}.app-btn.active::after{transform:scaleX(1)}.app-btn:hover:not(.active){background-color:#e0e0e0}.app-section{background-color:#fff;border-radius:10px;padding:20px;margin-bottom:20px;box-shadow:0 4px 6px rgb(0 0 0 / .1);opacity:0;transform:translateY(20px);transition:opacity 0.3s ease,transform 0.3s ease}.app-section.visible{opacity:1;transform:translateY(0)}ul{list-style-type:none;padding:0}.item-content{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:15px;background-color:#fff;border-radius:8px;margin-bottom:15px;transition:all 0.3s ease;box-shadow:0 2px 5px rgb(0 0 0 / .1)}.item-content:hover{background-color:#f8f9fa;transform:translateY(-2px);box-shadow:0 4px 8px rgb(0 0 0 / .15)}.item-name{flex:1 1 100%;margin-right:20px;font-size:1.1em;font-weight:500;color:#34495e;margin-bottom:10px}.item-actions{display:flex;gap:10px;justify-content:flex-end;width:100%}form{display:flex;flex-wrap:wrap;margin-bottom:20px;gap:10px}input[type="text"],input[type="number"],input[type="date"],input[type="time"],select{flex:1 1 200px;max-width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;font-size:16px;box-sizing:border-box}button{flex:0 0 auto;background-color:#3498db;color:#fff;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;transition:background-color 0.3s ease}button:hover{background-color:#2980b9}.sub-activity-list,.task-list,.sub-weeklyPlan-list{margin-left:20px;border-left:2px solid #3498db;padding-left:20px}.sub-activity-list>li,.task-list>li,.sub-weeklyPlan-list>li{margin-bottom:10px}.sub-activity-list>li .item-content,.task-list>li .item-content,.sub-weeklyPlan-list>li .item-content{background-color:#f8f9fa}.sub-activity-list>li .item-content:hover,.task-list>li .item-content:hover,.sub-weeklyPlan-list>li .item-content:hover{background-color:#e9ecef}.activity-item::before,.sub-activity-item::before,.task-item::before,.sub-weeklyPlan-item::before{font-weight:900;margin-right:10px;font-size:1.2em}.edit-btn,.delete-btn{padding:8px 12px;border:none;border-radius:4px;cursor:pointer;font-size:.9em;transition:all 0.3s ease;background-color:#fff0;display:inline-block;margin:2px;white-space:nowrap}.edit-btn{color:#3498db}.delete-btn{color:#e74c3c}.edit-btn:hover,.delete-btn:hover{background-color:rgb(0 0 0 / .1)}@keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}.slide-in-right{animation:slideInRight 0.3s ease-out}.selector{display:flex;justify-content:space-around;margin-bottom:20px}.selector-btn{background-color:#3498db;color:#fff;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;transition:background-color 0.3s ease}.selector-btn:hover{background-color:#2980b9}.financial-section{background-color:#fff;border-radius:8px;padding:20px;margin-bottom:20px;box-shadow:0 2px 5px rgb(0 0 0 / .1)}.financial-section.hidden{display:none}@media screen and (max-width:768px){body{font-size:14px}.app-selector{flex-direction:column;align-items:center;padding:5px;margin-bottom:15px}.app-btn{width:100%;margin:5px 0}.app-section{padding:15px}form{flex-direction:column}input[type="text"],input[type="number"],input[type="date"],input[type="time"],select,button{width:100%;margin-bottom:10px;flex-basis:auto}h1{font-size:1.8em}h2{font-size:1.5em}h3{font-size:1.2em}.sub-activity-list,.task-list,.sub-weeklyPlan-list{margin-left:10px;padding-left:10px}.item-content{flex-direction:column;align-items:flex-start}.item-name{margin-bottom:10px;font-size:1em}.item-actions{width:100%;justify-content:flex-start}.edit-btn,.delete-btn{padding:6px 10px;font-size:.9em}.selector{flex-wrap:wrap}.selector-btn{margin-bottom:10px}}@media screen and (max-width:576px){.item-actions{flex-wrap:nowrap}.edit-btn,.delete-btn{flex:1;text-align:center;padding:8px 0;font-size:.8em}}@media screen and (max-width:320px){.item-content{padding:10px}.item-name{font-size:.9em}.edit-btn,.delete-btn{padding:6px 0;font-size:.75em}}.priority-selector{display:flex;align-items:center;margin-right:10px}.priority-label{margin-right:5px;font-size:14px;color:#666}.priority-select{padding:5px;border-radius:4px;border-width:2px;border-style:solid;transition:all 0.3s ease}.priority-select option{padding:5px}
 
-Perubahan utama:
-1. Menggunakan `Set` untuk mendapatkan ID unik
-2. Mengambil item pertama untuk setiap ID unik menggunakan `find()`
-3. Filter tetap mempertahankan logika asli (status 'selesai' atau belum selesai)
+filterDashboard.js:
+export class DataFilter{constructor(){this.filters={status:'',priority:'',dateFrom:null,dateTo:null};this.data={dailyActivities:[],weeklyPlans:[],budget:[],reminders:[],expenses:[],incomes:[]};this.originalData={...this.data};this.listElements=this.initializeListElements();this.renderCallbacks={};this.initializeFilterElements()}
+initializeListElements(){try{return Object.fromEntries(Object.keys(this.data).map(key=>[key,document.getElementById(`${key.replace(/([A-Z])/g, '-$1').toLowerCase()}-list`)]))}catch(error){console.error('Error initializing list elements:',error);return{}}}
+initializeFilterElements(){const filterIds=['status-filter','priority-filter','date-from','date-to','apply-filter-btn','reset-filter'];filterIds.forEach(id=>{const element=document.getElementById(id);if(element){const propertyName=id.replace(/-/g,'');this[propertyName]=element}else{console.warn(`Filter element with id '${id}' not found`)}});this.setupEventListeners()}
+setupEventListeners(){try{const filterElements={status:this.statusfilter,priority:this.priorityfilter,dateFrom:this.datefrom,dateTo:this.dateto};Object.entries(filterElements).forEach(([key,element])=>{if(element){element.addEventListener('change',()=>{console.log(`${key} filter changed to:`,element.value);this.handleFilterChange()})}});if(this.applyfilterBtn){this.applyfilterBtn.addEventListener('click',()=>{console.log('Apply filter button clicked');this.applyFilters();this.applyfilterBtn.disabled=!0})}
+if(this.resetfilter){this.resetfilter.addEventListener('click',()=>{console.log('Reset filter button clicked');this.resetFilters()})}}catch(error){console.error('Error setting up event listeners:',error)}}
+handleFilterChange(){try{if(this.applyfilterBtn){const hasChanged=this.hasFilterChanged();console.log('Filters changed:',hasChanged);this.applyfilterBtn.disabled=!hasChanged}}catch(error){console.error('Error handling filter change:',error)}}
+hasFilterChanged(){try{const filterElements=[this.statusfilter,this.priorityfilter,this.datefrom,this.dateto];return filterElements.some(element=>{const hasValue=element&&element.value!=='';if(hasValue){console.log(`Filter ${element.id} has value:`,element.value)}
+return hasValue})}catch(error){console.error('Error checking if filters changed:',error);return!1}}
+updateFilters(){try{this.filters={status:this.statusfilter?.value||'',priority:this.priorityfilter?.value||'',dateFrom:this.datefrom?.value?new Date(`${this.datefrom.value}T00:00:00`):null,dateTo:this.dateto?.value?new Date(`${this.dateto.value}T23:59:59`):null};console.log('Updated filters:',this.filters)}catch(error){console.error('Error updating filters:',error)}}
+filterData(items){if(!Array.isArray(items)){console.warn('filterData received non-array items:',items);return[]}
+console.log('Filtering items:',items);console.log('Using filters:',this.filters);return items.filter(item=>{if(!item){console.warn('Encountered null/undefined item');return!1}
+const matchStatus=!this.filters.status||(this.filters.status==='active'&&item.status!=='completed'&&item.status!=='selesai')||(this.filters.status==='completed'&&(item.status==='completed'||item.status==='selesai'));const matchPriority=!this.filters.priority||item.priority?.toLowerCase()===this.filters.priority.toLowerCase();let matchDate=!0;if(item.date){const itemDate=new Date(item.date);if(!isNaN(itemDate.getTime())){if(this.filters.dateFrom){matchDate=matchDate&&itemDate>=this.filters.dateFrom}
+if(this.filters.dateTo){matchDate=matchDate&&itemDate<=this.filters.dateTo}}else{console.warn('Invalid date format for item:',item)}}
+const matches=matchStatus&&matchPriority&&matchDate;console.log(`Item ${item.id} filtering results:`,{status:{value:item.status,matches:matchStatus},priority:{value:item.priority,matches:matchPriority},date:{value:item.date,matches:matchDate},finalResult:matches});return matches})}
+applyFilters(){try{this.updateFilters();console.log('Applying filters with values:',this.filters);const filteredResults={};Object.keys(this.data).forEach(dataType=>{if(Array.isArray(this.data[dataType])&&this.data[dataType].length){try{console.log(`Filtering ${dataType} data:`,this.data[dataType]);const filteredData=this.filterData(this.data[dataType]);console.log(`Filtered ${dataType} results:`,filteredData);filteredResults[dataType]=filteredData;const listElement=this.listElements[dataType];if(listElement&&this.renderCallbacks[dataType]){listElement.innerHTML='';this.renderCallbacks[dataType](listElement,filteredData,dataType);console.log(`Rendered filtered ${dataType} data`)}}catch(error){console.error(`Error filtering ${dataType}:`,error)}}});if(this.applyfilterBtn){this.applyfilterBtn.disabled=!1}
+return filteredResults}catch(error){console.error('Error applying filters:',error);return{}}}
+resetFilters(){try{console.log('Resetting filters');const filterElements=[this.statusfilter,this.priorityfilter,this.datefrom,this.dateto];filterElements.forEach(element=>{if(element){element.value=''}});Object.keys(this.originalData).forEach(dataType=>{if(this.originalData[dataType]){this.data[dataType]=[...this.originalData[dataType]];const listElement=this.listElements[dataType];if(listElement&&this.renderCallbacks[dataType]){listElement.innerHTML='';this.renderCallbacks[dataType](listElement,this.data[dataType],dataType);console.log(`Reset ${dataType} to original data`)}}});this.updateFilters();if(this.applyfilterBtn){this.applyfilterBtn.disabled=!0}}catch(error){console.error('Error resetting filters:',error)}}
+initializeOriginalData(type,data){try{if(this.originalData.hasOwnProperty(type)){console.log(`Initializing original data for ${type}:`,data);this.originalData[type]=[...data];this.data[type]=[...data];const listElement=this.listElements[type];if(listElement&&this.renderCallbacks[type]){listElement.innerHTML='';this.renderCallbacks[type](listElement,this.data[type],type);console.log(`Rendered initial ${type} data`)}}else{console.warn(`Invalid data type: ${type}`)}}catch(error){console.error(`Error initializing original data for ${type}:`,error)}}
+updateData(type,newData){try{if(this.data.hasOwnProperty(type)){console.log(`Updating data for ${type}:`,newData);if(!this.originalData[type]?.length){this.originalData[type]=[...newData]}
+this.data[type]=newData;const listElement=this.listElements[type];if(listElement&&this.renderCallbacks[type]){const dataToRender=this.hasFilterChanged()?this.filterData(newData):newData;listElement.innerHTML='';this.renderCallbacks[type](listElement,dataToRender,type);console.log(`Rendered updated ${type} data`)}}else{console.warn(`Invalid data type: ${type}`)}}catch(error){console.error(`Error updating data for ${type}:`,error)}}
+getFilteredData(type){try{return this.data.hasOwnProperty(type)?this.filterData(this.data[type]):[]}catch(error){console.error(`Error getting filtered data for ${type}:`,error);return[]}}
+setRenderCallback(dataType,callback){try{if(typeof callback==='function'){this.renderCallbacks[dataType]=callback;console.log(`Set render callback for ${dataType}`)}else{console.error('Callback must be a function')}}catch(error){console.error(`Error setting render callback for ${dataType}:`,error)}}}
 
-Dengan pendekatan ini, jika ada beberapa item dengan ID yang sama, hanya satu item yang akan ditampilkan, menghindari duplikasi.
-
-Catatan: Pastikan untuk memeriksa mengapa Anda memiliki data dengan ID yang sama di Firestore. Ini mungkin mengindikasikan masalah pada saat penambahan atau sinkronisasi data.
-
-Apakah Anda ingin saya membantu Anda menyelidiki mengapa data duplikat bisa terjadi di Firestore?
+dashboard.js:
+import{getDocs,addDoc,collection,doc,updateDoc,deleteDoc,onSnapshot,getDoc,arrayUnion,query,where}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";import{onAuthStateChanged}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";import "../auth.js";import{formatRupiah,formatDate,formatDateToIndonesian,formatNumber,unformatNumber,getTypeName,getOrderForType,getLabelForKey,getDocRef,months,PRIORITY_COLORS,PRIORITY_LABELS,categories}from "./utility.js"
+import{DataFilter}from './filterDashboard.js';import{addSubActivityForm,renderSubActivities,addTaskForm,renderTasks,checkExpiredDailyActivities,addDailyActivity,initUserId}from "./dailyActivities.js";import{renderSubWeeklyPlans,addSubWeeklyPlanForm,checkExpiredWeeklyPlans,initWeeklyPlans,renderWeeklyPlans,loadWeeklyPlans}from "./weeklyPlans.js";import{addExpense,addIncome,addBudget,addReminder,loadExpensesAndIncomes}from "./financialManagement.js";const dailyActivitiesForm=document.getElementById("daily-activities-form");const dailyActivitiesInput=document.getElementById("daily-activities-input");const dailyActivitiesDate=document.getElementById("daily-activities-date");const budgetForm=document.getElementById("budget-form");const budgetInput=document.getElementById("budget-input");const budgetMonth=document.getElementById("budget-month");const budgetAmount=document.getElementById("budget-amount");const expenseForm=document.getElementById("expense-form");const expenseInput=document.getElementById("expense-input");const expenseCategory=document.getElementById("expense-category");const expenseAmount=document.getElementById("expense-amount");const incomeForm=document.getElementById("income-form");const incomeInput=document.getElementById("income-input");const incomeCategory=document.getElementById("income-category");const incomeAmount=document.getElementById("income-amount");const reminderForm=document.getElementById("reminder-form");const reminderInput=document.getElementById("reminder-input");const reminderDate=document.getElementById("reminder-date");const reminderTime=document.getElementById("reminder-time");export let userId=null;export const checkAuth=()=>{return new Promise((resolve,reject)=>{onAuthStateChanged(auth,async(user)=>{if(user){userId=user.uid;try{resolve(user)}catch(error){console.error("Error checking expired daily activities:",error);reject(error)}}else{userId=null;reject("Tidak ada pengguna yang login.")}})})};export const renderList=(listElement,items,dataType,parentId=null,subParentId=null)=>{if(!listElement)return;const previousUnsubscribe=listElement.getAttribute('data-unsubscribe');if(typeof previousUnsubscribe==='function'){previousUnsubscribe()}
+listElement.innerHTML='';const createItemContent=(item)=>{const content=item.name+((dataType==='expenses'||dataType==='incomes'||dataType==='budget')?` - ${formatRupiah(item.amount)}`:(dataType==='dailyActivities'?` - ${formatDate(item.date)}`:''));return `
+      <div class="item-content">
+        <div class="item-left">
+          <span class="item-name">${content}</span>
+        </div>
+        <div class="item-actions">
+          ${createPrioritySelector(item, dataType)}
+          <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" 
+            data-type="${dataType}" data-parent-id="${parentId || ''}" 
+            data-sub-parent-id="${subParentId || ''}">Edit</button>
+          <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
+          <input type="checkbox" class="status-checkbox" 
+            ${item.status === 'selesai' ? 'checked' : ''}
+            data-id="${item.id}" data-type="${dataType}">
+        </div>
+      </div>
+    `};const createPrioritySelector=(item,dataType)=>`
+    <div class="priority-selector">
+      <select 
+        class="priority-select" 
+        data-id="${item.id}" 
+        data-type="${dataType}"
+        style="border-color: ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}"
+      >
+        <option value="">Pilih Prioritas</option>
+        ${Object.entries(PRIORITY_LABELS).map(([key, label]) => 
+          `<option value="${key}" ${item.priority===key?"selected":""}
+style="background-color: ${PRIORITY_COLORS[key]}40">${label}</option>`
+        ).join('')}
+      </select>
+    </div>
+  `;const createListItem=(item)=>{const li=document.createElement('li');li.setAttribute('data-id',item.id);li.style.borderLeft=`4px solid ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}`;li.classList.add('list-item-transition');li.innerHTML=createItemContent(item);if(dataType==='dailyActivities'){setupDailyActivity(li,item)}else if(dataType==='weeklyPlans'){addSubWeeklyPlanForm(li,item)}
+return li};const setupDailyActivity=(li,item)=>{if(!li.querySelector('.sub-activity-form')){addSubActivityForm(li,item)}};const renderGroupedItems=(groupedItems)=>{Object.entries(groupedItems).forEach(([groupKey,groupItems])=>{if(groupKey){const header=document.createElement("h3");header.textContent=groupKey;listElement.appendChild(header)}
+groupItems.forEach(item=>listElement.appendChild(createListItem(item)))})};const activeItems=items.filter(item=>item.status!=='selesai');if(dataType==="reminders"||dataType==="budget"||dataType==="weeklyPlans"){const groupedItems=activeItems.reduce((grouped,item)=>{const groupKey=dataType==="reminders"?formatDateToIndonesian(item.date):dataType==="budget"?item.month:dataType==="weeklyPlans"?`${item.createdAt} - ${item.endDate}`:"";return{...grouped,[groupKey]:[...(grouped[groupKey]||[]),item]}},{});renderGroupedItems(groupedItems)}else{activeItems.forEach(item=>listElement.appendChild(createListItem(item)))}};document.addEventListener('change',async(e)=>{if(e.target.classList.contains('status-checkbox')){const id=e.target.getAttribute('data-id');const type=e.target.getAttribute('data-type');const status=e.target.checked?'completed':'active';const listItem=e.target.closest('li');try{e.target.disabled=!0;if(status==='completed'){listItem.classList.add('list-item-completing')}else{listItem.classList.remove('list-item-completing')}
+const docRef=getDocRef(type,id);await updateDoc(docRef,{status});if(status==='completed'){setTimeout(()=>{if(listItem&&listItem.parentNode){const unsubscribe=listItem.getAttribute('data-unsubscribe');if(unsubscribe){unsubscribe()}
+listItem.parentNode.removeChild(listItem)}},300)}}catch(error){console.error('Error updating status:',error);e.target.checked=!e.target.checked;listItem.classList.remove('list-item-completing');alert('Gagal mengubah status. Silakan coba lagi.')}finally{e.target.disabled=!1}}});document.addEventListener('focus',(e)=>{if(e.target.classList.contains('priority-select')){e.target.setAttribute('data-previous-value',e.target.value)}},!0);document.addEventListener('change',async(e)=>{if(e.target.classList.contains('priority-select')){const id=e.target.getAttribute('data-id');const type=e.target.getAttribute('data-type');const newPriority=e.target.value;const previousValue=e.target.getAttribute('data-previous-value');try{e.target.disabled=!0;const docRef=getDocRef(type,id);await updateDoc(docRef,{priority:newPriority});const listItem=e.target.closest('li');if(listItem){listItem.style.borderLeft=`4px solid ${newPriority ? PRIORITY_COLORS[newPriority] : '#ccc'}`}
+console.log(`Priority updated for ${type} ${id} to ${newPriority}`)}catch(error){console.error('Error updating priority:',error);e.target.value=previousValue;alert('Gagal mengubah prioritas. Silakan coba lagi.')}finally{e.target.disabled=!1}}});incomeForm.addEventListener("submit",async(e)=>{e.preventDefault();const incomeName=incomeInput.value;const incomeCategoryValue=incomeCategory.value;const incomeAmountValue=incomeAmount.value;if(incomeName.trim()&&incomeCategoryValue.trim()&&incomeAmountValue){try{await addIncome(incomeName,incomeCategoryValue,parseFloat(incomeAmountValue));incomeInput.value="";incomeCategory.value="";incomeAmount.value=""}catch(error){console.error("Error adding income:",error);alert("Terjadi kesalahan saat menambahkan pendapatan. Silakan coba lagi.")}}else{alert("Mohon isi semua field pendapatan.")}});expenseForm.addEventListener("submit",async(e)=>{e.preventDefault();const expenseName=expenseInput.value;const expenseCategoryValue=expenseCategory.value;const expenseAmountValue=expenseAmount.value;if(expenseName.trim()&&expenseCategoryValue.trim()&&expenseAmountValue){try{await addExpense(expenseName,expenseCategoryValue,parseFloat(expenseAmountValue));expenseInput.value="";expenseCategory.value="";expenseAmount.value=""}catch(error){console.error("Error adding expense:",error);alert("Terjadi kesalahan saat menambahkan pengeluaran. Silakan coba lagi.")}}else{alert("Mohon isi semua field pengeluaran.")}});const editData=async(dataType,id,updatedFields,parentId=null,subParentId=null)=>{try{const user=await checkAuth();if(!user)throw new Error("User tidak terautentikasi");let docRef;const userDocRef=doc(db,"users",user.uid);switch(dataType){case "dailyActivities":case "weeklyPlans":case "budget":case "expenses":case "incomes":case "reminders":docRef=doc(userDocRef,dataType,id);break;case "subActivities":if(!parentId)throw new Error("parentId diperlukan untuk subActivities");docRef=doc(userDocRef,"dailyActivities",parentId,"subActivities",id);break;case "subWeeklyPlans":if(!parentId)throw new Error("parentId diperlukan untuk subWeeklyPlans");docRef=doc(userDocRef,"weeklyPlans",parentId,"subWeeklyPlans",id);break;case "tasks":if(!parentId||!subParentId)throw new Error("parentId dan subParentId diperlukan untuk tasks");docRef=doc(userDocRef,"dailyActivities",parentId,"subActivities",subParentId,"tasks",id);break;default:throw new Error(`Tipe data tidak dikenal: ${dataType}`)}
+const docSnap=await getDoc(docRef);if(!docSnap.exists()){throw new Error(`Dokumen dengan ID ${id} tidak ditemukan`)}
+const currentData=docSnap.data();const updatedData={...currentData,...updatedFields};if(dataType==="weeklyPlans"&&updatedFields.duration!==undefined){const createdAtDate=new Date(currentData.createdAt.split(" ").reverse().join("-"));const endDate=new Date(createdAtDate);endDate.setDate(endDate.getDate()+updatedFields.duration*7-1);updatedData.endDate=`${endDate.getDate()} ${months[endDate.getMonth()]} ${endDate.getFullYear()}`}
+const hasChanges=Object.keys(updatedFields).some((key)=>{const isAllowedToChange=!((dataType==="dailyActivities"&&(key==="date"||key==="completed"))||(dataType==="weeklyPlans"&&(key==="createdAt"||key==="completed"))||(dataType==="reminders"&&(key==="timeZone"||key==="notificationSent")));return isAllowedToChange&&currentData[key]!==updatedFields[key]});if(hasChanges){await updateDoc(docRef,updatedData);console.log(`${dataType} dengan ID ${id} berhasil diperbarui`)}else{console.log(`Tidak ada perubahan yang diizinkan untuk ${dataType} dengan ID ${id}`)}
+return updatedData}catch(error){console.error(`Error mengupdate ${dataType}:`,error);throw error}};function showEditPopup(id,type,currentData,parentId,subParentId){const createInput=(key,value)=>{const commonProps=`id="edit-${key}" ${key === 'createdAt' || key === 'endDate' ? 'disabled style="background-color: #f0f0f0;"' : ''}`;const inputs={duration:`<select ${commonProps}>${[1,2,3].map(n => 
+        `<option value="${n}" ${value===n?'selected':''}>${n}Minggu</option>`).join('')}</select>`,date:type==='weeklyPlans'?(()=>{let date;try{if(typeof value==='string'){const parts=value.split(' ');if(parts.length===3){const monthIndex=months.indexOf(parts[1]);if(monthIndex!==-1){date=new Date(parts[2],monthIndex,parseInt(parts[0]))}}}
+if(!date||isNaN(date.getTime())){date=new Date()}}catch(error){console.error('Error parsing date:',error);date=new Date()}
+return `<select ${commonProps}>${[-1,0,1].map(d => {
+            const newDate = new Date(date);
+            newDate.setDate(date.getDate() + d);
+            const formatted = `${newDate.getDate()}${months[newDate.getMonth()]}${newDate.getFullYear()}`;
+            return `<option value="${formatted}" ${d===0?'selected':''}>${formatted}</option>`;
+          }).join('')}</select>`})():type==='reminders'?`<input type="date" ${commonProps} value="${value}" min="${new Date().toISOString().split('T')[0]}">`:'',category:(type==='incomes'||type==='expenses')?(()=>{const cats=type==='incomes'?categories.incomes:categories.expenses;const isCustom=!cats.includes(value);return `
+            <select ${commonProps} onchange="this.nextElementSibling.style.display = this.value === 'custom' ? 'block' : 'none'">
+              ${cats.map(c => `<option value="${c}" ${c===value?'selected':''}>${c}</option>`).join('')}
+              <option value="custom" ${isCustom ? 'selected' : ''}>Kategori Kustom</option>
+            </select>
+            <input type="text" id="edit-${key}-custom" style="display: ${isCustom ? 'block' : 'none'}; margin-top: 5px;" 
+              value="${isCustom ? value : ''}" placeholder="Masukkan kategori kustom">
+          `})():'',amount:`<input type="text" ${commonProps} value="Rp. ${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}"
+        oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')"
+        onkeyup="if(this.value !== '') this.value = 'Rp. ' + this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')">`,time:type==='reminders'?`<input type="time" ${commonProps} value="${value}">`:'',month:type==='budget'?`<select ${commonProps}>${months.map(m => `<option value="${m}" ${m===value?'selected':''}>${m}</option>`).join('')}</select>`:''};return inputs[key]||`<input type="text" ${commonProps} value="${value}">`};const popup=document.createElement('div');popup.className='edit-popup';Object.assign(popup.style,{position:'fixed',top:'50%',left:'50%',transform:'translate(-50%, -50%)',backgroundColor:'white',padding:'20px',boxShadow:'0 0 10px rgba(0,0,0,0.1)',zIndex:'1000'});const formContent=getOrderForType(type).filter(key=>currentData.hasOwnProperty(key)&&key!=='id'&&key!=='userId'&&!((type==='incomes'&&(key==='date'||key==='notes'))||(type==='reminders'&&(key==='timeZone'||key==='notificationSent')))).map(key=>`
+      <div>
+        <label for="edit-${key}">${getLabelForKey(key, type)}:</label>
+        ${createInput(key, currentData[key])}
+      </div>
+    `).join('');popup.innerHTML=`
+    <div class="edit-popup-content">
+      <h3>Edit ${getTypeName(type)}</h3>
+      <form id="edit-form">
+        ${formContent}
+        <button type="submit">Simpan</button>
+        <button type="button" id="cancel-edit">Batal</button>
+      </form>
+    </div>
+  `;document.body.appendChild(popup);popup.querySelector('#cancel-edit').onclick=()=>document.body.removeChild(popup);popup.querySelector('#edit-form').onsubmit=async(e)=>{e.preventDefault();const updatedFields=getOrderForType(type).filter(key=>currentData.hasOwnProperty(key)&&key!=='id'&&key!=='userId').reduce((acc,key)=>{const input=document.getElementById(`edit-${key}`);if(input&&!input.disabled){if(key==='amount'){acc[key]=parseFloat(input.value.replace(/[^\d]/g,''))}else if(key==='category'&&input.value==='custom'){acc[key]=document.getElementById(`edit-${key}-custom`).value.trim()}else if(key==='duration'){acc[key]=parseInt(input.value)}else{acc[key]=input.value.trim()}}
+return acc},{});try{await editData(type,id,updatedFields,parentId,subParentId);document.body.removeChild(popup);alert('Perubahan berhasil disimpan')}catch(error){console.error('Error saat menyimpan perubahan:',error);alert('Terjadi kesalahan saat menyimpan perubahan. Silakan coba lagi.')}}}
+document.addEventListener("DOMContentLoaded",async()=>{try{await initUserId();if(!userId){throw new Error("User not authenticated")}
+const user=await checkAuth();const userDocRef=doc(db,"users",user.uid);const taskTemplate=document.createElement("template");taskTemplate.id="task-template";taskTemplate.innerHTML=`
+      <form class="task-form">
+        <input type="text" class="task-input" placeholder="Tambah tugas baru">
+        <button type="submit">Tambah Tugas</button>
+      </form>
+      <ul class="task-list"></ul>
+    `;document.body.appendChild(taskTemplate);await checkExpiredDailyActivities();const dataFilter=new DataFilter();dataFilter.setRenderCallback('dailyActivities',renderList);dataFilter.setRenderCallback('weeklyPlans',renderList);dataFilter.setRenderCallback('budget',renderList);dataFilter.setRenderCallback('reminders',renderList);dataFilter.setRenderCallback('expenses',renderList);dataFilter.setRenderCallback('incomes',renderList);const dailyActivitiesRef=collection(userDocRef,"dailyActivities");onSnapshot(dailyActivitiesRef,(snapshot)=>{const dailyActivities=snapshot.docs.map((doc)=>({id:doc.id,...doc.data()}));const dailyActivitiesList=document.getElementById('daily-activities-list');renderList(dailyActivitiesList,dailyActivities,'dailyActivities');dataFilter.initializeOriginalData('dailyActivities',dailyActivities);dataFilter.updateData('dailyActivities',dailyActivities)});const weeklyPlansRef=collection(userDocRef,"weeklyPlans");onSnapshot(weeklyPlansRef,(snapshot)=>{const weeklyPlans=snapshot.docs.map((doc)=>({id:doc.id,...doc.data()}));const weeklyPlansList=document.getElementById('weekly-plans-list');renderList(weeklyPlansList,weeklyPlans,'weeklyPlans');dataFilter.initializeOriginalData('weeklyPlans',weeklyPlans);dataFilter.updateData('weeklyPlans',weeklyPlans)});const budgetRef=collection(userDocRef,"budget");onSnapshot(budgetRef,(snapshot)=>{const budget=snapshot.docs.map((doc)=>({id:doc.id,...doc.data()}));const budgetList=document.getElementById('budget-list');renderList(budgetList,budget,'budget');dataFilter.initializeOriginalData('budget',budget);dataFilter.updateData('budget',budget)});const remindersRef=collection(userDocRef,"reminders");onSnapshot(remindersRef,(snapshot)=>{const reminders=snapshot.docs.map((doc)=>({id:doc.id,...doc.data()}));const remindersList=document.getElementById('reminders-list');renderList(remindersList,reminders,'reminders');dataFilter.initializeOriginalData('reminders',reminders);dataFilter.updateData('reminders',reminders)});const appButtons=document.querySelectorAll(".app-btn");const appSections=document.querySelectorAll(".app-section");appButtons.forEach((button)=>{button.addEventListener("click",()=>{appButtons.forEach((btn)=>btn.classList.remove("active"));button.classList.add("active");appSections.forEach((section)=>{section.classList.remove("visible");setTimeout(()=>{section.style.display="none"},300)});const targetId=button.getAttribute("data-target");const targetSection=document.getElementById(targetId);setTimeout(()=>{targetSection.style.display="block";setTimeout(()=>{targetSection.classList.add("visible")},50)},300)})});const selectors=document.querySelectorAll(".selector-btn");const sections=document.querySelectorAll(".financial-section");selectors.forEach((selector)=>{selector.addEventListener("click",()=>{sections.forEach((section)=>{section.classList.add("hidden")});const targetId=selector.getAttribute("data-target");document.getElementById(targetId).classList.remove("hidden")})});await loadExpensesAndIncomes(userDocRef)}catch(error){console.error("Error loading user data:",error)}});dailyActivitiesForm.addEventListener("submit",async(e)=>{e.preventDefault();const activityName=dailyActivitiesInput.value;const activityDate=dailyActivitiesDate.value;const success=await addDailyActivity(activityName,activityDate);if(success){dailyActivitiesInput.value="";dailyActivitiesDate.value="today"}});budgetForm.addEventListener("submit",async(e)=>{e.preventDefault();const budgetName=budgetInput.value;const budgetMonthValue=budgetMonth.value;const budgetAmountValue=budgetAmount.value;if(budgetName.trim()&&budgetAmountValue){try{await addBudget(budgetName,budgetMonthValue,parseFloat(budgetAmountValue));budgetInput.value="";budgetMonth.value="Januari";budgetAmount.value=""}catch(error){console.error("Error adding budget:",error)}}});reminderForm.addEventListener("submit",async(e)=>{e.preventDefault();const reminderName=reminderInput.value;const reminderDateValue=reminderDate.value;const reminderTimeValue=reminderTime.value;if(reminderName.trim()){try{await addReminder(reminderName,reminderDateValue,reminderTimeValue);reminderInput.value="";reminderDate.value="";reminderTime.value=""}catch(error){console.error("Error adding reminder:",error)}}});const deleteData=async(dataType,dataId,parentId,subParentId)=>{console.log("Deleting:",{dataType,dataId,parentId,subParentId,userId});try{const userDocRef=doc(db,"users",userId);const deleteSubcollections=async(docRef)=>{const collections=await getDocs(collection(docRef,"_"));const subcollectionNames=collections.docs.map(doc=>doc.id);for(const subcollName of subcollectionNames){const subcollRef=collection(docRef,subcollName);const subcollDocs=await getDocs(subcollRef);for(const doc of subcollDocs.docs){await deleteSubcollections(doc.ref);await deleteDoc(doc.ref)}}};switch(dataType){case "dailyActivities":{const activityRef=doc(userDocRef,"dailyActivities",dataId);const subActivitiesRef=collection(activityRef,"subActivities");const subActivities=await getDocs(subActivitiesRef);for(const subActivity of subActivities.docs){const tasksRef=collection(subActivity.ref,"tasks");const tasks=await getDocs(tasksRef);for(const task of tasks.docs){await deleteDoc(task.ref)}
+await deleteDoc(subActivity.ref)}
+await deleteDoc(activityRef);break}
+case "weeklyPlans":{const planRef=doc(userDocRef,"weeklyPlans",dataId);const subPlansRef=collection(planRef,"subWeeklyPlans");const subPlans=await getDocs(subPlansRef);for(const subPlan of subPlans.docs){await deleteDoc(subPlan.ref)}
+await deleteDoc(planRef);break}
+case "subActivities":{if(!parentId)throw new Error("parentId required for subActivities");const subActivityRef=doc(userDocRef,"dailyActivities",parentId,"subActivities",dataId);const tasksRef=collection(subActivityRef,"tasks");const tasks=await getDocs(tasksRef);for(const task of tasks.docs){await deleteDoc(task.ref)}
+await deleteDoc(subActivityRef);break}
+case "tasks":{if(!parentId||!subParentId)throw new Error("parentId and subParentId required for tasks");const taskRef=doc(userDocRef,"dailyActivities",parentId,"subActivities",subParentId,"tasks",dataId);await deleteDoc(taskRef);break}
+default:{const docRef=doc(userDocRef,dataType,dataId);await deleteDoc(docRef);break}}
+console.log(`${dataType} dengan ID ${dataId} dan semua sub-datanya berhasil dihapus`);const verifyRef=getDocRef(dataType,dataId,parentId,subParentId);const verifySnap=await getDoc(verifyRef);if(!verifySnap.exists()){console.log("Verifikasi: dokumen berhasil dihapus")}else{console.warn("Verifikasi: dokumen masih ada setelah dihapus, mungkin karena caching")}}catch(error){console.error(`Error menghapus ${dataType}:`,error);throw error}};document.addEventListener("click",async(e)=>{if(e.target.classList.contains("edit-btn")){e.preventDefault();const dataType=e.target.getAttribute("data-type");const dataId=e.target.getAttribute("data-id");const parentId=e.target.getAttribute("data-parent-id")||"";const subParentId=e.target.getAttribute("data-sub-parent-id")||"";try{await checkAuth();const docRef=getDocRef(dataType,dataId,parentId,subParentId);const docSnap=await getDoc(docRef);if(docSnap.exists()){const currentData=docSnap.data();showEditPopup(dataId,dataType,currentData,parentId,subParentId)}else{console.log("Dokumen tidak ditemukan");alert("Data tidak ditemukan. Mungkin telah dihapus.")}}catch(error){console.error("Error in editData:",error);alert("Terjadi kesalahan saat mengambil data. Silakan coba lagi.")}}});document.addEventListener("click",async(e)=>{if(e.target.classList.contains("delete-btn")){const dataType=e.target.getAttribute("data-type");const dataId=e.target.getAttribute("data-id");const parentId=e.target.getAttribute("data-parent-id");const subParentId=e.target.getAttribute("data-sub-parent-id");console.log("Delete button clicked:",{dataType,dataId,parentId,subParentId});try{await checkAuth();await deleteData(dataType,dataId,parentId,subParentId)}catch(error){console.error("Error in deleteData:",error)}}})

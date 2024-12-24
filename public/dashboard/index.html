@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="id">
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=44985&amp;path=livereload" data-no-instant defer></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Aparencanamu</title>
@@ -66,35 +66,41 @@
   
   <div class="filter-section">
     <div class="filter-controls">
-      <input type="text" id="search-filter" placeholder="Cari...">
-      <select id="status-filter">
-        <option value="">Semua Status</option>
-        <option value="aktif">Aktif</option>
-        <option value="selesai">Selesai</option>
-      </select>
-      <select id="priority-filter">
-        <option value="">Semua Prioritas</option>
-        <option value="rendah">Rendah</option>
-        <option value="sedang">Sedang</option>
-        <option value="tinggi">Tinggi</option>
-      </select>
-      <select id="type-filter">
-        <option value="">Semua Tipe</option>
-        <option value="dailyActivities">Aktivitas Harian</option>
-        <option value="weeklyPlans">Rencana Mingguan</option>
-        <option value="expenses">Pengeluaran</option>
-        <option value="incomes">Pendapatan</option>
-        <option value="reminders">Pengingat</option>
-        <option value="budget">Anggaran</option>
-      </select>
-      <div class="date-filter">
-        <input type="date" id="date-from" placeholder="Dari Tanggal">
-        <input type="date" id="date-to" placeholder="Sampai Tanggal">
-        <input type="time" id="time-from" placeholder="Dari Jam">
-        <input type="time" id="time-to" placeholder="Sampai Jam">
+      <div class="filter-group">
+        <label for="status-filter">Status:</label>
+        <select id="status-filter" data-filter-type="status">
+          <option value="">Semua Status</option>
+          <option value="active">Aktif</option>
+          <option value="completed">Selesai</option>
+        </select>
       </div>
-      <button id="apply-filter">Terapkan Filter</button>
-      <button id="reset-filter">Reset Filter</button>
+  
+      <div class="filter-group">
+        <label for="priority-filter">Prioritas:</label>
+        <select id="priority-filter" data-filter-type="priority">
+          <option value="">Semua Prioritas</option>
+          <option value="low">Rendah</option>
+          <option value="medium">Sedang</option>
+          <option value="high">Tinggi</option>
+        </select>
+      </div>
+  
+      <div class="filter-group date-filter">
+        <div class="date-input">
+          <label for="date-from">Dari Tanggal:</label>
+          <input type="date" id="date-from" data-filter-type="dateFrom">
+        </div>
+        
+        <div class="date-input">
+          <label for="date-to">Sampai Tanggal:</label>
+          <input type="date" id="date-to" data-filter-type="dateTo">
+        </div>
+      </div>
+  
+      <div class="filter-actions">
+        <button id="apply-filter-btn" class="button primary">Terapkan Filter</button>
+        <button id="reset-filter" class="button secondary">Reset Filter</button>
+      </div>
     </div>
   </div>
   

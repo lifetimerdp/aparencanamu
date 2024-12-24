@@ -1,16 +1,15 @@
+// filterDashboard.js
 export class DataFilter {
   constructor() {
+    // Initialize filter states
     this.filters = {
-      search: '',
       status: '',
       priority: '',
-      type: '',
-      dateFrom: '',
-      dateTo: '',
-      timeFrom: '',
-      timeTo: ''
+      dateFrom: null,
+      dateTo: null
     };
-    
+
+    // Initialize data containers
     this.data = {
       dailyActivities: [],
       weeklyPlans: [],
@@ -19,196 +18,343 @@ export class DataFilter {
       expenses: [],
       incomes: []
     };
+
+    // Keep original data for reset functionality
+    this.originalData = { ...this.data };
     
-    this.listElements = {
-      dailyActivities: document.getElementById('daily-activities-list'),
-      weeklyPlans: document.getElementById('weekly-plans-list'),
-      budget: document.getElementById('budget-list'),
-      reminders: document.getElementById('reminders-list'),
-      expenses: document.getElementById('expenses-list'),
-      incomes: document.getElementById('incomes-list')
-    };
+    // Initialize DOM elements and callbacks
+    this.listElements = this.initializeListElements();
+    this.renderCallbacks = {};
+    this.filterElements = this.initializeFilterElements();
     
-    this.initializeFilters();
+    // Setup filter functionality
     this.setupEventListeners();
   }
 
-  initializeFilters() {
-    this.searchFilter = document.getElementById('search-filter');
-    this.statusFilter = document.getElementById('status-filter');
-    this.priorityFilter = document.getElementById('priority-filter');
-    this.typeFilter = document.getElementById('type-filter');
-    this.dateFromFilter = document.getElementById('date-from');
-    this.dateToFilter = document.getElementById('date-to');
-    this.timeFromFilter = document.getElementById('time-from');
-    this.timeToFilter = document.getElementById('time-to');
-    this.applyFilterBtn = document.getElementById('apply-filter');
-    this.resetFilterBtn = document.getElementById('reset-filter');
+  /**
+   * Initialize list elements for each data type
+   * @returns {Object} Map of data types to their list elements
+   */
+  initializeListElements() {
+    try {
+      const elements = {};
+      Object.keys(this.data).forEach(key => {
+        const elementId = `${key.replace(/([A-Z])/g, '-$1').toLowerCase()}-list`;
+        const element = document.getElementById(elementId);
+        if (element) {
+          elements[key] = element;
+        } else {
+          console.warn(`List element not found: ${elementId}`);
+        }
+      });
+      return elements;
+    } catch (error) {
+      console.error('Error initializing list elements:', error);
+      return {};
+    }
   }
 
-  setupEventListeners() {
-    // Debounce search filter to prevent too many rerenders
-    let searchTimeout;
-    this.searchFilter.addEventListener('input', () => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => this.applyFilters(), 300);
-    });
-
-    this.applyFilterBtn.addEventListener('click', () => this.applyFilters());
-    this.resetFilterBtn.addEventListener('click', () => this.resetFilters());
-    
-    // Add listeners for other filter changes
-    [this.statusFilter, this.priorityFilter, this.typeFilter, 
-     this.dateFromFilter, this.dateToFilter, this.timeFromFilter, 
-     this.timeToFilter].forEach(filter => {
-      filter.addEventListener('change', () => this.applyFilters());
-    });
-  }
-
-  updateFilters() {
-    this.filters = {
-      search: this.searchFilter.value.toLowerCase(),
-      status: this.statusFilter.value,
-      priority: this.priorityFilter.value,
-      type: this.typeFilter.value,
-      dateFrom: this.dateFromFilter.value,
-      dateTo: this.dateToFilter.value,
-      timeFrom: this.timeFromFilter.value,
-      timeTo: this.timeToFilter.value
+  /**
+   * Initialize filter UI elements
+   * @returns {Object} Map of filter types to their elements
+   */
+  initializeFilterElements() {
+    const elements = {};
+    const filterIds = {
+      status: 'status-filter',
+      priority: 'priority-filter',
+      dateFrom: 'date-from',
+      dateTo: 'date-to',
+      applyBtn: 'apply-filter-btn',
+      resetBtn: 'reset-filter'
     };
-  }
 
-  resetFilters() {
-    this.searchFilter.value = '';
-    this.statusFilter.value = '';
-    this.priorityFilter.value = '';
-    this.typeFilter.value = '';
-    this.dateFromFilter.value = '';
-    this.dateToFilter.value = '';
-    this.timeFromFilter.value = '';
-    this.timeToFilter.value = '';
-    this.updateFilters();
-    this.applyFilters();
-  }
-
-  updateData(type, newData) {
-    this.data[type] = newData;
-    this.applyFilters();
-  }
-
-  filterData(items) {
-    return items.filter(item => {
-      // Search filter
-      if (this.filters.search) {
-        const searchableFields = ['name', 'category', 'notes'].filter(field => item[field]);
-        const matchesSearch = searchableFields.some(field => 
-          item[field].toLowerCase().includes(this.filters.search)
-        );
-        if (!matchesSearch) return false;
+    Object.entries(filterIds).forEach(([key, id]) => {
+      const element = document.getElementById(id);
+      if (element) {
+        elements[key] = element;
+        // Store direct references for internal use
+        this[key + 'Element'] = element;
+      } else {
+        console.warn(`Filter element not found: ${id}`);
       }
+    });
+
+    return elements;
+  }
+
+  /**
+   * Setup event listeners for filter controls
+   */
+  setupEventListeners() {
+    try {
+      // Setup filter input listeners
+      if (this.filterElements.status) {
+        this.filterElements.status.addEventListener('change', () => {
+          this.handleFilterChange('status', this.filterElements.status.value);
+        });
+      }
+
+      if (this.filterElements.priority) {
+        this.filterElements.priority.addEventListener('change', () => {
+          this.handleFilterChange('priority', this.filterElements.priority.value);
+        });
+      }
+
+      if (this.filterElements.dateFrom) {
+        this.filterElements.dateFrom.addEventListener('change', () => {
+          this.handleFilterChange('dateFrom', this.filterElements.dateFrom.value);
+        });
+      }
+
+      if (this.filterElements.dateTo) {
+        this.filterElements.dateTo.addEventListener('change', () => {
+          this.handleFilterChange('dateTo', this.filterElements.dateTo.value);
+        });
+      }
+
+      // Setup action button listeners
+      if (this.filterElements.applyBtn) {
+        this.filterElements.applyBtn.addEventListener('click', () => {
+          this.applyFilters();
+        });
+      }
+
+      if (this.filterElements.resetBtn) {
+        this.filterElements.resetBtn.addEventListener('click', () => {
+          this.resetFilters();
+        });
+      }
+    } catch (error) {
+      console.error('Error setting up filter listeners:', error);
+    }
+  }
+
+  /**
+   * Handle changes to filter inputs
+   * @param {string} filterType - Type of filter being changed
+   * @param {string} value - New filter value
+   */
+  handleFilterChange(filterType, value) {
+    console.log(`${filterType} filter changed to:`, value);
+    
+    // Update filter state
+    if (filterType === 'dateFrom' || filterType === 'dateTo') {
+      this.filters[filterType] = value ? new Date(value) : null;
+    } else {
+      this.filters[filterType] = value;
+    }
+
+    // Enable/disable apply button based on filter state
+    if (this.filterElements.applyBtn) {
+      this.filterElements.applyBtn.disabled = !this.hasFilterChanged();
+    }
+  }
+
+  /**
+   * Check if any filters have been changed from their default state
+   * @returns {boolean} Whether any filters are active
+   */
+  hasFilterChanged() {
+    return Object.entries(this.filters).some(([key, value]) => {
+      if (key === 'dateFrom' || key === 'dateTo') {
+        return value !== null;
+      }
+      return value !== '';
+    });
+  }
+
+  /**
+   * Apply filters to data
+   * @param {Array} items - Array of items to filter
+   * @param {string} dataType - Type of data being filtered
+   * @returns {Array} Filtered items
+   */
+  filterData(items, dataType) {
+    if (!Array.isArray(items)) {
+      console.warn('Invalid items array:', items);
+      return [];
+    }
+
+    return items.filter(item => {
+      if (!item) return false;
 
       // Status filter
-      if (this.filters.status && item.status !== this.filters.status) {
-        return false;
-      }
+      const matchStatus = !this.filters.status || (
+        (this.filters.status === 'active' && 
+         item.status !== 'completed' && 
+         item.status !== 'selesai') ||
+        (this.filters.status === 'completed' && 
+         (item.status === 'completed' || 
+          item.status === 'selesai'))
+      );
 
       // Priority filter
-      if (this.filters.priority && item.priority !== this.filters.priority) {
-        return false;
-      }
-
-      // Type filter
-      if (this.filters.type && !item.type?.includes(this.filters.type)) {
-        return false;
-      }
+      const matchPriority = !this.filters.priority || 
+        item.priority?.toLowerCase() === this.filters.priority.toLowerCase();
 
       // Date filter
-      if ((this.filters.dateFrom || this.filters.dateTo) && item.date) {
+      let matchDate = true;
+      if (item.date) {
         const itemDate = new Date(item.date);
-        if (this.filters.dateFrom && itemDate < new Date(this.filters.dateFrom)) {
-          return false;
-        }
-        if (this.filters.dateTo && itemDate > new Date(this.filters.dateTo)) {
-          return false;
-        }
-      }
-
-      // Time filter
-      if ((this.filters.timeFrom || this.filters.timeTo) && item.time) {
-        const itemTime = item.time;
-        if (this.filters.timeFrom && itemTime < this.filters.timeFrom) {
-          return false;
-        }
-        if (this.filters.timeTo && itemTime > this.filters.timeTo) {
-          return false;
+        if (!isNaN(itemDate.getTime())) {
+          if (this.filters.dateFrom) {
+            matchDate = matchDate && itemDate >= this.filters.dateFrom;
+          }
+          if (this.filters.dateTo) {
+            matchDate = matchDate && itemDate <= this.filters.dateTo;
+          }
         }
       }
 
-      return true;
+      const matches = matchStatus && matchPriority && matchDate;
+      
+      // Debug logging
+      if (this.hasFilterChanged()) {
+        console.log(`Filtering ${dataType} item:`, {
+          id: item.id,
+          status: { value: item.status, matches: matchStatus },
+          priority: { value: item.priority, matches: matchPriority },
+          date: { value: item.date, matches: matchDate },
+          finalResult: matches
+        });
+      }
+
+      return matches;
     });
   }
 
+  /**
+   * Apply current filters to all data types
+   */
   applyFilters() {
-    this.updateFilters();
-    
-    Object.keys(this.data).forEach(dataType => {
-      if (this.data[dataType].length > 0) {
-        const filteredData = this.filterData(this.data[dataType]);
-        const listElement = this.listElements[dataType];
-        
-        if (listElement && this.renderCallbacks[dataType]) {
-          // Clear existing content
-          listElement.innerHTML = '';
+    console.log('Applying filters:', this.filters);
+
+    Object.entries(this.data).forEach(([dataType, items]) => {
+      if (Array.isArray(items) && items.length) {
+        try {
+          // Apply filters
+          const filteredData = this.filterData(items, dataType);
           
-          // Apply the render callback with the filtered data
-          this.renderCallbacks[dataType](listElement, filteredData, dataType);
-          
-          // Reattach event listeners after rendering
-          this.reattachEventListeners(listElement);
+          // Update UI
+          const listElement = this.listElements[dataType];
+          if (listElement && this.renderCallbacks[dataType]) {
+            console.log(`Rendering filtered ${dataType}:`, filteredData.length);
+            listElement.innerHTML = '';
+            this.renderCallbacks[dataType](listElement, filteredData, dataType);
+          }
+        } catch (error) {
+          console.error(`Error filtering ${dataType}:`, error);
         }
       }
     });
+
+    // Update UI state
+    if (this.filterElements.applyBtn) {
+      this.filterElements.applyBtn.disabled = true;
+    }
   }
 
-  reattachEventListeners(listElement) {
-    // Reattach event listeners for edit buttons
-    listElement.querySelectorAll('.edit-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const dataType = btn.getAttribute('data-type');
-        const dataId = btn.getAttribute('data-id');
-        const parentId = btn.getAttribute('data-parent-id') || '';
-        const subParentId = btn.getAttribute('data-sub-parent-id') || '';
-        // Trigger edit functionality
-        this.triggerEdit(dataType, dataId, parentId, subParentId);
-      });
+  /**
+   * Reset all filters to their default state
+   */
+  resetFilters() {
+    console.log('Resetting filters');
+
+    // Reset filter UI
+    if (this.filterElements.status) this.filterElements.status.value = '';
+    if (this.filterElements.priority) this.filterElements.priority.value = '';
+    if (this.filterElements.dateFrom) this.filterElements.dateFrom.value = '';
+    if (this.filterElements.dateTo) this.filterElements.dateTo.value = '';
+
+    // Reset filter state
+    this.filters = {
+      status: '',
+      priority: '',
+      dateFrom: null,
+      dateTo: null
+    };
+
+    // Restore original data
+    Object.entries(this.originalData).forEach(([dataType, originalItems]) => {
+      if (originalItems && originalItems.length) {
+        this.data[dataType] = [...originalItems];
+        
+        const listElement = this.listElements[dataType];
+        if (listElement && this.renderCallbacks[dataType]) {
+          console.log(`Restoring original ${dataType} data`);
+          listElement.innerHTML = '';
+          this.renderCallbacks[dataType](listElement, this.data[dataType], dataType);
+        }
+      }
     });
 
-    // Reattach event listeners for delete buttons
-    listElement.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const dataType = btn.getAttribute('data-type');
-        const dataId = btn.getAttribute('data-id');
-        const parentId = btn.getAttribute('data-parent-id');
-        const subParentId = btn.getAttribute('data-sub-parent-id');
-        // Trigger delete functionality
-        this.triggerDelete(dataType, dataId, parentId, subParentId);
-      });
-    });
-
-    // Reattach event listeners for status checkboxes
-    listElement.querySelectorAll('.status-checkbox').forEach(checkbox => {
-      checkbox.addEventListener('change', (e) => {
-        const id = checkbox.getAttribute('data-id');
-        const type = checkbox.getAttribute('data-type');
-        const status = checkbox.checked ? 'selesai' : 'aktif';
-        // Trigger status update
-        this.triggerStatusUpdate(id, type, status, checkbox);
-      });
-    });
+    // Update UI state
+    if (this.filterElements.applyBtn) {
+      this.filterElements.applyBtn.disabled = true;
+    }
   }
 
-  renderCallbacks = {};
+  /**
+   * Set render callback for a data type
+   * @param {string} dataType - Type of data
+   * @param {Function} callback - Render callback function
+   */
   setRenderCallback(dataType, callback) {
-    this.renderCallbacks[dataType] = callback;
+    if (typeof callback === 'function') {
+      this.renderCallbacks[dataType] = callback;
+      console.log(`Set render callback for ${dataType}`);
+    } else {
+      console.error(`Invalid render callback for ${dataType}`);
+    }
+  }
+
+  /**
+   * Update data for a specific type
+   * @param {string} type - Type of data to update
+   * @param {Array} newData - New data array
+   */
+  updateData(type, newData) {
+    if (!this.data.hasOwnProperty(type)) {
+      console.warn(`Invalid data type: ${type}`);
+      return;
+    }
+
+    console.log(`Updating ${type} data:`, newData.length);
+
+    // Store original data if not exists
+    if (!this.originalData[type]?.length) {
+      this.originalData[type] = [...newData];
+    }
+
+    // Update current data
+    this.data[type] = newData;
+
+    // Update UI
+    const listElement = this.listElements[type];
+    if (listElement && this.renderCallbacks[type]) {
+      // Apply current filters if any are active
+      const dataToRender = this.hasFilterChanged() ? 
+        this.filterData(newData, type) : 
+        newData;
+
+      console.log(`Rendering ${type} data:`, dataToRender.length);
+      listElement.innerHTML = '';
+      this.renderCallbacks[type](listElement, dataToRender, type);
+    }
+  }
+
+  /**
+   * Get filtered data for a specific type
+   * @param {string} type - Type of data to get
+   * @returns {Array} Filtered data array
+   */
+  getFilteredData(type) {
+    if (!this.data.hasOwnProperty(type)) {
+      console.warn(`Invalid data type: ${type}`);
+      return [];
+    }
+
+    return this.filterData(this.data[type], type);
   }
 }

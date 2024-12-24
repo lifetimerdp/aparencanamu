@@ -382,8 +382,13 @@ button:hover {
 }
 
 .priority-select {
-  padding: 2px 5px;
-  border: 1px solid #ddd;
+  padding: 5px;
   border-radius: 4px;
-  font-size: 14px;
+  border-width: 2px;
+  border-style: solid;
+  transition: all 0.3s ease;
+}
+
+.priority-select option {
+  padding: 5px;
 }

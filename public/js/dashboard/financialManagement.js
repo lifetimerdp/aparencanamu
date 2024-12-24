@@ -1,6 +1,7 @@
 import { auth, db } from '../firebaseConfig.js';
 import { doc, addDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { checkAuth, renderList } from './dashboard.js';
+import { DataFilter } from './filterDashboard.js';
 
 export const addExpense = async (name, category, amount) => {
   try {
@@ -77,18 +78,31 @@ export const addReminder = async (name, date, time) => {
 
 export const loadExpensesAndIncomes = async (userDocRef) => {
   try {
-    // Memuat Pengeluaran
-    const expensesRef = collection(userDocRef, 'expenses');
+    const dataFilter = new DataFilter();
+    dataFilter.setRenderCallback('expenses', renderList);
+    dataFilter.setRenderCallback('incomes', renderList);
+    const expensesRef = collection(userDocRef, "expenses");
     onSnapshot(expensesRef, (snapshot) => {
-      const expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      renderList(document.getElementById('expenses-list'), expenses, 'expenses');
+        const expenses = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        
+        const expensesList = document.getElementById('expenses-list');
+        renderList(expensesList, expenses, 'expenses');
+        dataFilter.updateData('expenses', expenses);
     });
-
-    // Memuat Pendapatan
-    const incomesRef = collection(userDocRef, 'incomes');
+    
+    const incomesRef = collection(userDocRef, "incomes");
     onSnapshot(incomesRef, (snapshot) => {
-      const incomes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      renderList(document.getElementById('incomes-list'), incomes, 'incomes');
+        const incomes = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        
+        const incomesList = document.getElementById('incomes-list');
+        renderList(incomesList, incomes, 'incomes');
+        dataFilter.updateData('incomes', incomes);
     });
   } catch (error) {
     console.error('Error saat memuat data keuangan:', error);

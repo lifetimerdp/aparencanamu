@@ -104,10 +104,16 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
 
   const createPrioritySelector = (item, dataType) => `
     <div class="priority-selector">
-      <select class="priority-select" data-id="${item.id}" data-type="${dataType}">
+      <select 
+        class="priority-select" 
+        data-id="${item.id}" 
+        data-type="${dataType}"
+        style="border-color: ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}"
+      >
         <option value="">Pilih Prioritas</option>
         ${Object.entries(PRIORITY_LABELS).map(([key, label]) => 
-          `<option value="${key}" ${item.priority === key ? "selected" : ""}>${label}</option>`
+          `<option value="${key}" ${item.priority === key ? "selected" : ""}
+           style="background-color: ${PRIORITY_COLORS[key]}40">${label}</option>`
         ).join('')}
       </select>
     </div>
@@ -165,28 +171,24 @@ document.addEventListener('change', async (e) => {
   if (e.target.classList.contains('status-checkbox')) {
     const id = e.target.getAttribute('data-id');
     const type = e.target.getAttribute('data-type');
-    const status = e.target.checked ? 'selesai' : 'aktif';
+    // Ubah status sesuai format Firestore
+    const status = e.target.checked ? 'completed' : 'active';
     const listItem = e.target.closest('li');
-    
+
     try {
       e.target.disabled = true;
-      
-      // Tambahkan class untuk transisi
-      if (status === 'selesai') {
+      if (status === 'completed') {
         listItem.classList.add('list-item-completing');
       } else {
         listItem.classList.remove('list-item-completing');
       }
-      
-      // Update status di Firestore
+
       const docRef = getDocRef(type, id);
       await updateDoc(docRef, { status });
-      
-      // Jika item selesai, hapus dari tampilan dengan animasi
-      if (status === 'selesai') {
+
+      if (status === 'completed') {
         setTimeout(() => {
           if (listItem && listItem.parentNode) {
-            // Batalkan subscription sebelum menghapus elemen
             const unsubscribe = listItem.getAttribute('data-unsubscribe');
             if (unsubscribe) {
               unsubscribe();
@@ -204,42 +206,44 @@ document.addEventListener('change', async (e) => {
       e.target.disabled = false;
     }
   }
-  if (e.target.classList.contains('priority-select')) {
-    const id = e.target.getAttribute('data-id');
-    const type = e.target.getAttribute('data-type');
-    const priority = e.target.value;
-    
-    try {
-      const docRef = getDocRef(type, id);
-      if (priority) {
-        // Jika priority dipilih (high/medium/low)
-        await updateDoc(docRef, {
-          priority,
-          status: 'aktif'
-        });
-        const listItem = e.target.closest('li');
-        listItem.style.borderLeft = `4px solid ${PRIORITY_COLORS[priority]}`;
-      } else {
-        // Jika "Pilih Prioritas" dipilih
-        await updateDoc(docRef, {
-          priority: null, // Set ke null daripada 'low'
-          status: 'aktif'
-        });
-        const listItem = e.target.closest('li');
-        listItem.style.borderLeft = '4px solid #ccc'; // Warna default untuk tidak ada priority
-      }
-    } catch (error) {
-      console.error('Error updating priority:', error);
-      e.target.value = e.target.getAttribute('data-previous-value') || '';
-    }
-    e.target.setAttribute('data-previous-value', e.target.value);
-  }
 });
 document.addEventListener('focus', (e) => {
   if (e.target.classList.contains('priority-select')) {
     e.target.setAttribute('data-previous-value', e.target.value);
   }
 }, true);
+document.addEventListener('change', async (e) => {
+  if (e.target.classList.contains('priority-select')) {
+    const id = e.target.getAttribute('data-id');
+    const type = e.target.getAttribute('data-type');
+    const newPriority = e.target.value;
+    const previousValue = e.target.getAttribute('data-previous-value');
+
+    try {
+      e.target.disabled = true;
+      const docRef = getDocRef(type, id);
+      
+      // Update di Firestore
+      await updateDoc(docRef, {
+        priority: newPriority
+      });
+
+      // Update tampilan
+      const listItem = e.target.closest('li');
+      if (listItem) {
+        listItem.style.borderLeft = `4px solid ${newPriority ? PRIORITY_COLORS[newPriority] : '#ccc'}`;
+      }
+
+      console.log(`Priority updated for ${type} ${id} to ${newPriority}`);
+    } catch (error) {
+      console.error('Error updating priority:', error);
+      e.target.value = previousValue;
+      alert('Gagal mengubah prioritas. Silakan coba lagi.');
+    } finally {
+      e.target.disabled = false;
+    }
+  }
+});
 incomeForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const incomeName = incomeInput.value;
@@ -514,36 +518,52 @@ document.addEventListener("DOMContentLoaded", async () => {
     
         const dailyActivitiesRef = collection(userDocRef, "dailyActivities");
         onSnapshot(dailyActivitiesRef, (snapshot) => {
-          const dailyActivities = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          dataFilter.updateData('dailyActivities', dailyActivities);
+            const dailyActivities = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            
+            const dailyActivitiesList = document.getElementById('daily-activities-list');
+            renderList(dailyActivitiesList, dailyActivities, 'dailyActivities');
+            dataFilter.updateData('dailyActivities', dailyActivities);
         });
+        
         const weeklyPlansRef = collection(userDocRef, "weeklyPlans");
         onSnapshot(weeklyPlansRef, (snapshot) => {
-          const weeklyPlans = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          dataFilter.updateData('weeklyPlans', weeklyPlans);
+            const weeklyPlans = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            
+            const weeklyPlansList = document.getElementById('weekly-plans-list');
+            renderList(weeklyPlansList, weeklyPlans, 'weeklyPlans');
+            dataFilter.updateData('weeklyPlans', weeklyPlans);
         });
+        
         const budgetRef = collection(userDocRef, "budget");
         onSnapshot(budgetRef, (snapshot) => {
-          const budget = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          dataFilter.updateData('budget', budget);
+            const budget = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            
+            const budgetList = document.getElementById('budget-list');
+            renderList(budgetList, budget, 'budget');
+            dataFilter.updateData('budget', budget);
         });
+        
         const remindersRef = collection(userDocRef, "reminders");
         onSnapshot(remindersRef, (snapshot) => {
-          const reminders = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          dataFilter.updateData('reminders', reminders);
+            const reminders = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            
+            const remindersList = document.getElementById('reminders-list');
+            renderList(remindersList, reminders, 'reminders');
+            dataFilter.updateData('reminders', reminders);
         });
+        
         const appButtons = document.querySelectorAll(".app-btn");
         const appSections = document.querySelectorAll(".app-section");
         appButtons.forEach((button) => {
