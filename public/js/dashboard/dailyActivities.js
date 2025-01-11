@@ -227,7 +227,7 @@ export const addDailyActivity = async (activityName, activityDate) => {
     await addDoc(getFirestoreRef(['dailyActivities']), {
       name: activityName.trim(),
       date: formattedDate,
-      status: "",
+      status: "active",
       priority: "",
       completed: false,
     });

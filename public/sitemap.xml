@@ -2,46 +2,46 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:44985/aktivitas/</loc>
+    <loc>http://localhost:1313/aktivitas/</loc>
   </url><url>
-    <loc>http://localhost:44985/</loc>
+    <loc>http://localhost:1313/</loc>
   </url><url>
-    <loc>http://localhost:44985/bantuan/</loc>
+    <loc>http://localhost:1313/bantuan/</loc>
   </url><url>
-    <loc>http://localhost:44985/blog/</loc>
+    <loc>http://localhost:1313/blog/</loc>
   </url><url>
-    <loc>http://localhost:44985/categories/</loc>
+    <loc>http://localhost:1313/categories/</loc>
   </url><url>
-    <loc>http://localhost:44985/contact/</loc>
+    <loc>http://localhost:1313/contact/</loc>
   </url><url>
-    <loc>http://localhost:44985/daftar/</loc>
+    <loc>http://localhost:1313/daftar/</loc>
   </url><url>
-    <loc>http://localhost:44985/dashboard/</loc>
+    <loc>http://localhost:1313/dashboard/</loc>
   </url><url>
-    <loc>http://localhost:44985/kebijakan-privasi/</loc>
+    <loc>http://localhost:1313/kebijakan-privasi/</loc>
   </url><url>
-    <loc>http://localhost:44985/kesehatan-kebugaran/</loc>
+    <loc>http://localhost:1313/kesehatan-kebugaran/</loc>
   </url><url>
-    <loc>http://localhost:44985/lupa-password/</loc>
+    <loc>http://localhost:1313/lupa-password/</loc>
   </url><url>
-    <loc>http://localhost:44985/masuk/</loc>
+    <loc>http://localhost:1313/masuk/</loc>
   </url><url>
-    <loc>http://localhost:44985/pages/</loc>
+    <loc>http://localhost:1313/pages/</loc>
   </url><url>
-    <loc>http://localhost:44985/pengembangan-pribadi/</loc>
+    <loc>http://localhost:1313/pengembangan-pribadi/</loc>
   </url><url>
-    <loc>http://localhost:44985/profil/</loc>
+    <loc>http://localhost:1313/profil/</loc>
   </url><url>
-    <loc>http://localhost:44985/profile/</loc>
+    <loc>http://localhost:1313/profile/</loc>
   </url><url>
-    <loc>http://localhost:44985/blog/satu/</loc>
+    <loc>http://localhost:1313/blog/satu/</loc>
   </url><url>
-    <loc>http://localhost:44985/sosial-komunitas/</loc>
+    <loc>http://localhost:1313/sosial-komunitas/</loc>
   </url><url>
-    <loc>http://localhost:44985/syarat-dan-ketentuan/</loc>
+    <loc>http://localhost:1313/syarat-dan-ketentuan/</loc>
   </url><url>
-    <loc>http://localhost:44985/tags/</loc>
+    <loc>http://localhost:1313/tags/</loc>
   </url><url>
-    <loc>http://localhost:44985/tentang-kami/</loc>
+    <loc>http://localhost:1313/tentang-kami/</loc>
   </url>
 </urlset>

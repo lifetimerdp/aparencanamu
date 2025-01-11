@@ -14,7 +14,7 @@ export const addExpense = async (name, category, amount) => {
       amount,
       date: new Date(),
       userId: user.uid,
-      status: "",
+      status: "active",
       priority: ""
     };
 
@@ -38,7 +38,7 @@ export const addIncome = async (name, category, amount) => {
       amount,
       date: new Date(),
       userId: user.uid,
-      status: "",
+      status: "active",
       priority: ""
     };
 
@@ -57,7 +57,7 @@ export const addBudget = async (name, month, amount) => {
     name,
     month,
     amount,
-    status: "",
+    status: "active",
     priority: ""
   });
 };
@@ -71,7 +71,7 @@ export const addReminder = async (name, date, time) => {
     time,
     timeZone: userTimeZone,
     notificationSent: false,
-    status: "",
+    status: "active",
     priority: ""
   });
 };

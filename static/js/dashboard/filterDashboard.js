@@ -1,15 +1,14 @@
-// filterDashboard.js
+import { months } from './utility.js';
+
 export class DataFilter {
   constructor() {
-    // Initialize filter states
     this.filters = {
       status: '',
       priority: '',
       dateFrom: null,
       dateTo: null
     };
-
-    // Initialize data containers
+    
     this.data = {
       dailyActivities: [],
       weeklyPlans: [],
@@ -18,23 +17,14 @@ export class DataFilter {
       expenses: [],
       incomes: []
     };
-
-    // Keep original data for reset functionality
-    this.originalData = { ...this.data };
     
-    // Initialize DOM elements and callbacks
+    this.originalData = { ...this.data };
     this.listElements = this.initializeListElements();
     this.renderCallbacks = {};
     this.filterElements = this.initializeFilterElements();
-    
-    // Setup filter functionality
     this.setupEventListeners();
   }
 
-  /**
-   * Initialize list elements for each data type
-   * @returns {Object} Map of data types to their list elements
-   */
   initializeListElements() {
     try {
       const elements = {};
@@ -54,10 +44,6 @@ export class DataFilter {
     }
   }
 
-  /**
-   * Initialize filter UI elements
-   * @returns {Object} Map of filter types to their elements
-   */
   initializeFilterElements() {
     const elements = {};
     const filterIds = {
@@ -73,7 +59,6 @@ export class DataFilter {
       const element = document.getElementById(id);
       if (element) {
         elements[key] = element;
-        // Store direct references for internal use
         this[key + 'Element'] = element;
       } else {
         console.warn(`Filter element not found: ${id}`);
@@ -83,12 +68,8 @@ export class DataFilter {
     return elements;
   }
 
-  /**
-   * Setup event listeners for filter controls
-   */
   setupEventListeners() {
     try {
-      // Setup filter input listeners
       if (this.filterElements.status) {
         this.filterElements.status.addEventListener('change', () => {
           this.handleFilterChange('status', this.filterElements.status.value);
@@ -113,7 +94,6 @@ export class DataFilter {
         });
       }
 
-      // Setup action button listeners
       if (this.filterElements.applyBtn) {
         this.filterElements.applyBtn.addEventListener('click', () => {
           this.applyFilters();
@@ -130,31 +110,20 @@ export class DataFilter {
     }
   }
 
-  /**
-   * Handle changes to filter inputs
-   * @param {string} filterType - Type of filter being changed
-   * @param {string} value - New filter value
-   */
   handleFilterChange(filterType, value) {
     console.log(`${filterType} filter changed to:`, value);
     
-    // Update filter state
     if (filterType === 'dateFrom' || filterType === 'dateTo') {
       this.filters[filterType] = value ? new Date(value) : null;
     } else {
       this.filters[filterType] = value;
     }
 
-    // Enable/disable apply button based on filter state
     if (this.filterElements.applyBtn) {
       this.filterElements.applyBtn.disabled = !this.hasFilterChanged();
     }
   }
 
-  /**
-   * Check if any filters have been changed from their default state
-   * @returns {boolean} Whether any filters are active
-   */
   hasFilterChanged() {
     return Object.entries(this.filters).some(([key, value]) => {
       if (key === 'dateFrom' || key === 'dateTo') {
@@ -164,80 +133,101 @@ export class DataFilter {
     });
   }
 
-  /**
-   * Apply filters to data
-   * @param {Array} items - Array of items to filter
-   * @param {string} dataType - Type of data being filtered
-   * @returns {Array} Filtered items
-   */
   filterData(items, dataType) {
     if (!Array.isArray(items)) {
-      console.warn('Invalid items array:', items);
+      console.warn('Array item tidak valid:', items);
       return [];
     }
 
     return items.filter(item => {
       if (!item) return false;
+      
+      const sekarang = new Date();
+      let statusEfektif = item.status || 'active';
+      let sudahKedaluwarsa = false;
 
-      // Status filter
-      const matchStatus = !this.filters.status || (
-        (this.filters.status === 'active' && 
-         item.status !== 'completed' && 
-         item.status !== 'selesai') ||
-        (this.filters.status === 'completed' && 
-         (item.status === 'completed' || 
-          item.status === 'selesai'))
+      // Cek kedaluwarsa berdasarkan tipe data
+      if (item.date) {
+        const tanggalItem = new Date(item.date);
+        sudahKedaluwarsa = tanggalItem.setHours(23, 59, 59, 999) < sekarang;
+      } else if (item.endDate) {
+        const [hari, bulan, tahun] = item.endDate.split(' ');
+        const indeksBulan = months.indexOf(bulan);
+        if (indeksBulan !== -1) {
+          const tanggalAkhir = new Date(tahun, indeksBulan, parseInt(hari));
+          sudahKedaluwarsa = tanggalAkhir.setHours(23, 59, 59, 999) < sekarang;
+        }
+      }
+
+      // Update statusEfektif jika sudah kedaluwarsa
+      if (sudahKedaluwarsa && statusEfektif !== 'completed') {
+        statusEfektif = 'completed';
+      }
+
+      // Filter berdasarkan status
+      const cocokStatus = !this.filters.status || (
+        (this.filters.status === 'active' && statusEfektif === 'active') ||
+        (this.filters.status === 'completed' && (statusEfektif === 'completed' || item.status === 'completed'))
       );
 
-      // Priority filter
-      const matchPriority = !this.filters.priority || 
+      // Filter berdasarkan prioritas
+      const cocokPrioritas = !this.filters.priority || 
         item.priority?.toLowerCase() === this.filters.priority.toLowerCase();
 
-      // Date filter
-      let matchDate = true;
+      // Filter berdasarkan tanggal
+      let cocokTanggal = true;
       if (item.date) {
-        const itemDate = new Date(item.date);
-        if (!isNaN(itemDate.getTime())) {
+        const tanggalItem = new Date(item.date);
+        if (!isNaN(tanggalItem.getTime())) {
           if (this.filters.dateFrom) {
-            matchDate = matchDate && itemDate >= this.filters.dateFrom;
+            const dateFrom = new Date(this.filters.dateFrom);
+            dateFrom.setHours(0, 0, 0, 0);
+            cocokTanggal = cocokTanggal && tanggalItem >= dateFrom;
           }
           if (this.filters.dateTo) {
-            matchDate = matchDate && itemDate <= this.filters.dateTo;
+            const dateTo = new Date(this.filters.dateTo);
+            dateTo.setHours(23, 59, 59, 999);
+            cocokTanggal = cocokTanggal && tanggalItem <= dateTo;
           }
         }
       }
 
-      const matches = matchStatus && matchPriority && matchDate;
-      
-      // Debug logging
+      // Debug log untuk melihat proses filtering
       if (this.hasFilterChanged()) {
-        console.log(`Filtering ${dataType} item:`, {
+        console.log(`Memfilter item ${dataType}:`, {
           id: item.id,
-          status: { value: item.status, matches: matchStatus },
-          priority: { value: item.priority, matches: matchPriority },
-          date: { value: item.date, matches: matchDate },
-          finalResult: matches
+          status: {
+            asli: item.status,
+            efektif: statusEfektif,
+            filterValue: this.filters.status,
+            cocok: cocokStatus
+          },
+          priority: {
+            nilai: item.priority,
+            cocok: cocokPrioritas
+          },
+          date: {
+            nilai: item.date,
+            cocok: cocokTanggal
+          },
+          sudahKedaluwarsa: sudahKedaluwarsa,
+          hasilAkhir: cocokStatus && cocokPrioritas && cocokTanggal
         });
       }
 
-      return matches;
+      return cocokStatus && cocokPrioritas && cocokTanggal;
     });
   }
 
-  /**
-   * Apply current filters to all data types
-   */
   applyFilters() {
     console.log('Applying filters:', this.filters);
 
     Object.entries(this.data).forEach(([dataType, items]) => {
       if (Array.isArray(items) && items.length) {
         try {
-          // Apply filters
           const filteredData = this.filterData(items, dataType);
-          
-          // Update UI
           const listElement = this.listElements[dataType];
+          
           if (listElement && this.renderCallbacks[dataType]) {
             console.log(`Rendering filtered ${dataType}:`, filteredData.length);
             listElement.innerHTML = '';
@@ -249,112 +239,88 @@ export class DataFilter {
       }
     });
 
-    // Update UI state
     if (this.filterElements.applyBtn) {
       this.filterElements.applyBtn.disabled = true;
     }
   }
 
-  /**
-   * Reset all filters to their default state
-   */
   resetFilters() {
     console.log('Resetting filters');
 
-    // Reset filter UI
+    // Reset filter elements
     if (this.filterElements.status) this.filterElements.status.value = '';
-    if (this.filterElements.priority) this.filterElements.priority.value = '';
     if (this.filterElements.dateFrom) this.filterElements.dateFrom.value = '';
     if (this.filterElements.dateTo) this.filterElements.dateTo.value = '';
 
-    // Reset filter state
+    // Reset filter values
     this.filters = {
       status: '',
-      priority: '',
+      priority: this.filters.priority,
       dateFrom: null,
       dateTo: null
     };
 
-    // Restore original data
+    // Restore original data while preserving priorities
     Object.entries(this.originalData).forEach(([dataType, originalItems]) => {
       if (originalItems && originalItems.length) {
-        this.data[dataType] = [...originalItems];
-        
+        this.data[dataType] = originalItems.map(item => {
+          const currentItem = this.data[dataType].find(current => current.id === item.id);
+          return {
+            ...item,
+            priority: currentItem ? currentItem.priority : item.priority
+          };
+        });
+
         const listElement = this.listElements[dataType];
         if (listElement && this.renderCallbacks[dataType]) {
-          console.log(`Restoring original ${dataType} data`);
+          console.log(`Restoring original ${dataType} data while preserving priorities`);
           listElement.innerHTML = '';
           this.renderCallbacks[dataType](listElement, this.data[dataType], dataType);
         }
       }
     });
 
-    // Update UI state
     if (this.filterElements.applyBtn) {
-      this.filterElements.applyBtn.disabled = true;
+      this.filterElements.applyBtn.disabled = !this.hasFilterChanged();
     }
   }
 
-  /**
-   * Set render callback for a data type
-   * @param {string} dataType - Type of data
-   * @param {Function} callback - Render callback function
-   */
   setRenderCallback(dataType, callback) {
     if (typeof callback === 'function') {
       this.renderCallbacks[dataType] = callback;
-      console.log(`Set render callback for ${dataType}`);
     } else {
       console.error(`Invalid render callback for ${dataType}`);
     }
   }
 
-  /**
-   * Update data for a specific type
-   * @param {string} type - Type of data to update
-   * @param {Array} newData - New data array
-   */
   updateData(type, newData) {
     if (!this.data.hasOwnProperty(type)) {
       console.warn(`Invalid data type: ${type}`);
       return;
     }
 
-    console.log(`Updating ${type} data:`, newData.length);
-
-    // Store original data if not exists
+    // Save original data if not exists
     if (!this.originalData[type]?.length) {
       this.originalData[type] = [...newData];
     }
 
-    // Update current data
     this.data[type] = newData;
 
-    // Update UI
     const listElement = this.listElements[type];
     if (listElement && this.renderCallbacks[type]) {
-      // Apply current filters if any are active
       const dataToRender = this.hasFilterChanged() ? 
         this.filterData(newData, type) : 
         newData;
-
-      console.log(`Rendering ${type} data:`, dataToRender.length);
       listElement.innerHTML = '';
       this.renderCallbacks[type](listElement, dataToRender, type);
     }
   }
 
-  /**
-   * Get filtered data for a specific type
-   * @param {string} type - Type of data to get
-   * @returns {Array} Filtered data array
-   */
   getFilteredData(type) {
     if (!this.data.hasOwnProperty(type)) {
       console.warn(`Invalid data type: ${type}`);
       return [];
     }
-
     return this.filterData(this.data[type], type);
   }
 }

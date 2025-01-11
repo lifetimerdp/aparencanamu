@@ -1,6 +1,7 @@
 import { auth, db, messaging } from "../firebaseConfig.js";
 import { getDocs, addDoc, collection, doc, updateDoc, deleteDoc, onSnapshot, getDoc, arrayUnion, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import "../auth.js";
 import {
   formatRupiah,
@@ -67,40 +68,116 @@ export const checkAuth = () => {
         });
     });
 };
-export const renderList = (listElement, items, dataType, parentId = null, subParentId = null) => {
+const periksaDanPerbaruiStatusKedaluwarsa = async (items, dataType) => {
+  if (!items || !Array.isArray(items)) return items;
+  
+  const sekarang = new Date();
+  const pembaruan = [];
+  
+  items.forEach(item => {
+    // Periksa hanya jika status bukan 'completed'
+    if (item.status !== 'completed') {
+      let sudahKedaluwarsa = false;
+      let tanggalItem;
+      
+      try {
+        switch (dataType) {
+          case 'dailyActivities':
+            if (item.date) {
+              tanggalItem = new Date(item.date);
+              // Set ke akhir hari untuk perbandingan yang akurat
+              tanggalItem.setHours(23, 59, 59, 999);
+              sudahKedaluwarsa = tanggalItem < sekarang;
+            }
+            break;
+            
+          case 'weeklyPlans':
+            if (item.endDate) {
+              const [hari, bulan, tahun] = item.endDate.split(' ');
+              const indeksBulan = months.indexOf(bulan);
+              if (indeksBulan !== -1) {
+                tanggalItem = new Date(tahun, indeksBulan, parseInt(hari));
+                tanggalItem.setHours(23, 59, 59, 999);
+                sudahKedaluwarsa = tanggalItem < sekarang;
+              }
+            }
+            break;
+            
+          case 'budget':
+            if (item.month) {
+              const tahunSekarang = sekarang.getFullYear();
+              const indeksBulan = months.indexOf(item.month);
+              if (indeksBulan !== -1) {
+                // Set tanggal ke akhir bulan
+                tanggalItem = new Date(tahunSekarang, indeksBulan + 1, 0, 23, 59, 59, 999);
+                sudahKedaluwarsa = tanggalItem < sekarang;
+              }
+            }
+            break;
+            
+          case 'reminders':
+            if (item.date && item.time) {
+              const [jam, menit] = item.time.split(':');
+              tanggalItem = new Date(item.date);
+              tanggalItem.setHours(parseInt(jam), parseInt(menit), 59, 999);
+              sudahKedaluwarsa = tanggalItem < sekarang;
+            }
+            break;
+        }
+        
+        // Jika item sudahKedaluwarsa dan belum completed, tambahkan ke daftar pembaruan
+        if (sudahKedaluwarsa) {
+          console.log(`Item ${dataType} dengan ID ${item.id} telah kedaluwarsa`);
+          pembaruan.push({
+            id: item.id,
+            update: { status: 'completed' }
+          });
+        }
+      } catch (error) {
+        console.error(`Error saat memeriksa kedaluwarsa untuk ${dataType} ID ${item.id}:`, error);
+      }
+    }
+  });
+
+  // Lakukan pembaruan status ke Firestore
+  if (pembaruan.length > 0) {
+    try {
+      const userDocRef = doc(db, "users", userId);
+      const batch = writeBatch(db);
+
+      pembaruan.forEach(({ id, update }) => {
+        const docRef = doc(userDocRef, dataType, id);
+        batch.update(docRef, update);
+      });
+
+      await batch.commit();
+      console.log(`Berhasil memperbarui ${pembaruan.length} item ${dataType} yang kedaluwarsa`);
+
+      // Update items array dengan status yang baru
+      pembaruan.forEach(({ id, update }) => {
+        const index = items.findIndex(item => item.id === id);
+        if (index !== -1) {
+          items[index] = { ...items[index], ...update };
+        }
+      });
+    } catch (error) {
+      console.error(`Error saat memperbarui item ${dataType} yang kedaluwarsa:`, error);
+    }
+  }
+
+  return items;
+};
+export const renderList = async (listElement, items, dataType, parentId = null, subParentId = null) => {
   if (!listElement) return;
+  
+  const itemDiperbarui = await periksaDanPerbaruiStatusKedaluwarsa(items, dataType);
   
   const previousUnsubscribe = listElement.getAttribute('data-unsubscribe');
   if (typeof previousUnsubscribe === 'function') {
     previousUnsubscribe();
   }
+  
   listElement.innerHTML = '';
-
-  // Helper functions
-  const createItemContent = (item) => {
-    const content = item.name + 
-      ((dataType === 'expenses' || dataType === 'incomes' || dataType === 'budget') ? 
-        ` - ${formatRupiah(item.amount)}` : 
-        (dataType === 'dailyActivities' ? ` - ${formatDate(item.date)}` : ''));
-    
-    return `
-      <div class="item-content">
-        <div class="item-left">
-          <span class="item-name">${content}</span>
-        </div>
-        <div class="item-actions">
-          ${createPrioritySelector(item, dataType)}
-          <button class="edit-btn" data-id="${item.id}" data-name="${item.name}" 
-            data-type="${dataType}" data-parent-id="${parentId || ''}" 
-            data-sub-parent-id="${subParentId || ''}">Edit</button>
-          <button class="delete-btn" data-id="${item.id}" data-type="${dataType}">Hapus</button>
-          <input type="checkbox" class="status-checkbox" 
-            ${item.status === 'selesai' ? 'checked' : ''}
-            data-id="${item.id}" data-type="${dataType}">
-        </div>
-      </div>
-    `;
-  };
 
   const createPrioritySelector = (item, dataType) => `
     <div class="priority-selector">
@@ -113,26 +190,50 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
         <option value="">Pilih Prioritas</option>
         ${Object.entries(PRIORITY_LABELS).map(([key, label]) => 
           `<option value="${key}" ${item.priority === key ? "selected" : ""}
-           style="background-color: ${PRIORITY_COLORS[key]}40">${label}</option>`
+            style="background-color: ${PRIORITY_COLORS[key]}40">${label}</option>`
         ).join('')}
       </select>
     </div>
   `;
 
-  const createListItem = (item) => {
-    const li = document.createElement('li');
-    li.setAttribute('data-id', item.id);
-    li.style.borderLeft = `4px solid ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}`;
-    li.classList.add('list-item-transition');
-    li.innerHTML = createItemContent(item);
-
-    if (dataType === 'dailyActivities') {
-      setupDailyActivity(li, item);
-    } else if (dataType === 'weeklyPlans') {
-      addSubWeeklyPlanForm(li, item);
+  const createItemContent = (item) => {
+    // Tentukan konten berdasarkan tipe data
+    let content = item.name;
+    
+    // Tambahkan informasi tambahan sesuai tipe data
+    if (dataType === 'expenses' || dataType === 'incomes' || dataType === 'budget') {
+      content += ` - ${formatRupiah(item.amount)}`;
+    } else if (dataType === 'dailyActivities') {
+      content += ` - ${formatDate(item.date)}`;
     }
 
-    return li;
+    return `
+      <div class="item-content">
+        <div class="item-left">
+          <span class="item-name ${item.status === 'completed' ? 'completed-item' : ''}">${content}</span>
+        </div>
+        <div class="item-actions">
+          ${createPrioritySelector(item, dataType)}
+          <button class="edit-btn" 
+            data-id="${item.id}" 
+            data-name="${item.name}" 
+            data-type="${dataType}" 
+            data-parent-id="${parentId || ''}" 
+            data-sub-parent-id="${subParentId || ''}"
+          >Edit</button>
+          <button class="delete-btn" 
+            data-id="${item.id}" 
+            data-type="${dataType}"
+          >Hapus</button>
+          <input type="checkbox" 
+            class="status-checkbox" 
+            ${item.status === 'completed' ? 'checked' : ''}
+            data-id="${item.id}" 
+            data-type="${dataType}"
+          >
+        </div>
+      </div>
+    `;
   };
 
   const setupDailyActivity = (li, item) => {
@@ -141,30 +242,113 @@ export const renderList = (listElement, items, dataType, parentId = null, subPar
     }
   };
 
-  const renderGroupedItems = (groupedItems) => {
+  const createListItem = (item) => {
+    const li = document.createElement('li');
+    li.setAttribute('data-id', item.id);
+    li.setAttribute('data-status', item.status || 'active');
+    li.style.borderLeft = `4px solid ${item.priority ? PRIORITY_COLORS[item.priority] : '#ccc'}`;
+    li.classList.add('list-item-transition');
+    
+    if (item.status === 'completed') {
+      li.classList.add('completed-item');
+    }
+    
+    li.innerHTML = createItemContent(item);
+
+    // Setup tambahan berdasarkan tipe data
+    if (dataType === 'dailyActivities') {
+      setupDailyActivity(li, item);
+    } else if (dataType === 'weeklyPlans') {
+      addSubWeeklyPlanForm(li, item);
+    }
+
+    // Tambahkan event listener untuk checkbox status
+    const checkbox = li.querySelector('.status-checkbox');
+    if (checkbox) {
+      checkbox.addEventListener('change', async (e) => {
+        const status = e.target.checked ? 'completed' : 'active';
+        try {
+          const docRef = getDocRef(dataType, item.id);
+          await updateDoc(docRef, { status });
+          
+          if (status === 'completed') {
+            li.classList.add('completed-item');
+          } else {
+            li.classList.remove('completed-item');
+          }
+        } catch (error) {
+          console.error('Error updating status:', error);
+          e.target.checked = !e.target.checked;
+        }
+      });
+    }
+
+    return li;
+  };
+
+  // Fungsi untuk merender item yang dikelompokkan
+  const renderGroupedItems = (items) => {
+    const groupedItems = items.reduce((grouped, item) => {
+      let groupKey = '';
+      
+      // Tentukan kunci pengelompokan berdasarkan tipe data
+      switch (dataType) {
+        case "reminders":
+          groupKey = formatDateToIndonesian(item.date);
+          break;
+        case "budget":
+          groupKey = item.month;
+          break;
+        case "weeklyPlans":
+          groupKey = `${item.createdAt} - ${item.endDate}`;
+          break;
+        default:
+          groupKey = '';
+      }
+
+      return {
+        ...grouped,
+        [groupKey]: [...(grouped[groupKey] || []), item]
+      };
+    }, {});
+
+    // Render setiap kelompok
     Object.entries(groupedItems).forEach(([groupKey, groupItems]) => {
       if (groupKey) {
         const header = document.createElement("h3");
         header.textContent = groupKey;
         listElement.appendChild(header);
       }
-      groupItems.forEach(item => listElement.appendChild(createListItem(item)));
+      groupItems.forEach(item => {
+        const listItem = createListItem(item);
+        listElement.appendChild(listItem);
+      });
     });
   };
 
-  // Main rendering logic
-  const activeItems = items.filter(item => item.status !== 'selesai');
-  
-  if (dataType === "reminders" || dataType === "budget" || dataType === "weeklyPlans") {
-    const groupedItems = activeItems.reduce((grouped, item) => {
-      const groupKey = dataType === "reminders" ? formatDateToIndonesian(item.date) :
-                      dataType === "budget" ? item.month :
-                      dataType === "weeklyPlans" ? `${item.createdAt} - ${item.endDate}` : "";
-      return { ...grouped, [groupKey]: [...(grouped[groupKey] || []), item] };
-    }, {});
-    renderGroupedItems(groupedItems);
-  } else {
-    activeItems.forEach(item => listElement.appendChild(createListItem(item)));
+  try {
+    // Render items berdasarkan tipe data
+    if (dataType === "reminders" || dataType === "budget" || dataType === "weeklyPlans") {
+      renderGroupedItems(itemDiperbarui);
+    } else {
+      // Render items tanpa pengelompokan
+      itemDiperbarui.forEach(item => {
+        const listItem = createListItem(item);
+        listElement.appendChild(listItem);
+      });
+    }
+
+    // Tambahkan animasi untuk item yang baru ditambahkan
+    const items = listElement.querySelectorAll('li');
+    items.forEach((item, index) => {
+      setTimeout(() => {
+        item.classList.add('visible');
+      }, index * 100);
+    });
+
+  } catch (error) {
+    console.error('Error rendering list:', error);
+    listElement.innerHTML = '<p class="error-message">Terjadi kesalahan saat menampilkan data.</p>';
   }
 };
 document.addEventListener('change', async (e) => {
