@@ -169,7 +169,6 @@ const periksaDanPerbaruiStatusKedaluwarsa = async (items, dataType) => {
 };
 export const renderList = async (listElement, items, dataType, parentId = null, subParentId = null) => {
   if (!listElement) return;
-  
   const itemDiperbarui = await periksaDanPerbaruiStatusKedaluwarsa(items, dataType);
   
   const previousUnsubscribe = listElement.getAttribute('data-unsubscribe');
@@ -196,15 +195,47 @@ export const renderList = async (listElement, items, dataType, parentId = null, 
     </div>
   `;
 
+  const formatDateTime = (date) => {
+    if (!date) return '';
+    
+    // Handle both Firestore Timestamp and regular Date objects
+    const d = date instanceof Date ? date : 
+             date.toDate ? date.toDate() : 
+             new Date(date);
+    
+    if (isNaN(d.getTime())) return '';
+    
+    return d.toLocaleString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   const createItemContent = (item) => {
-    // Tentukan konten berdasarkan tipe data
     let content = item.name;
     
-    // Tambahkan informasi tambahan sesuai tipe data
     if (dataType === 'expenses' || dataType === 'incomes' || dataType === 'budget') {
       content += ` - ${formatRupiah(item.amount)}`;
-    } else if (dataType === 'dailyActivities') {
-      content += ` - ${formatDate(item.date)}`;
+      
+      // Menambahkan waktu pembuatan untuk pendapatan dan pengeluaran
+      if ((dataType === 'expenses' || dataType === 'incomes') && item.date) {
+        content += `
+          <br>
+          <span class="created-date">
+            Dibuat pada: ${formatDateTime(item.date)}
+          </span>`;
+      }
+    } else if (dataType === 'reminders') {
+      const reminderDate = new Date(item.date);
+      const formattedDate = reminderDate.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric'
+      });
+      content += `<br><span class="reminder-datetime">Waktu: ${formattedDate}, ${item.time}</span>`;
     }
 
     return `
@@ -254,15 +285,13 @@ export const renderList = async (listElement, items, dataType, parentId = null, 
     }
     
     li.innerHTML = createItemContent(item);
-
-    // Setup tambahan berdasarkan tipe data
+    
     if (dataType === 'dailyActivities') {
       setupDailyActivity(li, item);
     } else if (dataType === 'weeklyPlans') {
       addSubWeeklyPlanForm(li, item);
     }
-
-    // Tambahkan event listener untuk checkbox status
+    
     const checkbox = li.querySelector('.status-checkbox');
     if (checkbox) {
       checkbox.addEventListener('change', async (e) => {
@@ -270,7 +299,6 @@ export const renderList = async (listElement, items, dataType, parentId = null, 
         try {
           const docRef = getDocRef(dataType, item.id);
           await updateDoc(docRef, { status });
-          
           if (status === 'completed') {
             li.classList.add('completed-item');
           } else {
@@ -282,16 +310,13 @@ export const renderList = async (listElement, items, dataType, parentId = null, 
         }
       });
     }
-
+    
     return li;
   };
 
-  // Fungsi untuk merender item yang dikelompokkan
   const renderGroupedItems = (items) => {
     const groupedItems = items.reduce((grouped, item) => {
       let groupKey = '';
-      
-      // Tentukan kunci pengelompokan berdasarkan tipe data
       switch (dataType) {
         case "reminders":
           groupKey = formatDateToIndonesian(item.date);
@@ -305,14 +330,12 @@ export const renderList = async (listElement, items, dataType, parentId = null, 
         default:
           groupKey = '';
       }
-
       return {
         ...grouped,
         [groupKey]: [...(grouped[groupKey] || []), item]
       };
     }, {});
 
-    // Render setiap kelompok
     Object.entries(groupedItems).forEach(([groupKey, groupItems]) => {
       if (groupKey) {
         const header = document.createElement("h3");
@@ -327,25 +350,21 @@ export const renderList = async (listElement, items, dataType, parentId = null, 
   };
 
   try {
-    // Render items berdasarkan tipe data
     if (dataType === "reminders" || dataType === "budget" || dataType === "weeklyPlans") {
       renderGroupedItems(itemDiperbarui);
     } else {
-      // Render items tanpa pengelompokan
       itemDiperbarui.forEach(item => {
         const listItem = createListItem(item);
         listElement.appendChild(listItem);
       });
     }
 
-    // Tambahkan animasi untuk item yang baru ditambahkan
     const items = listElement.querySelectorAll('li');
     items.forEach((item, index) => {
       setTimeout(() => {
         item.classList.add('visible');
       }, index * 100);
     });
-
   } catch (error) {
     console.error('Error rendering list:', error);
     listElement.innerHTML = '<p class="error-message">Terjadi kesalahan saat menampilkan data.</p>';

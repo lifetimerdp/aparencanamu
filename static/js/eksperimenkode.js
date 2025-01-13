@@ -1,97 +1,90 @@
-setelah memperbarui kode css terkait filter, saya mendapatkan kalau "tombol reset filter" di dashboard menghilang.
+Saya ingin memodifikasi kode terkait dengan aplikasi pengelola keuangan pada halaman dashboard, diantaranya:
+- Tampilkan data waktu pembuatan dari data pendapatan dan pengeluaran. Wdari tersebut didapatkan dari data di Firestore. Tampilkan data waktu tersebut ke setiap data pendapatan dan pengeluaran.
 
-tombol reset filter sebelumnya ada di bawah tombol terapkan filter pada halaman dashboard.
-
-catatan: jangan mengubah tampilan dari filter, cukup munculkan kembali tombol reset filter.
-
-html bagian filter:
-<!-- Filter Section -->
-<div class="filter-section">
-  <div class="filter-controls">
-    <div class="filter-group">
-      <label for="status-filter">Status:</label>
-      <select id="status-filter" data-filter-type="status">
-        <option value="">Semua Status</option>
-        <option value="active">Aktif</option>
-        <option value="completed">Selesai</option>
-      </select>
+html bagian pengelola keuangan:
+<section id="financial-management" class="app-section">
+    <h2>Pengelolaan Keuangan</h2>
+    <div class="selector">
+      <button class="selector-btn" data-target="incomes">Pendapatan</button>
+      <button class="selector-btn" data-target="expenses">Pengeluaran</button>
+      <button class="selector-btn" data-target="reminders">Pengingat</button>
+      <button class="selector-btn" data-target="budget">Anggaran Bulanan</button>
     </div>
-
-    <div class="filter-group">
-      <label for="priority-filter">Prioritas:</label>
-      <select id="priority-filter" data-filter-type="priority">
-        <option value="">Semua Prioritas</option>
-        <option value="low">Rendah</option>
-        <option value="medium">Sedang</option>
-        <option value="high">Tinggi</option>
-      </select>
+    <div id="incomes" class="financial-section">
+      <h3>Pendapatan</h3>
+      <ul id="incomes-list"></ul>
+      <form id="income-form">
+        <input type="text" id="income-input" placeholder="Nama Pendapatan">
+        <input type="text" id="income-category" placeholder="Kategori Pendapatan">
+        <input type="number" id="income-amount" placeholder="Jumlah Pendapatan">
+        <button type="submit">Tambah</button>
+      </form>
     </div>
-
-    <div class="filter-group date-filter">
-      <div class="date-input">
-        <label for="date-from">Dari Tanggal:</label>
-        <input type="date" id="date-from" data-filter-type="dateFrom">
-      </div>
-      
-      <div class="date-input">
-        <label for="date-to">Sampai Tanggal:</label>
-        <input type="date" id="date-to" data-filter-type="dateTo">
-      </div>
+    <div id="expenses" class="financial-section hidden">
+      <h3>Pengeluaran</h3>
+      <ul id="expenses-list"></ul>
+      <form id="expense-form">
+        <input type="text" id="expense-input" placeholder="Nama Pengeluaran">
+        <input type="text" id="expense-category" placeholder="Kategori Pengeluaran">
+        <input type="number" id="expense-amount" placeholder="Jumlah Pengeluaran">
+        <button type="submit">Tambah</button>
+      </form>
     </div>
-
-    <div class="filter-actions">
-      <button id="apply-filter-btn" class="button primary">Terapkan Filter</button>
-      <button id="reset-filter" class="button secondary">Reset Filter</button>
+    <div id="reminders" class="financial-section hidden">
+      <h3>Pengingat Pembayaran</h3>
+      <ul id="reminders-list"></ul>
+      <form id="reminder-form">
+        <input type="text" id="reminder-input" placeholder="Nama Pengingat">
+        <input type="date" id="reminder-date" required="">
+        <input type="time" id="reminder-time" required>
+        <button type="submit">Tambah</button>
+      </form>
     </div>
-  </div>
-</div>
-
-lihat data Firestore menggunakan config:
-const firebaseConfig = {
+    <div id="budget" class="financial-section hidden">
+      <h3>Anggaran Bulanan</h3>
+      <ul id="budget-list"></ul>
+      <form id="budget-form">
+        <input type="text" id="budget-input" placeholder="Nama Anggaran">
+        <select id="budget-month" name="budgetMonth">
+          <option value="Januari">Januari</option>
+          <option value="Februari">Februari</option>
+          <option value="Maret">Maret</option>
+          <option value="April">April</option>
+          <option value="Mei">Mei</option>
+          <option value="Juni">Juni</option>
+          <option value="Juli">Juli</option>
+          <option value="Agustus">Agustus</option>
+          <option value="September">September</option>
+          <option value="Oktober">Oktober</option>
+          <option value="November">November</option>
+          <option value="Desember">Desember</option>
+        </select>
+        <input type="number" id="budget-amount" placeholder="Jumlah Anggaran">
+        <button type="submit">Tambah</button>
+      </form>
+    </div>
+  </section>
+  <ul id="remindersList"></ul>
+  
+  config Firestore untuk melihat data:
+  const firebaseConfig = {
   apiKey: "AIzaSyAeUpI8hb-mLbp4xYldcu5q89vPxGj1EY8",
   authDomain: "aparencanamu.firebaseapp.com",
   projectId: "aparencanamu",
-  storageBucket: "aparencanamu.appspot.com",
+  storageBucket: "aparencanamu.firebasestorage.app",
   messagingSenderId: "1082769981395",
   appId: "1:1082769981395:web:611ad60b17e104b7d83926",
   measurementId: "G-3PGV4HD1BP"
 };
 
-css:
-body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4}h1,h2,h3{color:#2c3e50}.app-selector{display:flex;justify-content:center;background-color:#ecf0f1;border-radius:30px;padding:10px;margin-bottom:30px;box-shadow:0 4px 6px rgb(0 0 0 / .1)}.app-btn{background-color:#fff0;border:none;padding:12px 24px;margin:0 8px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;position:relative;overflow:hidden;font-size:16px;font-weight:600;color:#7f8c8d}.app-btn::after{content:'';position:absolute;bottom:0;left:0;width:100%;height:3px;background-color:#3498db;transform:scaleX(0);transition:transform 0.3s ease}.app-btn.active{background-color:#3498db;color:#fff}.app-btn.active::after{transform:scaleX(1)}.app-btn:hover:not(.active){background-color:#e0e0e0}.app-section{background-color:#fff;border-radius:10px;padding:20px;margin-bottom:20px;box-shadow:0 4px 6px rgb(0 0 0 / .1);opacity:0;transform:translateY(20px);transition:opacity 0.3s ease,transform 0.3s ease}.app-section.visible{opacity:1;transform:translateY(0)}ul{list-style-type:none;padding:0}.item-content{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:15px;background-color:#fff;border-radius:8px;margin-bottom:15px;transition:all 0.3s ease;box-shadow:0 2px 5px rgb(0 0 0 / .1)}.item-content:hover{background-color:#f8f9fa;transform:translateY(-2px);box-shadow:0 4px 8px rgb(0 0 0 / .15)}.item-name{flex:1 1 100%;margin-right:20px;font-size:1.1em;font-weight:500;color:#34495e;margin-bottom:10px}.item-actions{display:flex;gap:10px;justify-content:flex-end;width:100%}form{display:flex;flex-wrap:wrap;margin-bottom:20px;gap:10px}input[type="text"],input[type="number"],input[type="date"],input[type="time"],select{flex:1 1 200px;max-width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;font-size:16px;box-sizing:border-box}button{flex:0 0 auto;background-color:#3498db;color:#fff;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;transition:background-color 0.3s ease}button:hover{background-color:#2980b9}.sub-activity-list,.task-list,.sub-weeklyPlan-list{margin-left:20px;border-left:2px solid #3498db;padding-left:20px}.sub-activity-list>li,.task-list>li,.sub-weeklyPlan-list>li{margin-bottom:10px}.sub-activity-list>li .item-content,.task-list>li .item-content,.sub-weeklyPlan-list>li .item-content{background-color:#f8f9fa}.sub-activity-list>li .item-content:hover,.task-list>li .item-content:hover,.sub-weeklyPlan-list>li .item-content:hover{background-color:#e9ecef}.activity-item::before,.sub-activity-item::before,.task-item::before,.sub-weeklyPlan-item::before{font-weight:900;margin-right:10px;font-size:1.2em}.edit-btn,.delete-btn{padding:8px 12px;border:none;border-radius:4px;cursor:pointer;font-size:.9em;transition:all 0.3s ease;background-color:#fff0;display:inline-block;margin:2px;white-space:nowrap}.edit-btn{color:#3498db}.delete-btn{color:#e74c3c}.edit-btn:hover,.delete-btn:hover{background-color:rgb(0 0 0 / .1)}@keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}.slide-in-right{animation:slideInRight 0.3s ease-out}.selector{display:flex;justify-content:space-around;margin-bottom:20px}.selector-btn{background-color:#3498db;color:#fff;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;transition:background-color 0.3s ease}.selector-btn:hover{background-color:#2980b9}.financial-section{background-color:#fff;border-radius:8px;padding:20px;margin-bottom:20px;box-shadow:0 2px 5px rgb(0 0 0 / .1)}.financial-section.hidden{display:none}.priority-selector{display:flex;align-items:center;margin-right:10px}.priority-label{margin-right:5px;font-size:14px;color:#666}.priority-select{padding:5px;border-radius:4px;border-width:2px;border-style:solid;transition:all 0.3s ease}.priority-select option{padding:5px}.dashboard-filter .list-item-transition{opacity:0;transform:translateY(20px);transition:opacity 0.3s ease,transform 0.3s ease}.dashboard-filter .list-item-transition.visible{opacity:1;transform:translateY(0)}.dashboard-filter .completed-item{opacity:.7;text-decoration:line-through}.dashboard-filter .completed-item .item-name{color:#666!important}.dashboard-filter .error-message{color:#f44;padding:10px;text-align:center}.filter-section{background-color:#fff;border-radius:8px;padding:15px;margin-bottom:20px;box-shadow:0 2px 5px rgb(0 0 0 / .1)}.filter-controls{display:flex;flex-wrap:wrap;gap:15px}.filter-group{flex:1 1 200px}.filter-group label{display:block;margin-bottom:5px;color:#666;font-size:14px}.date-filter{display:flex;gap:10px}.date-input{flex:1}.filter-actions{display:flex;gap:10px;align-items:flex-end}.button.primary{background-color:#3498db;color:#fff}.button.secondary{background-color:#95a5a6;color:#fff}@media screen and (max-width:768px){body{font-size:14px}.app-selector{flex-direction:column;align-items:center;padding:5px;margin-bottom:15px}.app-btn{width:100%;margin:5px 0}.app-section{padding:15px}form{flex-direction:column}input[type="text"],input[type="number"],input[type="date"],input[type="time"],select,button{width:100%;margin-bottom:10px;flex-basis:auto}h1{font-size:1.8em}h2{font-size:1.5em}h3{font-size:1.2em}.sub-activity-list,.task-list,.sub-weeklyPlan-list{margin-left:10px;padding-left:10px}.item-content{flex-direction:column;align-items:flex-start}.item-name{margin-bottom:10px;font-size:1em}.item-actions{width:100%;justify-content:flex-start}.edit-btn,.delete-btn{padding:6px 10px;font-size:.9em}.selector{flex-wrap:wrap}.selector-btn{margin-bottom:10px}.filter-controls{flex-direction:column}.filter-group{flex:1 1 100%}.date-filter{flex-direction:column}}@media screen and (max-width:576px){.item-actions{flex-wrap:nowrap}.edit-btn,.delete-btn{flex:1;text-align:center;padding:8px 0;font-size:.8em}}@media screen and (max-width:320px){.item-content{padding:10px}.item-name{font-size:.9em}.edit-btn,.delete-btn{padding:6px 0;font-size:.75em}}
+dashboard.css:
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4}h1,h2,h3{color:#2c3e50}.app-selector{display:flex;justify-content:center;background-color:#ecf0f1;border-radius:30px;padding:10px;margin-bottom:30px;box-shadow:0 4px 6px rgb(0 0 0 / .1)}.app-btn{background-color:#fff0;border:none;padding:12px 24px;margin:0 8px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;position:relative;overflow:hidden;font-size:16px;font-weight:600;color:#7f8c8d}.app-btn::after{content:'';position:absolute;bottom:0;left:0;width:100%;height:3px;background-color:#3498db;transform:scaleX(0);transition:transform 0.3s ease}.app-btn.active{background-color:#3498db;color:#fff}.app-btn.active::after{transform:scaleX(1)}.app-btn:hover:not(.active){background-color:#e0e0e0}.app-section{background-color:#fff;border-radius:10px;padding:20px;margin-bottom:20px;box-shadow:0 4px 6px rgb(0 0 0 / .1);opacity:0;transform:translateY(20px);transition:opacity 0.3s ease,transform 0.3s ease}.app-section.visible{opacity:1;transform:translateY(0)}ul{list-style-type:none;padding:0}.item-content{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:15px;background-color:#fff;border-radius:8px;margin-bottom:15px;transition:all 0.3s ease;box-shadow:0 2px 5px rgb(0 0 0 / .1)}.item-content:hover{background-color:#f8f9fa;transform:translateY(-2px);box-shadow:0 4px 8px rgb(0 0 0 / .15)}.item-name{flex:1 1 100%;margin-right:20px;font-size:1.1em;font-weight:500;color:#34495e;margin-bottom:10px}.item-actions{display:flex;gap:10px;justify-content:flex-end;width:100%}form{display:flex;flex-wrap:wrap;margin-bottom:20px;gap:10px}input[type="text"],input[type="number"],input[type="date"],input[type="time"],select{flex:1 1 200px;max-width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;font-size:16px;box-sizing:border-box}button{flex:0 0 auto;background-color:#3498db;color:#fff;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;transition:background-color 0.3s ease}button:hover{background-color:#2980b9}.sub-activity-list,.task-list,.sub-weeklyPlan-list{margin-left:20px;border-left:2px solid #3498db;padding-left:20px}.sub-activity-list>li,.task-list>li,.sub-weeklyPlan-list>li{margin-bottom:10px}.sub-activity-list>li .item-content,.task-list>li .item-content,.sub-weeklyPlan-list>li .item-content{background-color:#f8f9fa}.sub-activity-list>li .item-content:hover,.task-list>li .item-content:hover,.sub-weeklyPlan-list>li .item-content:hover{background-color:#e9ecef}.activity-item::before,.sub-activity-item::before,.task-item::before,.sub-weeklyPlan-item::before{font-weight:900;margin-right:10px;font-size:1.2em}.edit-btn,.delete-btn{padding:8px 12px;border:none;border-radius:4px;cursor:pointer;font-size:.9em;transition:all 0.3s ease;background-color:#fff0;display:inline-block;margin:2px;white-space:nowrap}.edit-btn{color:#3498db}.delete-btn{color:#e74c3c}.edit-btn:hover,.delete-btn:hover{background-color:rgb(0 0 0 / .1)}@keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}.slide-in-right{animation:slideInRight 0.3s ease-out}.selector{display:flex;justify-content:space-around;margin-bottom:20px}.selector-btn{background-color:#3498db;color:#fff;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;transition:background-color 0.3s ease}.selector-btn:hover{background-color:#2980b9}.financial-section{background-color:#fff;border-radius:8px;padding:20px;margin-bottom:20px;box-shadow:0 2px 5px rgb(0 0 0 / .1)}.financial-section.hidden{display:none}.priority-selector{display:flex;align-items:center;margin-right:10px}.priority-label{margin-right:5px;font-size:14px;color:#666}.priority-select{padding:5px;border-radius:4px;border-width:2px;border-style:solid;transition:all 0.3s ease}.priority-select option{padding:5px}.dashboard-filter .list-item-transition{opacity:0;transform:translateY(20px);transition:opacity 0.3s ease,transform 0.3s ease}.dashboard-filter .list-item-transition.visible{opacity:1;transform:translateY(0)}.dashboard-filter .completed-item{opacity:.7;text-decoration:line-through}.dashboard-filter .completed-item .item-name{color:#666!important}.dashboard-filter .error-message{color:#f44;padding:10px;text-align:center}.filter-section{background-color:#fff;border-radius:8px;padding:15px;margin-bottom:20px;box-shadow:0 2px 5px rgb(0 0 0 / .1)}.filter-controls{display:flex;flex-wrap:wrap;gap:15px}.filter-group{flex:1 1 200px}.filter-group label{display:block;margin-bottom:5px;color:#666;font-size:14px}.date-filter{display:flex;gap:10px}.date-input{flex:1}.filter-actions{display:flex;gap:10px;align-items:flex-end;flex:1 0 100%}.button.primary{background-color:#3498db;color:#fff}.button.secondary{background-color:#95a5a6;color:#fff;display:block}@media screen and (max-width:768px){body{font-size:14px}.app-selector{flex-direction:column;align-items:center;padding:5px;margin-bottom:15px}.app-btn{width:100%;margin:5px 0}.app-section{padding:15px}form{flex-direction:column}input[type="text"],input[type="number"],input[type="date"],input[type="time"],select,button{width:100%;margin-bottom:10px;flex-basis:auto}h1{font-size:1.8em}h2{font-size:1.5em}h3{font-size:1.2em}.sub-activity-list,.task-list,.sub-weeklyPlan-list{margin-left:10px;padding-left:10px}.item-content{flex-direction:column;align-items:flex-start}.item-name{margin-bottom:10px;font-size:1em}.item-actions{width:100%;justify-content:flex-start}.edit-btn,.delete-btn{padding:6px 10px;font-size:.9em}.selector{flex-wrap:wrap}.selector-btn{margin-bottom:10px}.filter-controls{flex-direction:column}.filter-group{flex:1 1 100%}.date-filter{flex-direction:column}.filter-actions{flex-direction:column;width:100%}.button.primary,.button.secondary{width:100%}}@media screen and (max-width:576px){.item-actions{flex-wrap:nowrap}.edit-btn,.delete-btn{flex:1;text-align:center;padding:8px 0;font-size:.8em}}@media screen and (max-width:320px){.item-content{padding:10px}.item-name{font-size:.9em}.edit-btn,.delete-btn{padding:6px 0;font-size:.75em}}.created-date,.reminder-datetime{font-size:.9em;color:#666;display:block;margin-top:5px}
 
-filterDashboard.js:
-import{months}from './utility.js';export class DataFilter{constructor(){this.filters={status:'',priority:'',dateFrom:null,dateTo:null};this.data={dailyActivities:[],weeklyPlans:[],budget:[],reminders:[],expenses:[],incomes:[]};this.originalData={...this.data};this.listElements=this.initializeListElements();this.renderCallbacks={};this.filterElements=this.initializeFilterElements();this.setupEventListeners()}
-initializeListElements(){try{const elements={};Object.keys(this.data).forEach(key=>{const elementId=`${key.replace(/([A-Z])/g, '-$1').toLowerCase()}-list`;const element=document.getElementById(elementId);if(element){elements[key]=element}else{console.warn(`List element not found: ${elementId}`)}});return elements}catch(error){console.error('Error initializing list elements:',error);return{}}}
-initializeFilterElements(){const elements={};const filterIds={status:'status-filter',priority:'priority-filter',dateFrom:'date-from',dateTo:'date-to',applyBtn:'apply-filter-btn',resetBtn:'reset-filter'};Object.entries(filterIds).forEach(([key,id])=>{const element=document.getElementById(id);if(element){elements[key]=element;this[key+'Element']=element}else{console.warn(`Filter element not found: ${id}`)}});return elements}
-setupEventListeners(){try{if(this.filterElements.status){this.filterElements.status.addEventListener('change',()=>{this.handleFilterChange('status',this.filterElements.status.value)})}
-if(this.filterElements.priority){this.filterElements.priority.addEventListener('change',()=>{this.handleFilterChange('priority',this.filterElements.priority.value)})}
-if(this.filterElements.dateFrom){this.filterElements.dateFrom.addEventListener('change',()=>{this.handleFilterChange('dateFrom',this.filterElements.dateFrom.value)})}
-if(this.filterElements.dateTo){this.filterElements.dateTo.addEventListener('change',()=>{this.handleFilterChange('dateTo',this.filterElements.dateTo.value)})}
-if(this.filterElements.applyBtn){this.filterElements.applyBtn.addEventListener('click',()=>{this.applyFilters()})}
-if(this.filterElements.resetBtn){this.filterElements.resetBtn.addEventListener('click',()=>{this.resetFilters()})}}catch(error){console.error('Error setting up filter listeners:',error)}}
-handleFilterChange(filterType,value){console.log(`${filterType} filter changed to:`,value);if(filterType==='dateFrom'||filterType==='dateTo'){this.filters[filterType]=value?new Date(value):null}else{this.filters[filterType]=value}
-if(this.filterElements.applyBtn){this.filterElements.applyBtn.disabled=!this.hasFilterChanged()}}
-hasFilterChanged(){return Object.entries(this.filters).some(([key,value])=>{if(key==='dateFrom'||key==='dateTo'){return value!==null}
-return value!==''})}
-filterData(items,dataType){if(!Array.isArray(items)){console.warn('Array item tidak valid:',items);return[]}
-return items.filter(item=>{if(!item)return!1;const sekarang=new Date();let statusEfektif=item.status||'active';let sudahKedaluwarsa=!1;if(item.date){const tanggalItem=new Date(item.date);sudahKedaluwarsa=tanggalItem.setHours(23,59,59,999)<sekarang}else if(item.endDate){const[hari,bulan,tahun]=item.endDate.split(' ');const indeksBulan=months.indexOf(bulan);if(indeksBulan!==-1){const tanggalAkhir=new Date(tahun,indeksBulan,parseInt(hari));sudahKedaluwarsa=tanggalAkhir.setHours(23,59,59,999)<sekarang}}
-if(sudahKedaluwarsa&&statusEfektif!=='completed'){statusEfektif='completed'}
-const cocokStatus=!this.filters.status||((this.filters.status==='active'&&statusEfektif==='active')||(this.filters.status==='completed'&&(statusEfektif==='completed'||item.status==='completed')));const cocokPrioritas=!this.filters.priority||item.priority?.toLowerCase()===this.filters.priority.toLowerCase();let cocokTanggal=!0;if(item.date){const tanggalItem=new Date(item.date);if(!isNaN(tanggalItem.getTime())){if(this.filters.dateFrom){const dateFrom=new Date(this.filters.dateFrom);dateFrom.setHours(0,0,0,0);cocokTanggal=cocokTanggal&&tanggalItem>=dateFrom}
-if(this.filters.dateTo){const dateTo=new Date(this.filters.dateTo);dateTo.setHours(23,59,59,999);cocokTanggal=cocokTanggal&&tanggalItem<=dateTo}}}
-if(this.hasFilterChanged()){console.log(`Memfilter item ${dataType}:`,{id:item.id,status:{asli:item.status,efektif:statusEfektif,filterValue:this.filters.status,cocok:cocokStatus},priority:{nilai:item.priority,cocok:cocokPrioritas},date:{nilai:item.date,cocok:cocokTanggal},sudahKedaluwarsa:sudahKedaluwarsa,hasilAkhir:cocokStatus&&cocokPrioritas&&cocokTanggal})}
-return cocokStatus&&cocokPrioritas&&cocokTanggal})}
-applyFilters(){console.log('Applying filters:',this.filters);Object.entries(this.data).forEach(([dataType,items])=>{if(Array.isArray(items)&&items.length){try{const filteredData=this.filterData(items,dataType);const listElement=this.listElements[dataType];if(listElement&&this.renderCallbacks[dataType]){console.log(`Rendering filtered ${dataType}:`,filteredData.length);listElement.innerHTML='';this.renderCallbacks[dataType](listElement,filteredData,dataType)}}catch(error){console.error(`Error filtering ${dataType}:`,error)}}});if(this.filterElements.applyBtn){this.filterElements.applyBtn.disabled=!0}}
-resetFilters(){console.log('Resetting filters');if(this.filterElements.status)this.filterElements.status.value='';if(this.filterElements.dateFrom)this.filterElements.dateFrom.value='';if(this.filterElements.dateTo)this.filterElements.dateTo.value='';this.filters={status:'',priority:this.filters.priority,dateFrom:null,dateTo:null};Object.entries(this.originalData).forEach(([dataType,originalItems])=>{if(originalItems&&originalItems.length){this.data[dataType]=originalItems.map(item=>{const currentItem=this.data[dataType].find(current=>current.id===item.id);return{...item,priority:currentItem?currentItem.priority:item.priority}});const listElement=this.listElements[dataType];if(listElement&&this.renderCallbacks[dataType]){console.log(`Restoring original ${dataType} data while preserving priorities`);listElement.innerHTML='';this.renderCallbacks[dataType](listElement,this.data[dataType],dataType)}}});if(this.filterElements.applyBtn){this.filterElements.applyBtn.disabled=!this.hasFilterChanged()}}
-setRenderCallback(dataType,callback){if(typeof callback==='function'){this.renderCallbacks[dataType]=callback}else{console.error(`Invalid render callback for ${dataType}`)}}
-updateData(type,newData){if(!this.data.hasOwnProperty(type)){console.warn(`Invalid data type: ${type}`);return}
-if(!this.originalData[type]?.length){this.originalData[type]=[...newData]}
-this.data[type]=newData;const listElement=this.listElements[type];if(listElement&&this.renderCallbacks[type]){const dataToRender=this.hasFilterChanged()?this.filterData(newData,type):newData;listElement.innerHTML='';this.renderCallbacks[type](listElement,dataToRender,type)}}
-getFilteredData(type){if(!this.data.hasOwnProperty(type)){console.warn(`Invalid data type: ${type}`);return[]}
-return this.filterData(this.data[type],type)}}
+financialManagement.js:
+import{auth,db}from '../firebaseConfig.js';import{doc,addDoc,collection,onSnapshot}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";import{checkAuth,renderList}from './dashboard.js';import{DataFilter}from './filterDashboard.js';export const addExpense=async(name,category,amount)=>{try{const user=await checkAuth();if(!user)throw new Error("User tidak terautentikasi");const expenseData={name,category,amount,date:new Date(),userId:user.uid,status:"active",priority:""};const expensesRef=collection(db,"users",user.uid,"expenses");await addDoc(expensesRef,expenseData);console.log("Expense berhasil ditambahkan")}catch(error){console.error("Error menambahkan expense:",error);throw error}};export const addIncome=async(name,category,amount)=>{try{const user=await checkAuth();if(!user)throw new Error("User tidak terautentikasi");const incomeData={name,category,amount,date:new Date(),userId:user.uid,status:"active",priority:""};const incomesRef=collection(db,"users",user.uid,"incomes");await addDoc(incomesRef,incomeData);console.log("Income berhasil ditambahkan")}catch(error){console.error("Error menambahkan income:",error);throw error}};export const addBudget=async(name,month,amount)=>{const user=await checkAuth();await addDoc(collection(doc(db,"users",user.uid),"budget"),{name,month,amount,status:"active",priority:""})};export const addReminder=async(name,date,time)=>{const user=await checkAuth();const userTimeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;await addDoc(collection(doc(db,"users",user.uid),"reminders"),{name,date,time,timeZone:userTimeZone,notificationSent:!1,status:"active",priority:""})};export const loadExpensesAndIncomes=async(userDocRef)=>{try{const dataFilter=new DataFilter();dataFilter.setRenderCallback('expenses',renderList);dataFilter.setRenderCallback('incomes',renderList);const expensesRef=collection(userDocRef,"expenses");onSnapshot(expensesRef,(snapshot)=>{const expenses=snapshot.docs.map((doc)=>({id:doc.id,...doc.data()}));const expensesList=document.getElementById('expenses-list');renderList(expensesList,expenses,'expenses');dataFilter.updateData('expenses',expenses)});const incomesRef=collection(userDocRef,"incomes");onSnapshot(incomesRef,(snapshot)=>{const incomes=snapshot.docs.map((doc)=>({id:doc.id,...doc.data()}));const incomesList=document.getElementById('incomes-list');renderList(incomesList,incomes,'incomes');dataFilter.updateData('incomes',incomes)})}catch(error){console.error('Error saat memuat data keuangan:',error)}}
 
 dashboard.js:
-import{auth,db,messaging}from "../firebaseConfig.js";import{getDocs,addDoc,collection,doc,updateDoc,deleteDoc,onSnapshot,getDoc,arrayUnion,query,where}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";import{onAuthStateChanged}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";import{writeBatch}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";import "../auth.js";import{formatRupiah,formatDate,formatDateToIndonesian,formatNumber,unformatNumber,getTypeName,getOrderForType,getLabelForKey,getDocRef,months,PRIORITY_COLORS,PRIORITY_LABELS,categories}from "./utility.js"
+import{auth,db,messaging}from "../firebaseConfig.js";import{getDocs,addDoc,collection,doc,updateDoc,deleteDoc,onSnapshot,getDoc,arrayUnion,query,where}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";import{onAuthStateChanged}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";import{writeBatch}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";import "../auth.js";import{formatRupiah,formatDate,formatDateToIndonesian,formatNumber,unformatNumber,getTypeName,getOrderForType,getLabelForKey,getDocRef,months,PRIORITY_COLORS,PRIORITY_LABELS,categories,formatDateTime}from "./utility.js"
 import{DataFilter}from './filterDashboard.js';import{addSubActivityForm,renderSubActivities,addTaskForm,renderTasks,checkExpiredDailyActivities,addDailyActivity,initUserId}from "./dailyActivities.js";import{renderSubWeeklyPlans,addSubWeeklyPlanForm,checkExpiredWeeklyPlans,initWeeklyPlans,renderWeeklyPlans,loadWeeklyPlans}from "./weeklyPlans.js";import{addExpense,addIncome,addBudget,addReminder,loadExpensesAndIncomes}from "./financialManagement.js";const dailyActivitiesForm=document.getElementById("daily-activities-form");const dailyActivitiesInput=document.getElementById("daily-activities-input");const dailyActivitiesDate=document.getElementById("daily-activities-date");const budgetForm=document.getElementById("budget-form");const budgetInput=document.getElementById("budget-input");const budgetMonth=document.getElementById("budget-month");const budgetAmount=document.getElementById("budget-amount");const expenseForm=document.getElementById("expense-form");const expenseInput=document.getElementById("expense-input");const expenseCategory=document.getElementById("expense-category");const expenseAmount=document.getElementById("expense-amount");const incomeForm=document.getElementById("income-form");const incomeInput=document.getElementById("income-input");const incomeCategory=document.getElementById("income-category");const incomeAmount=document.getElementById("income-amount");const reminderForm=document.getElementById("reminder-form");const reminderInput=document.getElementById("reminder-input");const reminderDate=document.getElementById("reminder-date");const reminderTime=document.getElementById("reminder-time");export let userId=null;export const checkAuth=()=>{return new Promise((resolve,reject)=>{onAuthStateChanged(auth,async(user)=>{if(user){userId=user.uid;try{resolve(user)}catch(error){console.error("Error checking expired daily activities:",error);reject(error)}}else{userId=null;reject("Tidak ada pengguna yang login.")}})})};const periksaDanPerbaruiStatusKedaluwarsa=async(items,dataType)=>{if(!items||!Array.isArray(items))return items;const sekarang=new Date();const pembaruan=[];items.forEach(item=>{if(item.status!=='completed'){let sudahKedaluwarsa=!1;let tanggalItem;try{switch(dataType){case 'dailyActivities':if(item.date){tanggalItem=new Date(item.date);tanggalItem.setHours(23,59,59,999);sudahKedaluwarsa=tanggalItem<sekarang}
 break;case 'weeklyPlans':if(item.endDate){const[hari,bulan,tahun]=item.endDate.split(' ');const indeksBulan=months.indexOf(bulan);if(indeksBulan!==-1){tanggalItem=new Date(tahun,indeksBulan,parseInt(hari));tanggalItem.setHours(23,59,59,999);sudahKedaluwarsa=tanggalItem<sekarang}}
 break;case 'budget':if(item.month){const tahunSekarang=sekarang.getFullYear();const indeksBulan=months.indexOf(item.month);if(indeksBulan!==-1){tanggalItem=new Date(tahunSekarang,indeksBulan+1,0,23,59,59,999);sudahKedaluwarsa=tanggalItem<sekarang}}
@@ -114,7 +107,7 @@ style="background-color: ${PRIORITY_COLORS[key]}40">${label}</option>`
         ).join('')}
       </select>
     </div>
-  `;const createItemContent=(item)=>{let content=item.name;if(dataType==='expenses'||dataType==='incomes'||dataType==='budget'){content+=` - ${formatRupiah(item.amount)}`}else if(dataType==='dailyActivities'){content+=` - ${formatDate(item.date)}`}
+  `;const formatDateTime=(date)=>{if(!date)return'';const d=date instanceof Date?date:new Date(date);if(isNaN(d.getTime()))return'';return d.toLocaleString('id-ID',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})};const createItemContent=(item)=>{let content=item.name;if(dataType==='expenses'||dataType==='incomes'||dataType==='budget'){content+=` - ${formatRupiah(item.amount)}`;if((dataType==='expenses'||dataType==='incomes')&&item.date){content+=`<br><span class="created-date">Dibuat pada: ${formatDateTime(item.date)}</span>`}}else if(dataType==='reminders'){const reminderDate=new Date(item.date);const formattedDate=reminderDate.toLocaleDateString('id-ID',{day:'numeric',month:'numeric',year:'numeric'});content+=`<br><span class="reminder-datetime">Waktu: ${formattedDate}, ${item.time}</span>`}
 return `
       <div class="item-content">
         <div class="item-left">

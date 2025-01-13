@@ -498,3 +498,10 @@ button:hover {
     font-size: .75em;
   }
 }
+
+.created-date, .reminder-datetime {
+  font-size: 0.9em;
+  color: #666;
+  display: block;
+  margin-top: 5px;
+}
