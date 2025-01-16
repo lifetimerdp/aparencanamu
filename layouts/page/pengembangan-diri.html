@@ -1,9 +1,12 @@
 {{ define "main" }}
 <main>
-  <h1>Pengembangan Pribadi</h1>
+  <h1>Pengembangan Diri</h1>
   <section id="books-read">
     <h2>Buku yang Dibaca</h2>
-    <ul id="books-read-list"></ul>
+    <div class="data-display">
+      <ul id="books-read-list"></ul>
+      <p id="books-read-empty" class="empty-message">Belum ada buku yang ditambahkan</p>
+    </div>
     <form id="books-read-form">
       <input type="text" id="books-read-input" placeholder="Tambah Buku yang Dibaca">
       <button type="submit">Tambah</button>
@@ -12,7 +15,10 @@
 
   <section id="courses-taken">
     <h2>Kursus yang Diikuti</h2>
-    <ul id="courses-taken-list"></ul>
+    <div class="data-display">
+      <ul id="courses-taken-list"></ul>
+      <p id="courses-taken-empty" class="empty-message">Belum ada kursus yang ditambahkan</p>
+    </div>
     <form id="courses-taken-form">
       <input type="text" id="courses-taken-input" placeholder="Tambah Kursus yang Diikuti">
       <button type="submit">Tambah</button>
@@ -21,12 +27,15 @@
 
   <section id="hobbies-interests">
     <h2>Hobi dan Minat</h2>
-    <ul id="hobbies-interests-list"></ul>
+    <div class="data-display">
+      <ul id="hobbies-interests-list"></ul>
+      <p id="hobbies-interests-empty" class="empty-message">Belum ada hobi yang ditambahkan</p>
+    </div>
     <form id="hobbies-interests-form">
       <input type="text" id="hobbies-interests-input" placeholder="Tambah Hobi atau Minat">
       <button type="submit">Tambah</button>
     </form>
   </section>
 </main>
-<script type="module" src="{{ "js/pengembangan-pribadi.js" | relURL }}"></script>
+<script type="module" src="{{ "js/pengembangan-diri.js" | relURL }}"></script>
 {{ end }}

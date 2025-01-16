@@ -12,7 +12,7 @@ Misi kami adalah menyediakan alat dan sumber daya yang Anda butuhkan untuk meren
 
 ### Tim Kami
 
-Kami adalah tim yang terdiri dari para profesional yang berdedikasi dalam berbagai bidang, termasuk teknologi, manajemen proyek, dan pengembangan pribadi. Kami bekerja bersama untuk menciptakan platform yang intuitif dan bermanfaat bagi pengguna kami.
+Kami adalah tim yang terdiri dari para profesional yang berdedikasi dalam berbagai bidang, termasuk teknologi, manajemen proyek, dan pengembangan diri. Kami bekerja bersama untuk menciptakan platform yang intuitif dan bermanfaat bagi pengguna kami.
 
 ### Kontak Kami
 
