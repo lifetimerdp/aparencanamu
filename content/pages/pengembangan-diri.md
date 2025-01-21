@@ -1,5 +1,5 @@
 +++
 title = "Pengembangan Diri"
-layout = "pengembangan-diri"
+layout = "pengembanganDiri"
 type = "page"
 +++

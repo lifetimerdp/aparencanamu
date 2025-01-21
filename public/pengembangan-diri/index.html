@@ -55,105 +55,117 @@
     <div id="dynamic-header" style="display: none;"></div> 
     <main>
         
-<main>
-  <h1>Pengembangan Diri</h1>
-  <section id="books-read">
-    <h2>Buku yang Dibaca</h2>
-    <div class="data-display">
-      <ul id="books-read-list"></ul>
-      <p id="books-read-empty" class="empty-message">Belum ada buku yang ditambahkan</p>
+<main class="container">
+    <h1 class="page-title">Pengembangan Diri</h1>
+    
+    
+    <div class="form-container">
+        <h2>Tambah Data Baru</h2>
+        <form id="pengembangan-form" class="add-form">
+            <select id="kategori-select" required>
+                <option value="">Pilih Kategori</option>
+                <option value="booksRead">Buku yang Dibaca</option>
+                <option value="coursesTaken">Kursus yang Diikuti</option>
+                <option value="hobbiesInterests">Hobi dan Minat</option>
+                <option value="keterampilan">Keterampilan</option>
+                <option value="prestasi">Prestasi</option>
+                <option value="target">Target</option>
+                <option value="sertifikasi">Sertifikasi</option>
+                <option value="catatan">Catatan Pembelajaran</option>
+            </select>
+            <input type="text" id="item-input" placeholder="Masukkan detail..." required>
+            <input type="date" id="tanggal-input" required>
+            <textarea id="deskripsi-input" placeholder="Deskripsi (opsional)"></textarea>
+            <button type="submit" class="btn-submit">Tambah</button>
+        </form>
     </div>
-    <form id="books-read-form">
-      <input type="text" id="books-read-input" placeholder="Tambah Buku yang Dibaca">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
 
-  <section id="courses-taken">
-    <h2>Kursus yang Diikuti</h2>
-    <div class="data-display">
-      <ul id="courses-taken-list"></ul>
-      <p id="courses-taken-empty" class="empty-message">Belum ada kursus yang ditambahkan</p>
-    </div>
-    <form id="courses-taken-form">
-      <input type="text" id="courses-taken-input" placeholder="Tambah Kursus yang Diikuti">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
+    
+    <div class="data-sections">
+        <section id="books-read" class="data-section">
+            <h2>Buku yang Dibaca</h2>
+            <div class="data-display">
+                <ul id="books-read-list" class="item-list"></ul>
+                <p class="empty-message" id="books-read-empty">Belum ada buku yang ditambahkan</p>
+            </div>
+        </section>
 
-  <section id="hobbies-interests">
-    <h2>Hobi dan Minat</h2>
-    <div class="data-display">
-      <ul id="hobbies-interests-list"></ul>
-      <p id="hobbies-interests-empty" class="empty-message">Belum ada hobi yang ditambahkan</p>
-    </div>
-    <form id="hobbies-interests-form">
-      <input type="text" id="hobbies-interests-input" placeholder="Tambah Hobi atau Minat">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
+        <section id="courses-taken" class="data-section">
+            <h2>Kursus yang Diikuti</h2>
+            <div class="data-display">
+                <ul id="courses-taken-list" class="item-list"></ul>
+                <p class="empty-message" id="courses-taken-empty">Belum ada kursus yang ditambahkan</p>
+            </div>
+        </section>
 
-  <section id="keterampilan">
-    <h2>Keterampilan</h2>
-    <div class="data-display">
-      <ul id="keterampilan-list"></ul>
-      <p id="keterampilan-empty" class="empty-message">Belum ada keterampilan yang ditambahkan</p>
-    </div>
-    <form id="keterampilan-form">
-      <input type="text" id="keterampilan-input" placeholder="Tambah Keterampilan">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
+        <section id="hobbies-interests" class="data-section">
+            <h2>Hobi dan Minat</h2>
+            <div class="data-display">
+                <ul id="hobbies-interests-list" class="item-list"></ul>
+                <p class="empty-message" id="hobbies-interests-empty">Belum ada hobi yang ditambahkan</p>
+            </div>
+        </section>
 
-  <section id="prestasi">
-    <h2>Prestasi</h2>
-    <div class="data-display">
-      <ul id="prestasi-list"></ul>
-      <p id="prestasi-empty" class="empty-message">Belum ada prestasi yang ditambahkan</p>
-    </div>
-    <form id="prestasi-form">
-      <input type="text" id="prestasi-input" placeholder="Tambah Prestasi">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
+        <section id="keterampilan" class="data-section">
+            <h2>Keterampilan</h2>
+            <div class="data-display">
+                <ul id="keterampilan-list" class="item-list"></ul>
+                <p class="empty-message" id="keterampilan-empty">Belum ada keterampilan yang ditambahkan</p>
+            </div>
+        </section>
 
-  <section id="target">
-    <h2>Target</h2>
-    <div class="data-display">
-      <ul id="target-list"></ul>
-      <p id="target-empty" class="empty-message">Belum ada target yang ditambahkan</p>
-    </div>
-    <form id="target-form">
-      <input type="text" id="target-input" placeholder="Tambah Target">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
+        <section id="prestasi" class="data-section">
+            <h2>Prestasi</h2>
+            <div class="data-display">
+                <ul id="prestasi-list" class="item-list"></ul>
+                <p class="empty-message" id="prestasi-empty">Belum ada prestasi yang ditambahkan</p>
+            </div>
+        </section>
 
-  <section id="sertifikasi">
-    <h2>Sertifikasi</h2>
-    <div class="data-display">
-      <ul id="sertifikasi-list"></ul>
-      <p id="sertifikasi-empty" class="empty-message">Belum ada sertifikasi yang ditambahkan</p>
-    </div>
-    <form id="sertifikasi-form">
-      <input type="text" id="sertifikasi-input" placeholder="Tambah Sertifikasi">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
+        <section id="target" class="data-section">
+            <h2>Target</h2>
+            <div class="data-display">
+                <ul id="target-list" class="item-list"></ul>
+                <p class="empty-message" id="target-empty">Belum ada target yang ditambahkan</p>
+            </div>
+        </section>
 
-  <section id="catatan">
-    <h2>Catatan Pembelajaran</h2>
-    <div class="data-display">
-      <ul id="catatan-list"></ul>
-      <p id="catatan-empty" class="empty-message">Belum ada catatan yang ditambahkan</p>
+        <section id="sertifikasi" class="data-section">
+            <h2>Sertifikasi</h2>
+            <div class="data-display">
+                <ul id="sertifikasi-list" class="item-list"></ul>
+                <p class="empty-message" id="sertifikasi-empty">Belum ada sertifikasi yang ditambahkan</p>
+            </div>
+        </section>
+
+        <section id="catatan" class="data-section">
+            <h2>Catatan Pembelajaran</h2>
+            <div class="data-display">
+                <ul id="catatan-list" class="item-list"></ul>
+                <p class="empty-message" id="catatan-empty">Belum ada catatan yang ditambahkan</p>
+            </div>
+        </section>
     </div>
-    <form id="catatan-form">
-      <input type="text" id="catatan-input" placeholder="Tambah Catatan Pembelajaran">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
+
+    
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Edit Item</h2>
+            <form id="edit-form">
+                <input type="text" id="edit-item-input" required>
+                <input type="date" id="edit-tanggal-input" required>
+                <textarea id="edit-deskripsi-input"></textarea>
+                <input type="hidden" id="edit-item-id">
+                <input type="hidden" id="edit-kategori">
+                <button type="submit" class="btn-submit">Simpan Perubahan</button>
+                <button type="button" class="btn-cancel" id="cancel-edit">Batal</button>
+            </form>
+        </div>
+    </div>
 </main>
-<script type="module" src="/js/pengembangan-diri.js"></script>
+<link rel="stylesheet" href="/css/pengembanganDiri.css">
+<script type="module" src="/js/pengembanganDiri.js"></script>
 
     </main>
     <footer class="site-footer">

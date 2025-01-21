@@ -1,115 +1,45 @@
-Berikan saya saran tentang apa saja yang perlu ditambahkan atau dirubah dari halaman pengembangan diri.
-
-berikut kode terkait pengembangan diri:
+modifikasi halaman pengembangan diri menjadi:
+- ubah elemen "monitoring perkembangan diri" menjadi elemen tidak melayang, berada paling atas pada halaman dan tanpa merusak fungsionalitasnya.
+- pastikan juga setelah elemen-elemen tersebut dipindahkan atau dirubah, kode tidak rusak. contohnya, data Firestore tidak ditampilkan lagi, beberapa bagian pada elemen hilang atau hal lainnya.
 
 firebaseConfig.js:
 import{initializeApp}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";import{getAuth}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";import{getFirestore}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";import{getAnalytics}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";import{getMessaging}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";const firebaseConfig={apiKey:"AIzaSyAeUpI8hb-mLbp4xYldcu5q89vPxGj1EY8",authDomain:"aparencanamu.firebaseapp.com",projectId:"aparencanamu",storageBucket:"aparencanamu.appspot.com",messagingSenderId:"1082769981395",appId:"1:1082769981395:web:611ad60b17e104b7d83926",measurementId:"G-3PGV4HD1BP"};const app=initializeApp(firebaseConfig);const analytics=getAnalytics(app);const auth=getAuth(app);const db=getFirestore(app);const messaging=getMessaging(app);export{app,analytics,auth,db,messaging}
 
 pengembangan-diri.html:
 {{ define "main" }}
-<main>
-  <h1>Pengembangan Diri</h1>
-  <section id="books-read">
-    <h2>Buku yang Dibaca</h2>
-    <div class="data-display">
-      <ul id="books-read-list"></ul>
-      <p id="books-read-empty" class="empty-message">Belum ada buku yang ditambahkan</p>
-    </div>
-    <form id="books-read-form">
-      <input type="text" id="books-read-input" placeholder="Tambah Buku yang Dibaca">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
-
-  <section id="courses-taken">
-    <h2>Kursus yang Diikuti</h2>
-    <div class="data-display">
-      <ul id="courses-taken-list"></ul>
-      <p id="courses-taken-empty" class="empty-message">Belum ada kursus yang ditambahkan</p>
-    </div>
-    <form id="courses-taken-form">
-      <input type="text" id="courses-taken-input" placeholder="Tambah Kursus yang Diikuti">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
-
-  <section id="hobbies-interests">
-    <h2>Hobi dan Minat</h2>
-    <div class="data-display">
-      <ul id="hobbies-interests-list"></ul>
-      <p id="hobbies-interests-empty" class="empty-message">Belum ada hobi yang ditambahkan</p>
-    </div>
-    <form id="hobbies-interests-form">
-      <input type="text" id="hobbies-interests-input" placeholder="Tambah Hobi atau Minat">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
-
-  <section id="keterampilan">
-    <h2>Keterampilan</h2>
-    <div class="data-display">
-      <ul id="keterampilan-list"></ul>
-      <p id="keterampilan-empty" class="empty-message">Belum ada keterampilan yang ditambahkan</p>
-    </div>
-    <form id="keterampilan-form">
-      <input type="text" id="keterampilan-input" placeholder="Tambah Keterampilan">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
-
-  <section id="prestasi">
-    <h2>Prestasi</h2>
-    <div class="data-display">
-      <ul id="prestasi-list"></ul>
-      <p id="prestasi-empty" class="empty-message">Belum ada prestasi yang ditambahkan</p>
-    </div>
-    <form id="prestasi-form">
-      <input type="text" id="prestasi-input" placeholder="Tambah Prestasi">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
-
-  <section id="target">
-    <h2>Target</h2>
-    <div class="data-display">
-      <ul id="target-list"></ul>
-      <p id="target-empty" class="empty-message">Belum ada target yang ditambahkan</p>
-    </div>
-    <form id="target-form">
-      <input type="text" id="target-input" placeholder="Tambah Target">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
-
-  <section id="sertifikasi">
-    <h2>Sertifikasi</h2>
-    <div class="data-display">
-      <ul id="sertifikasi-list"></ul>
-      <p id="sertifikasi-empty" class="empty-message">Belum ada sertifikasi yang ditambahkan</p>
-    </div>
-    <form id="sertifikasi-form">
-      <input type="text" id="sertifikasi-input" placeholder="Tambah Sertifikasi">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
-
-  <section id="catatan">
-    <h2>Catatan Pembelajaran</h2>
-    <div class="data-display">
-      <ul id="catatan-list"></ul>
-      <p id="catatan-empty" class="empty-message">Belum ada catatan yang ditambahkan</p>
-    </div>
-    <form id="catatan-form">
-      <input type="text" id="catatan-input" placeholder="Tambah Catatan Pembelajaran">
-      <button type="submit">Tambah</button>
-    </form>
-  </section>
-</main>
+<main class=container><h1 class=page-title>Pengembangan Diri</h1><div class=form-container><h2>Tambah Data Baru</h2><form id=pengembangan-form class=add-form><select id=kategori-select required><option value="">Pilih Kategori<option value=booksRead>Buku yang Dibaca<option value=coursesTaken>Kursus yang Diikuti<option value=hobbiesInterests>Hobi dan Minat<option value=keterampilan>Keterampilan<option value=prestasi>Prestasi<option value=target>Target<option value=sertifikasi>Sertifikasi<option value=catatan>Catatan Pembelajaran</select> <input id=item-input required placeholder="Masukkan detail..."> <input id=tanggal-input required type=date> <textarea id=deskripsi-input placeholder="Deskripsi (opsional)"></textarea> <button class=btn-submit type=submit>Tambah</button></form></div><div class=data-sections><section class=data-section id=books-read><h2>Buku yang Dibaca</h2><div class=data-display><ul class=item-list id=books-read-list></ul><p class=empty-message id=books-read-empty>Belum ada buku yang ditambahkan</div></section><section class=data-section id=courses-taken><h2>Kursus yang Diikuti</h2><div class=data-display><ul class=item-list id=courses-taken-list></ul><p class=empty-message id=courses-taken-empty>Belum ada kursus yang ditambahkan</div></section><section class=data-section id=hobbies-interests><h2>Hobi dan Minat</h2><div class=data-display><ul class=item-list id=hobbies-interests-list></ul><p class=empty-message id=hobbies-interests-empty>Belum ada hobi yang ditambahkan</div></section><section class=data-section id=keterampilan><h2>Keterampilan</h2><div class=data-display><ul class=item-list id=keterampilan-list></ul><p class=empty-message id=keterampilan-empty>Belum ada keterampilan yang ditambahkan</div></section><section class=data-section id=prestasi><h2>Prestasi</h2><div class=data-display><ul class=item-list id=prestasi-list></ul><p class=empty-message id=prestasi-empty>Belum ada prestasi yang ditambahkan</div></section><section class=data-section id=target><h2>Target</h2><div class=data-display><ul class=item-list id=target-list></ul><p class=empty-message id=target-empty>Belum ada target yang ditambahkan</div></section><section class=data-section id=sertifikasi><h2>Sertifikasi</h2><div class=data-display><ul class=item-list id=sertifikasi-list></ul><p class=empty-message id=sertifikasi-empty>Belum ada sertifikasi yang ditambahkan</div></section><section class=data-section id=catatan><h2>Catatan Pembelajaran</h2><div class=data-display><ul class=item-list id=catatan-list></ul><p class=empty-message id=catatan-empty>Belum ada catatan yang ditambahkan</div></section></div><div class=modal id=edit-modal><div class=modal-content><span class=close>×</span><h2>Edit Item</h2><form id=edit-form><input id=edit-item-input required> <input id=edit-tanggal-input required type=date> <textarea id=edit-deskripsi-input></textarea> <input id=edit-item-id type=hidden> <input id=edit-kategori type=hidden> <button class=btn-submit type=submit>Simpan Perubahan</button> <button class=btn-cancel type=button id=cancel-edit>Batal</button></form></div></div></main>
+<link rel="stylesheet" href="{{ "css/pengembanganDiri.css" | relURL }}">
 <script type="module" src="{{ "js/pengembangan-diri.js" | relURL }}"></script>
 {{ end }}
 
+pengembanganDiri.css:
+.container{max-width:1200px;margin:0 auto;padding:2rem}.page-title{text-align:center;color:#333;margin-bottom:2rem}.progress-container{margin-bottom:2rem;padding:2rem;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgb(0 0 0 / .1);animation:fadeIn 0.5s ease-out}.progress-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem}.progress-card{padding:1.5rem;background:#f8f9fa;border-radius:8px;text-align:center;transition:transform 0.3s,box-shadow 0.3s}.progress-card:hover{transform:translateY(-5px);box-shadow:0 4px 8px rgb(0 0 0 / .1)}.progress-number{font-size:2.5rem;font-weight:700;color:#4CAF50;margin-bottom:.5rem}.progress-label{color:#666;font-size:.9rem}.form-container{width:100%;background:#f5f5f5;padding:2rem;border-radius:8px;box-shadow:0 2px 4px rgb(0 0 0 / .1);margin-bottom:2rem}.add-form{display:grid;gap:1rem;max-width:600px;margin:0 auto}select,input,textarea{padding:.8rem;border:1px solid #ddd;border-radius:4px;font-size:1rem;width:100%;box-sizing:border-box;transition:border-color 0.3s,box-shadow 0.3s}select:focus,input:focus,textarea:focus{outline:none;border-color:#4CAF50;box-shadow:0 0 0 2px rgb(76 175 80 / .2)}textarea{min-height:100px;resize:vertical}.btn-submit,.btn-cancel{padding:1rem;border:none;border-radius:4px;cursor:pointer;font-size:1rem;transition:background 0.3s,transform 0.3s}.btn-submit{background:#4CAF50;color:#fff}.btn-submit:hover{background:#45a049;transform:translateY(-2px)}.btn-cancel{background:#f44336;color:#fff}.btn-cancel:hover{background:#d32f2f;transform:translateY(-2px)}.data-sections{display:grid;gap:2rem}.data-section{background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgb(0 0 0 / .1)}.data-section h2{color:#333;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid #eee}.item-list{list-style:none;padding:0;margin:0}.item-card{border:1px solid #ddd;border-radius:4px;padding:1rem;margin-bottom:1rem;transition:box-shadow 0.3s,transform 0.3s;opacity:0;transform:translateY(20px);animation:fadeInUp 0.5s forwards}.item-card:hover{box-shadow:0 2px 8px rgb(0 0 0 / .1);transform:translateY(-2px)}.item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}.item-header h3{margin:0;color:#333}.date{color:#666;font-size:.9rem}.description{color:#444;margin:.5rem 0;line-height:1.4}.item-actions{display:flex;gap:.5rem;margin-top:1rem}.edit-btn,.delete-btn{padding:.5rem 1rem;border:none;border-radius:4px;cursor:pointer;font-size:.9rem;transition:opacity 0.3s,transform 0.3s}.edit-btn:hover,.delete-btn:hover{opacity:.9;transform:translateY(-2px)}.edit-btn{background:#2196F3;color:#fff}.delete-btn{background:#f44336;color:#fff}.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgb(0 0 0 / .5);z-index:1000;animation:fadeIn 0.3s}.modal-content{background:#fff;padding:2rem;border-radius:8px;max-width:500px;margin:2rem auto;position:relative;animation:slideIn 0.3s}.close{position:absolute;right:1rem;top:1rem;cursor:pointer;font-size:1.5rem;color:#666;transition:color 0.3s}.close:hover{color:#333}.empty-message{text-align:center;color:#666;padding:2rem;background:#f9f9f9;border-radius:4px;margin:1rem 0}.loading{text-align:center;padding:2rem;color:#666}.error-message{background:#ffebee;color:#c62828;padding:1rem;border-radius:4px;margin:1rem 0;text-align:center}.success-message{background:#e8f5e9;color:#2e7d32;padding:1rem;border-radius:4px;margin:1rem 0;text-align:center}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes fadeInUp{to{opacity:1;transform:translateY(0)}}@keyframes slideIn{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}@media (max-width:768px){.container{padding:1rem}.form-container{padding:1rem}.item-header{flex-direction:column;align-items:flex-start}.modal-content{margin:1rem;padding:1rem}.progress-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}@media print{.form-container,.item-actions,.modal{display:none}.container{padding:0}.data-section{break-inside:avoid;box-shadow:none}}
+
 penpengembangan-diri.js:
-import{auth,db}from './firebaseConfig.js';import{getDoc,doc,updateDoc,arrayUnion}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";auth.onAuthStateChanged((user)=>{if(!user){window.location.href='/masuk'}else{loadUserData()}});const booksReadForm=document.getElementById('books-read-form');const booksReadInput=document.getElementById('books-read-input');const coursesTakenForm=document.getElementById('courses-taken-form');const coursesTakenInput=document.getElementById('courses-taken-input');const hobbiesInterestsForm=document.getElementById('hobbies-interests-form');const hobbiesInterestsInput=document.getElementById('hobbies-interests-input');const keterampilanForm=document.getElementById('keterampilan-form');const keterampilanInput=document.getElementById('keterampilan-input');const prestasiForm=document.getElementById('prestasi-form');const prestasiInput=document.getElementById('prestasi-input');const targetForm=document.getElementById('target-form');const targetInput=document.getElementById('target-input');const sertifikasiForm=document.getElementById('sertifikasi-form');const sertifikasiInput=document.getElementById('sertifikasi-input');const catatanForm=document.getElementById('catatan-form');const catatanInput=document.getElementById('catatan-input');const renderList=(listElement,emptyElement,items)=>{if(!items||items.length===0){listElement.style.display='none';emptyElement.style.display='block';return}
-listElement.style.display='block';emptyElement.style.display='none';listElement.innerHTML='';items.forEach(item=>{const li=document.createElement('li');li.textContent=item;const deleteButton=document.createElement('button');deleteButton.textContent='×';deleteButton.className='delete-btn';deleteButton.onclick=()=>deleteItem(item,listElement.id);li.appendChild(deleteButton);listElement.appendChild(li)})};const deleteItem=async(item,listId)=>{const user=auth.currentUser;if(!user)return;const docRef=doc(db,"users",user.uid);const fieldMap={'books-read-list':'booksRead','courses-taken-list':'coursesTaken','hobbies-interests-list':'hobbiesInterests','keterampilan-list':'keterampilan','prestasi-list':'prestasi','target-list':'target','sertifikasi-list':'sertifikasi','catatan-list':'catatan'};const field=fieldMap[listId];const userDoc=await getDoc(docRef);const currentItems=userDoc.data()[field]||[];const updatedItems=currentItems.filter(i=>i!==item);await updateDoc(docRef,{[field]:updatedItems});loadUserData()};const loadUserData=async()=>{const user=auth.currentUser;if(!user){console.log("Tidak ada pengguna yang login.");return}
-try{const userDoc=await getDoc(doc(db,"users",user.uid));if(!userDoc.exists()){console.log("Dokumen tidak ditemukan!");return}
-const userData=userDoc.data();renderList(document.getElementById('books-read-list'),document.getElementById('books-read-empty'),userData.booksRead||[]);renderList(document.getElementById('courses-taken-list'),document.getElementById('courses-taken-empty'),userData.coursesTaken||[]);renderList(document.getElementById('hobbies-interests-list'),document.getElementById('hobbies-interests-empty'),userData.hobbiesInterests||[]);renderList(document.getElementById('keterampilan-list'),document.getElementById('keterampilan-empty'),userData.keterampilan||[]);renderList(document.getElementById('prestasi-list'),document.getElementById('prestasi-empty'),userData.prestasi||[]);renderList(document.getElementById('target-list'),document.getElementById('target-empty'),userData.target||[]);renderList(document.getElementById('sertifikasi-list'),document.getElementById('sertifikasi-empty'),userData.sertifikasi||[]);renderList(document.getElementById('catatan-list'),document.getElementById('catatan-empty'),userData.catatan||[])}catch(error){console.error("Error saat memuat data pengguna:",error)}};const addPersonalDevelopmentData=async(devType,inputElement)=>{const user=auth.currentUser;if(!user)return;const docRef=doc(db,"users",user.uid);const devData=inputElement.value.trim();if(devData){try{await updateDoc(docRef,{[devType]:arrayUnion(devData)});inputElement.value='';loadUserData()}catch(error){console.error("Error saat menambah data:",error)}}};booksReadForm.addEventListener('submit',async(e)=>{e.preventDefault();await addPersonalDevelopmentData('booksRead',booksReadInput)});coursesTakenForm.addEventListener('submit',async(e)=>{e.preventDefault();await addPersonalDevelopmentData('coursesTaken',coursesTakenInput)});hobbiesInterestsForm.addEventListener('submit',async(e)=>{e.preventDefault();await addPersonalDevelopmentData('hobbiesInterests',hobbiesInterestsInput)});keterampilanForm.addEventListener('submit',async(e)=>{e.preventDefault();await addPersonalDevelopmentData('keterampilan',keterampilanInput)});prestasiForm.addEventListener('submit',async(e)=>{e.preventDefault();await addPersonalDevelopmentData('prestasi',prestasiInput)});targetForm.addEventListener('submit',async(e)=>{e.preventDefault();await addPersonalDevelopmentData('target',targetInput)});sertifikasiForm.addEventListener('submit',async(e)=>{e.preventDefault();await addPersonalDevelopmentData('sertifikasi',sertifikasiInput)});catatanForm.addEventListener('submit',async(e)=>{e.preventDefault();await addPersonalDevelopmentData('catatan',catatanInput)})
+import{auth,db}from './firebaseConfig.js';import{getDoc,doc,updateDoc,setDoc,Timestamp}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";const pengembanganForm=document.getElementById('pengembangan-form');const kategoriSelect=document.getElementById('kategori-select');const itemInput=document.getElementById('item-input');const tanggalInput=document.getElementById('tanggal-input');const deskripsiInput=document.getElementById('deskripsi-input');const editModal=document.getElementById('edit-modal');const editForm=document.getElementById('edit-form');const editItemInput=document.getElementById('edit-item-input');const editTanggalInput=document.getElementById('edit-tanggal-input');const editDeskripsiInput=document.getElementById('edit-deskripsi-input');const editItemId=document.getElementById('edit-item-id');const editKategori=document.getElementById('edit-kategori');const closeModal=document.querySelector('.close');const cancelEdit=document.getElementById('cancel-edit');const categories=['booksRead','coursesTaken','hobbiesInterests','keterampilan','prestasi','target','sertifikasi','catatan'];const generateId=()=>{return Date.now().toString(36)+Math.random().toString(36).substr(2)};const formatDate=(timestamp)=>{if(!timestamp)return'';const date=timestamp.toDate();return date.toISOString().split('T')[0]};const createItemData=(title,date,description='')=>({id:generateId(),title,date:Timestamp.fromDate(new Date(date)),description,createdAt:Timestamp.now(),updatedAt:Timestamp.now()});function getCategoryLabel(category){const labels={booksRead:'Buku Dibaca',coursesTaken:'Kursus Diikuti',hobbiesInterests:'Hobi & Minat',keterampilan:'Keterampilan',prestasi:'Prestasi',target:'Target',sertifikasi:'Sertifikasi',catatan:'Catatan'};return labels[category]}
+function createProgressSummary(userData){const progressContainer=document.createElement('div');progressContainer.className='progress-container';const progressGrid=document.createElement('div');progressGrid.className='progress-grid';categories.forEach(category=>{const items=userData[category]||[];const card=document.createElement('div');card.className='progress-card';const number=document.createElement('div');number.className='progress-number';number.textContent=items.length;const label=document.createElement('div');label.className='progress-label';label.textContent=getCategoryLabel(category);card.appendChild(number);card.appendChild(label);progressGrid.appendChild(card)});progressContainer.appendChild(progressGrid);return progressContainer}
+const showEditModal=(item,kategori)=>{editItemInput.value=item.title;editTanggalInput.value=formatDate(item.date);editDeskripsiInput.value=item.description||'';editItemId.value=item.id;editKategori.value=kategori;editModal.style.display='block'};const closeEditModal=()=>{editModal.style.display='none';editForm.reset()};const renderList=(listElement,emptyElement,items,kategori)=>{if(!items||items.length===0){listElement.style.display='none';emptyElement.style.display='block';return}
+listElement.style.display='block';emptyElement.style.display='none';listElement.innerHTML='';items.sort((a,b)=>b.date.seconds-a.date.seconds).forEach((item,index)=>{const li=document.createElement('li');li.className='item-card';li.style.animationDelay=`${index * 0.1}s`;const date=item.date.toDate().toLocaleDateString('id-ID',{year:'numeric',month:'long',day:'numeric'});li.innerHTML=`
+            <div class="item-header">
+                <h3>${item.title}</h3>
+                <span class="date">${date}</span>
+            </div>
+            ${item.description ? `<p class="description">${item.description}</p>` : ''}
+            <div class="item-actions">
+                <button class="edit-btn" data-id="${item.id}">Edit</button>
+                <button class="delete-btn" data-id="${item.id}">Hapus</button>
+            </div>
+        `;li.querySelector('.edit-btn').onclick=()=>showEditModal(item,kategori);li.querySelector('.delete-btn').onclick=()=>deleteItem(item,kategori);listElement.appendChild(li)})};const addItem=async(e)=>{e.preventDefault();const user=auth.currentUser;if(!user){alert('Silakan login terlebih dahulu');return}
+const kategori=kategoriSelect.value;if(!kategori){alert('Silakan pilih kategori');return}
+try{const itemData=createItemData(itemInput.value.trim(),tanggalInput.value,deskripsiInput.value.trim());const docRef=doc(db,"users",user.uid);const userDoc=await getDoc(docRef);if(!userDoc.exists()){await setDoc(docRef,{[kategori]:[itemData]})}else{const currentData=userDoc.data()[kategori]||[];await updateDoc(docRef,{[kategori]:[...currentData,itemData]})}
+pengembanganForm.reset();await loadUserData();alert('Data berhasil ditambahkan!')}catch(error){console.error("Error menambah data:",error);alert("Gagal menambah data. Error: "+error.message)}};const updateItem=async(e)=>{e.preventDefault();const user=auth.currentUser;if(!user)return;const itemId=editItemId.value;const kategori=editKategori.value;try{const docRef=doc(db,"users",user.uid);const userDoc=await getDoc(docRef);const currentData=userDoc.data()[kategori]||[];const updatedData=currentData.map(item=>{if(item.id===itemId){return{...item,title:editItemInput.value.trim(),date:Timestamp.fromDate(new Date(editTanggalInput.value)),description:editDeskripsiInput.value.trim(),updatedAt:Timestamp.now()}}
+return item});await updateDoc(docRef,{[kategori]:updatedData});closeEditModal();await loadUserData();alert('Data berhasil diperbarui!')}catch(error){console.error("Error memperbarui data:",error);alert("Gagal memperbarui data. Error: "+error.message)}};const deleteItem=async(item,kategori)=>{if(!confirm("Yakin ingin menghapus item ini?"))return;const user=auth.currentUser;if(!user)return;try{const docRef=doc(db,"users",user.uid);const userDoc=await getDoc(docRef);const currentData=userDoc.data()[kategori]||[];const updatedData=currentData.filter(i=>i.id!==item.id);await updateDoc(docRef,{[kategori]:updatedData});await loadUserData();alert('Data berhasil dihapus!')}catch(error){console.error("Error menghapus data:",error);alert("Gagal menghapus data. Error: "+error.message)}};const loadUserData=async()=>{const user=auth.currentUser;if(!user){console.log("User tidak ditemukan");return}
+try{const docRef=doc(db,"users",user.uid);const userDoc=await getDoc(docRef);if(!userDoc.exists()){console.log("Dokumen user belum ada");return}
+const userData=userDoc.data();const container=document.querySelector('.container');const existingProgress=document.querySelector('.progress-container');const progressSummary=createProgressSummary(userData);if(existingProgress){container.replaceChild(progressSummary,existingProgress)}else{container.insertBefore(progressSummary,container.firstChild.nextSibling)}
+categories.forEach(kategori=>{const listId=`${kategori.replace(/([A-Z])/g, '-$1').toLowerCase()}-list`;const emptyId=`${kategori.replace(/([A-Z])/g, '-$1').toLowerCase()}-empty`;const listElement=document.getElementById(listId);const emptyElement=document.getElementById(emptyId);if(!listElement||!emptyElement){console.error(`Element tidak ditemukan untuk kategori ${kategori}`);return}
+const items=userData[kategori]||[];renderList(listElement,emptyElement,items,kategori)})}catch(error){console.error("Error memuat data:",error);alert("Gagal memuat data. Error: "+error.message)}};document.addEventListener('DOMContentLoaded',()=>{const today=new Date().toISOString().split('T')[0];if(tanggalInput){tanggalInput.value=today}
+if(pengembanganForm){pengembanganForm.addEventListener('submit',addItem)}
+if(editForm){editForm.addEventListener('submit',updateItem)}
+if(closeModal){closeModal.addEventListener('click',closeEditModal)}
+if(cancelEdit){cancelEdit.addEventListener('click',closeEditModal)}
+window.addEventListener('click',(e)=>{if(e.target===editModal){closeEditModal()}});auth.onAuthStateChanged((user)=>{if(!user){window.location.href='/masuk'}else{loadUserData()}})})
