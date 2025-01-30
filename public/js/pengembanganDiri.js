@@ -267,6 +267,7 @@ const showEditModal = (item, kategori) => {
             });
         }
     }
+    updatePreview();
 };
 
 const closeEditModal = () => {
@@ -387,6 +388,7 @@ const renderTargetList = (listElement, emptyElement, items) => {
 const addItem = async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
+    showLoading();
     if (!user) {
         alert("Silakan login terlebih dahulu");
         return;
@@ -489,6 +491,7 @@ const updateItem = async (e) => {
         await updateDoc(docRef, { [kategori]: updatedData });
         closeEditModal();
         enhanceSuccessMessage(null, kategori, "diperbarui", itemName);
+        hideLoading();
         await loadUserData();
     } catch (error) {
         console.error("Error memperbarui data:", error);
@@ -513,6 +516,7 @@ const deleteItem = async (item, kategori) => {
         await loadUserData();
     } catch (error) {
         console.error("Error menghapus data:", error);
+        hideLoading();
         alert("Gagal menghapus data. Error: " + error.message);
     }
 };
@@ -607,6 +611,144 @@ DOM.kategoriSelect.addEventListener('change', (e) => {
     }
 });
 
+// Tab Navigation
+const initTabs = () => {
+    const tabs = document.querySelectorAll('.tab-nav a');
+    const contents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Remove active classes
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            tab.classList.add('active');
+            
+            // Show corresponding content
+            const target = document.querySelector(tab.getAttribute('href'));
+            target.classList.add('active');
+        });
+    });
+};
+
+// Quick Jump Navigation
+const initQuickJump = () => {
+    const quickJump = document.getElementById('quick-jump');
+    quickJump.addEventListener('change', () => {
+        const selected = quickJump.value;
+        const target = document.getElementById(`${selected}-section`);
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+};
+
+// Form Wizard
+const initFormWizard = () => {
+    const wizard = document.querySelector('.form-wizard');
+    const steps = wizard.querySelectorAll('.step');
+    const panels = wizard.querySelectorAll('.wizard-panel');
+    const nextBtns = wizard.querySelectorAll('.btn-next');
+    const prevBtns = wizard.querySelectorAll('.btn-prev');
+    
+    let currentStep = 0;
+    
+    const updateStep = (step) => {
+        steps.forEach((s, i) => {
+            s.classList.toggle('active', i === step);
+        });
+        
+        panels.forEach((p, i) => {
+            p.classList.toggle('active', i === step);
+        });
+    };
+    
+    nextBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (validateStep(currentStep)) {
+                currentStep++;
+                updateStep(currentStep);
+            }
+        });
+    });
+    
+    prevBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentStep--;
+            updateStep(currentStep);
+        });
+    });
+};
+
+// Input Preview
+const initInputPreview = () => {
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            updatePreview();
+        });
+    });
+};
+
+const updatePreview = () => {
+    const previewContainer = document.querySelector('.preview-content');
+    const title = DOM.itemInput.value;
+    const date = DOM.tanggalInput.value;
+    const description = DOM.deskripsiInput.value;
+    const kategori = DOM.kategoriSelect.value;
+    
+    // Format tanggal ke format Indonesia
+    const formattedDate = date ? new Date(date).toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    }) : '';
+
+    let previewHTML = `
+        <div class="preview-item">
+            <p><strong>Kategori:</strong> ${CATEGORY_LABELS[kategori] || ''}</p>
+            <p><strong>Judul:</strong> ${title}</p>
+            <p><strong>Tanggal:</strong> ${formattedDate}</p>
+            ${description ? `<p><strong>Deskripsi:</strong> ${description}</p>` : ''}
+    `;
+
+    // Tambahkan preview untuk field target jika kategori adalah target
+    if (kategori === 'target') {
+        const status = document.getElementById('status-select')?.value;
+        const isMilestone = document.getElementById('milestone-check')?.checked;
+        const milestoneType = document.getElementById('milestone-type')?.value;
+        const lessonLearned = document.getElementById('lesson-learned')?.value;
+        const referenceLink = document.getElementById('reference-link')?.value;
+        const progressNotes = document.getElementById('progress-notes')?.value;
+
+        previewHTML += `
+            <p><strong>Status:</strong> ${STATUS_OPTIONS[status] || ''}</p>
+            <p><strong>Milestone:</strong> ${isMilestone ? 'Ya' : 'Tidak'}</p>
+            ${isMilestone && milestoneType ? `<p><strong>Tipe Milestone:</strong> ${TIMEFRAME_OPTIONS[milestoneType]}</p>` : ''}
+            ${lessonLearned ? `<p><strong>Pembelajaran:</strong> ${lessonLearned}</p>` : ''}
+            ${referenceLink ? `<p><strong>Referensi:</strong> <a href="${referenceLink}" target="_blank">${referenceLink}</a></p>` : ''}
+            ${progressNotes ? `<p><strong>Catatan Progress:</strong> ${progressNotes}</p>` : ''}
+        `;
+    }
+
+    previewHTML += '</div>';
+    
+    // Update container dengan preview
+    previewContainer.innerHTML = previewHTML;
+};
+
+// Loading Indicator
+const showLoading = () => {
+    document.getElementById('loading-indicator').style.display = 'block';
+};
+
+const hideLoading = () => {
+    document.getElementById('loading-indicator').style.display = 'none';
+};
+
 document.addEventListener("DOMContentLoaded", () => {
 		const searchInput = document.getElementById('search-input');
 	  const filterStatus = document.getElementById('filter-status');
@@ -643,6 +785,10 @@ document.addEventListener("DOMContentLoaded", () => {
 	    window.print();
 	  });
     const today = new Date().toISOString().split("T")[0];
+    initTabs();
+    initQuickJump();
+    initFormWizard();
+    initInputPreview();
     if (DOM.tanggalInput) {
         DOM.tanggalInput.value = today;
     }

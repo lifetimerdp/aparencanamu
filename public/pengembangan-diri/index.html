@@ -57,85 +57,122 @@
         
 <main class="container">
     <h1 class="page-title">Pengembangan Diri</h1>
-
     
-    <div class="form-container">
-        <h2>Tambah Data Baru</h2>
-        <form id="pengembangan-form" class="add-form">
-            
-            <select id="kategori-select" required>
-                <option value="">Pilih Kategori</option>
-                <option value="target">Target</option>
-                <option value="booksRead">Buku yang Dibaca</option>
-                <option value="coursesTaken">Kursus yang Diikuti</option>
-                <option value="hobbiesInterests">Hobi dan Minat</option>
-                <option value="keterampilan">Keterampilan</option>
-                <option value="prestasi">Prestasi</option>
-                <option value="sertifikasi">Sertifikasi</option>
-                <option value="catatan">Catatan Pembelajaran</option>
-            </select>
+    <nav class="tab-nav">
+        <ul>
+            <li><a href="#form-section" class="active">Input Data</a></li>
+            <li><a href="#target-section">Target</a></li>
+            <li><a href="#learning-section">Pembelajaran</a></li>
+            <li><a href="#achievement-section">Prestasi</a></li>
+        </ul>
+    </nav>
 
-            <input id="item-input" required placeholder="Masukkan detail...">
-            <input id="tanggal-input" required type="date">
-            <textarea id="deskripsi-input" placeholder="Deskripsi (opsional)"></textarea>
+    <div class="quick-nav">
+        <select id="quick-jump">
+            <option value="">Langsung ke...</option>
+            <option value="target">Target</option>
+            <option value="booksRead">Buku</option>
+            <option value="coursesTaken">Kursus</option>
+            <option value="hobbiesInterests">Hobi</option>
+            <option value="keterampilan">Keterampilan</option>
+            <option value="prestasi">Prestasi</option>
+            <option value="sertifikasi">Sertifikasi</option>
+            <option value="catatan">Catatan</option>
+        </select>
+    </div>
 
-            
-            <div id="target-fields" class="target-fields">
-                <select id="timeframe-select" required>
-                    <option value="">Pilih Jangka Waktu</option>
-                    <option value="short">Jangka Pendek</option>
-                    <option value="long">Jangka Panjang</option>
-                </select>
-
-                <select id="status-select" required>
-                    <option value="not-started">Belum Dimulai</option>
-                    <option value="in-progress">Sedang Berjalan</option>
-                    <option value="completed">Selesai</option>
-                </select>
-
-                <div class="milestone-checkbox">
-                    <input type="checkbox" id="milestone-check">
-                    <label for="milestone-check">Tandai sebagai Milestone</label>
+    <section class="active tab-content" id="form-section">
+        <div class="form-container">
+            <div class="form-wizard">
+                <div class="wizard-steps">
+                    <div class="step active">1. Kategori</div>
+                    <div class="step">2. Detail</div>
+                    <div class="step">3. Konfirmasi</div>
                 </div>
 
-                <textarea id="lesson-learned" placeholder="Pembelajaran/Refleksi"></textarea>
-                <input type="url" id="reference-link" placeholder="Link Referensi">
-                <textarea id="progress-notes" placeholder="Catatan Progress"></textarea>
+                <form class="wizard-form" id="pengembangan-form">
+                    <div class="wizard-panel active">
+                        <div class="input-group">
+                            <label for="kategori-select">Pilih Kategori</label>
+                            <select id="kategori-select" required>
+                                <option value="">Pilih Kategori</option>
+                                <option value="target">Target</option>
+                                <option value="booksRead">Buku yang Dibaca</option>
+                                <option value="coursesTaken">Kursus yang Diikuti</option>
+                                <option value="hobbiesInterests">Hobi dan Minat</option>
+                                <option value="keterampilan">Keterampilan</option>
+                                <option value="prestasi">Prestasi</option>
+                                <option value="sertifikasi">Sertifikasi</option>
+                                <option value="catatan">Catatan Pembelajaran</option>
+                            </select>
+                            <div class="input-help">
+                                <i class="help-icon">?</i>
+                                <span class="tooltip">Pilih kategori yang sesuai untuk item baru Anda</span>
+                            </div>
+                        </div>
+                        <button class="btn-next" type="button">Lanjut</button>
+                    </div>
+
+                    <div class="wizard-panel">
+                        <div class="input-group">
+                            <label for="item-input">Judul/Nama</label>
+                            <input id="item-input" required>
+                            <div class="input-preview"></div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="tanggal-input">Tanggal</label>
+                            <input id="tanggal-input" required type="date">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="deskripsi-input">Deskripsi</label>
+                            <textarea id="deskripsi-input"></textarea>
+                            <div class="char-count">0/500</div>
+                        </div>
+
+                        <div class="target-fields">
+                            <div class="milestone-checkbox">
+                                <input id="milestone-check" type="checkbox">
+                                <label for="milestone-check">Tandai sebagai Milestone</label>
+                            </div>
+                            <select id="milestone-type" disabled>
+                                <option value="">Pilih Tipe Milestone</option>
+                                <option value="short">Jangka Pendek</option>
+                                <option value="long">Jangka Panjang</option>
+                            </select>
+                            <select id="status-select" required>
+                                <option value="not-started">Belum Dimulai</option>
+                                <option value="in-progress">Sedang Berjalan</option>
+                                <option value="completed">Selesai</option>
+                            </select>
+                            <textarea id="lesson-learned" placeholder="Pembelajaran/Refleksi"></textarea>
+                            <input id="reference-link" type="url" placeholder="Link Referensi">
+                            <textarea id="progress-notes" placeholder="Catatan Progress"></textarea>
+                        </div>
+
+                        <div class="button-group">
+                            <button class="btn-prev" type="button">Kembali</button>
+                            <button class="btn-next" type="button">Pratinjau</button>
+                        </div>
+                    </div>
+
+                    <div class="wizard-panel">
+                        <div class="preview-container">
+                            <h3>Pratinjau Data</h3>
+                            <div class="preview-content"></div>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn-prev" type="button">Ubah</button>
+                            <button class="btn-submit" type="submit">Simpan</button>
+                        </div>
+                    </div>
+                </form>
             </div>
-
-            <button class="btn-submit" type="submit">Tambah</button>
-        </form>
-    </div>
-
-    
-    <div class="filter-container">
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="Cari...">
         </div>
-        <div class="filter-options">
-            <select id="filter-status">
-                <option value="">Semua Status</option>
-                <option value="not-started">Belum Dimulai</option>
-                <option value="in-progress">Sedang Berjalan</option>
-                <option value="completed">Selesai</option>
-            </select>
-            <select id="filter-timeframe">
-                <option value="">Semua Jangka Waktu</option>
-                <option value="short">Jangka Pendek</option>
-                <option value="long">Jangka Panjang</option>
-            </select>
-            <select id="sort-select">
-                <option value="date-desc">Terbaru</option>
-                <option value="date-asc">Terlama</option>
-                <option value="status">Status</option>
-            </select>
-        </div>
-        <button id="export-pdf" class="btn-export">Ekspor PDF</button>
-    </div>
+    </section>
 
-    
     <div class="data-sections">
-        
         <section class="data-section" id="target">
             <h2>Target</h2>
             <div class="data-display">
@@ -144,7 +181,6 @@
             </div>
         </section>
 
-        
         <section class="data-section" id="books-read">
             <h2>Buku yang Dibaca</h2>
             <div class="data-display">
@@ -153,7 +189,6 @@
             </div>
         </section>
 
-        
         <section class="data-section" id="courses-taken">
             <h2>Kursus yang Diikuti</h2>
             <div class="data-display">
@@ -162,7 +197,6 @@
             </div>
         </section>
 
-        
         <section class="data-section" id="hobbies-interests">
             <h2>Hobi dan Minat</h2>
             <div class="data-display">
@@ -171,7 +205,6 @@
             </div>
         </section>
 
-        
         <section class="data-section" id="keterampilan">
             <h2>Keterampilan</h2>
             <div class="data-display">
@@ -180,7 +213,6 @@
             </div>
         </section>
 
-        
         <section class="data-section" id="prestasi">
             <h2>Prestasi</h2>
             <div class="data-display">
@@ -189,7 +221,6 @@
             </div>
         </section>
 
-        
         <section class="data-section" id="sertifikasi">
             <h2>Sertifikasi</h2>
             <div class="data-display">
@@ -198,7 +229,6 @@
             </div>
         </section>
 
-        
         <section class="data-section" id="catatan">
             <h2>Catatan Pembelajaran</h2>
             <div class="data-display">
@@ -207,50 +237,48 @@
             </div>
         </section>
     </div>
-
-    
-    <div class="modal" id="edit-modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Edit Item</h2>
-            <form id="edit-form">
-                <input id="edit-item-input" required>
-                <input id="edit-tanggal-input" required type="date">
-                <textarea id="edit-deskripsi-input"></textarea>
-                
-                
-                <div id="edit-target-fields" class="target-fields">
-                    <select id="edit-timeframe-select">
-                        <option value="">Pilih Jangka Waktu</option>
-                        <option value="short">Jangka Pendek</option>
-                        <option value="long">Jangka Panjang</option>
-                    </select>
-
-                    <select id="edit-status-select">
-                        <option value="not-started">Belum Dimulai</option>
-                        <option value="in-progress">Sedang Berjalan</option>
-                        <option value="completed">Selesai</option>
-                    </select>
-
-                    <div class="milestone-checkbox">
-                        <input type="checkbox" id="edit-milestone-check">
-                        <label for="edit-milestone-check">Tandai sebagai Milestone</label>
-                    </div>
-
-                    <textarea id="edit-lesson-learned" placeholder="Pembelajaran/Refleksi"></textarea>
-                    <input type="url" id="edit-reference-link" placeholder="Link Referensi">
-                    <textarea id="edit-progress-notes" placeholder="Catatan Progress"></textarea>
-                </div>
-
-                <input id="edit-item-id" type="hidden">
-                <input id="edit-kategori" type="hidden">
-                
-                <button class="btn-submit" type="submit">Simpan Perubahan</button>
-                <button class="btn-cancel" type="button" id="cancel-edit">Batal</button>
-            </form>
-        </div>
-    </div>
 </main>
+
+<div class="modal" id="edit-modal">
+    <div class="modal-content">
+        <span class="close">×</span>
+        <h2>Edit Item</h2>
+        <form id="edit-form">
+            <input id="edit-item-input" required>
+            <input id="edit-tanggal-input" type="date" required>
+            <textarea id="edit-deskripsi-input"></textarea>
+            <div class="target-fields" id="edit-target-fields">
+                <select id="edit-timeframe-select">
+                    <option value="">Pilih Jangka Waktu</option>
+                    <option value="short">Jangka Pendek</option>
+                    <option value="long">Jangka Panjang</option>
+                </select>
+                <select id="edit-status-select">
+                    <option value="not-started">Belum Dimulai</option>
+                    <option value="in-progress">Sedang Berjalan</option>
+                    <option value="completed">Selesai</option>
+                </select>
+                <div class="milestone-checkbox">
+                    <input id="edit-milestone-check" type="checkbox">
+                    <label for="edit-milestone-check">Tandai sebagai Milestone</label>
+                </div>
+                <textarea id="edit-lesson-learned" placeholder="Pembelajaran/Refleksi"></textarea>
+                <input id="edit-reference-link" type="url" placeholder="Link Referensi">
+                <textarea id="edit-progress-notes" placeholder="Catatan Progress"></textarea>
+            </div>
+            <input id="edit-item-id" type="hidden">
+            <input id="edit-kategori" type="hidden">
+            <button class="btn-submit" type="submit">Simpan Perubahan</button>
+            <button class="btn-cancel" type="button" id="cancel-edit">Batal</button>
+        </form>
+    </div>
+</div>
+
+<div class="loading-indicator" id="loading-indicator">
+    <div class="spinner"></div>
+    <p>Menyimpan data...</p>
+</div>
+
 <link rel="stylesheet" href="/css/pengembanganDiri.css">
 <script type="module" src="/js/pengembanganDiri.js"></script>
 
