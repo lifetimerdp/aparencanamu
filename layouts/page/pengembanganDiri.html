@@ -1,225 +1,122 @@
 {{ define "main" }}
 <main class="container">
-    <h1 class="page-title">Pengembangan Diri</h1>
-    
-    <nav class="tab-nav">
-        <ul>
-            <li><a href="#form-section" class="active">Input Data</a></li>
-            <li><a href="#target-section">Target</a></li>
-            <li><a href="#learning-section">Pembelajaran</a></li>
-            <li><a href="#achievement-section">Prestasi</a></li>
-        </ul>
+    <h1 class="page-title">📈 Pengembangan Diri</h1>
+    <button id="theme-toggle" aria-label="Toggle theme">🌙</button>
+    <div class="chart-container" id="progress-chart">
+	    <h2>📊 Progress Pengembangan Diri</h2>
+	    <div class="chart-bars"></div>
+	  </div>
+    <nav class="main-nav">
+        <div class="desktop-tabs">
+            <a aria-selected="true" href="#form-section" role="tab" class="active">➕ Input Baru</a>
+            <a aria-selected="false" href="#progress-section" role="tab">📊 Progress</a>
+            <a aria-selected="false" href="#target-section" role="tab">🎯 Target</a>
+            <a aria-selected="false" href="#learning-section" role="tab">📚 Pembelajaran</a>
+        </div>
+        <select class="mobile-dropdown">
+            <option value="#form-section">➕ Input Baru</option>
+            <option value="#progress-section">📊 Progress</option>
+            <option value="#target-section">🎯 Target</option>
+            <option value="#learning-section">📚 Pembelajaran</option>
+        </select>
     </nav>
 
-    <div class="quick-nav">
-        <select id="quick-jump">
-            <option value="">Langsung ke...</option>
-            <option value="target">Target</option>
-            <option value="booksRead">Buku</option>
-            <option value="coursesTaken">Kursus</option>
-            <option value="hobbiesInterests">Hobi</option>
-            <option value="keterampilan">Keterampilan</option>
-            <option value="prestasi">Prestasi</option>
-            <option value="sertifikasi">Sertifikasi</option>
-            <option value="catatan">Catatan</option>
-        </select>
-    </div>
-
-    <section class="active tab-content" id="form-section">
-        <div class="form-container">
-            <div class="form-wizard">
+    <section class="active form-section" id="form-section">
+        <div class="form-wizard">
+            <div class="wizard-header">
+                <div class="wizard-progress">
+                    <div class="progress-bar" style="width: 33%"></div>
+                </div>
                 <div class="wizard-steps">
-                    <div class="step active">1. Kategori</div>
+                    <div class="active step">1. Kategori</div>
                     <div class="step">2. Detail</div>
                     <div class="step">3. Konfirmasi</div>
                 </div>
-
-                <form class="wizard-form" id="pengembangan-form">
-                    <div class="wizard-panel active">
-                        <div class="input-group">
-                            <label for="kategori-select">Pilih Kategori</label>
-                            <select id="kategori-select" required>
-                                <option value="">Pilih Kategori</option>
-                                <option value="target">Target</option>
-                                <option value="booksRead">Buku yang Dibaca</option>
-                                <option value="coursesTaken">Kursus yang Diikuti</option>
-                                <option value="hobbiesInterests">Hobi dan Minat</option>
-                                <option value="keterampilan">Keterampilan</option>
-                                <option value="prestasi">Prestasi</option>
-                                <option value="sertifikasi">Sertifikasi</option>
-                                <option value="catatan">Catatan Pembelajaran</option>
-                            </select>
-                            <div class="input-help">
-                                <i class="help-icon">?</i>
-                                <span class="tooltip">Pilih kategori yang sesuai untuk item baru Anda</span>
-                            </div>
-                        </div>
-                        <button class="btn-next" type="button">Lanjut</button>
+            </div>
+            <form class="wizard-form" id="pengembangan-form">
+                <div class="active wizard-panel" data-step="1">
+                    <div class="input-group">
+                        <label for="kategori-select">Pilih Kategori</label>
+                        <select id="kategori-select" required>
+                            <option value="">Pilih Kategori...</option>
+                            <option value="target">🎯 Target</option>
+                            <option value="booksRead">📚 Buku</option>
+                            <option value="coursesTaken">🎓 Kursus</option>
+                            <option value="hobbiesInterests">🎨 Hobi</option>
+                        </select>
                     </div>
+                    <div class="button-group">
+                        <button class="btn-next" type="button">Lanjut →</button>
+                    </div>
+                </div>
 
-                    <div class="wizard-panel">
+                <div class="wizard-panel" data-step="2">
+                    <div class="input-grid">
                         <div class="input-group">
-                            <label for="item-input">Judul/Nama</label>
+                            <label for="item-input">Judul</label>
                             <input id="item-input" required>
-                            <div class="input-preview"></div>
                         </div>
-
                         <div class="input-group">
                             <label for="tanggal-input">Tanggal</label>
                             <input id="tanggal-input" required type="date">
                         </div>
-
-                        <div class="input-group">
+                        <div class="input-group full-width">
                             <label for="deskripsi-input">Deskripsi</label>
-                            <textarea id="deskripsi-input"></textarea>
-                            <div class="char-count">0/500</div>
-                        </div>
-
-                        <div class="target-fields">
-                            <div class="milestone-checkbox">
-                                <input id="milestone-check" type="checkbox">
-                                <label for="milestone-check">Tandai sebagai Milestone</label>
+                            <textarea id="deskripsi-input" maxlength="500"></textarea>
+                            <div class="input-footer">
+                                <span class="char-count">0/500</span>
+                                <span class="input-hint">ⓘ Wajib diisi</span>
                             </div>
-                            <select id="milestone-type" disabled>
-                                <option value="">Pilih Tipe Milestone</option>
-                                <option value="short">Jangka Pendek</option>
-                                <option value="long">Jangka Panjang</option>
-                            </select>
-                            <select id="status-select" required>
-                                <option value="not-started">Belum Dimulai</option>
-                                <option value="in-progress">Sedang Berjalan</option>
-                                <option value="completed">Selesai</option>
-                            </select>
-                            <textarea id="lesson-learned" placeholder="Pembelajaran/Refleksi"></textarea>
-                            <input id="reference-link" type="url" placeholder="Link Referensi">
-                            <textarea id="progress-notes" placeholder="Catatan Progress"></textarea>
-                        </div>
-
-                        <div class="button-group">
-                            <button class="btn-prev" type="button">Kembali</button>
-                            <button class="btn-next" type="button">Pratinjau</button>
                         </div>
                     </div>
-
-                    <div class="wizard-panel">
-                        <div class="preview-container">
-                            <h3>Pratinjau Data</h3>
-                            <div class="preview-content"></div>
-                        </div>
-                        <div class="button-group">
-                            <button class="btn-prev" type="button">Ubah</button>
-                            <button class="btn-submit" type="submit">Simpan</button>
-                        </div>
+                    <div class="button-group">
+                        <button class="btn-prev" type="button">← Kembali</button>
+                        <button class="btn-next" type="button">Lanjut →</button>
                     </div>
-                </form>
-            </div>
+                </div>
+
+                <div class="wizard-panel" data-step="3">
+                    <div class="preview-card">
+                        <h3>🔄 Preview Data</h3>
+                        <div class="preview-content"></div>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-prev" type="button">← Ubah</button>
+                        <button class="btn-submit" type="submit">💾 Simpan</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </section>
 
-    <div class="data-sections">
-        <section class="data-section" id="target">
-            <h2>Target</h2>
-            <div class="data-display">
-                <ul class="item-list" id="target-list"></ul>
-                <p class="empty-message" id="target-empty">Belum ada target yang ditambahkan</p>
-            </div>
-        </section>
-
-        <section class="data-section" id="books-read">
-            <h2>Buku yang Dibaca</h2>
-            <div class="data-display">
-                <ul class="item-list" id="books-read-list"></ul>
-                <p class="empty-message" id="books-read-empty">Belum ada buku yang ditambahkan</p>
-            </div>
-        </section>
-
-        <section class="data-section" id="courses-taken">
-            <h2>Kursus yang Diikuti</h2>
-            <div class="data-display">
-                <ul class="item-list" id="courses-taken-list"></ul>
-                <p class="empty-message" id="courses-taken-empty">Belum ada kursus yang ditambahkan</p>
-            </div>
-        </section>
-
-        <section class="data-section" id="hobbies-interests">
-            <h2>Hobi dan Minat</h2>
-            <div class="data-display">
-                <ul class="item-list" id="hobbies-interests-list"></ul>
-                <p class="empty-message" id="hobbies-interests-empty">Belum ada hobi yang ditambahkan</p>
-            </div>
-        </section>
-
-        <section class="data-section" id="keterampilan">
-            <h2>Keterampilan</h2>
-            <div class="data-display">
-                <ul class="item-list" id="keterampilan-list"></ul>
-                <p class="empty-message" id="keterampilan-empty">Belum ada keterampilan yang ditambahkan</p>
-            </div>
-        </section>
-
-        <section class="data-section" id="prestasi">
-            <h2>Prestasi</h2>
-            <div class="data-display">
-                <ul class="item-list" id="prestasi-list"></ul>
-                <p class="empty-message" id="prestasi-empty">Belum ada prestasi yang ditambahkan</p>
-            </div>
-        </section>
-
-        <section class="data-section" id="sertifikasi">
-            <h2>Sertifikasi</h2>
-            <div class="data-display">
-                <ul class="item-list" id="sertifikasi-list"></ul>
-                <p class="empty-message" id="sertifikasi-empty">Belum ada sertifikasi yang ditambahkan</p>
-            </div>
-        </section>
-
-        <section class="data-section" id="catatan">
-            <h2>Catatan Pembelajaran</h2>
-            <div class="data-display">
-                <ul class="item-list" id="catatan-list"></ul>
-                <p class="empty-message" id="catatan-empty">Belum ada catatan yang ditambahkan</p>
-            </div>
-        </section>
-    </div>
-</main>
-<div class="modal" id="edit-modal">
-    <div class="modal-content">
-        <span class="close">×</span>
-        <h2>Edit Item</h2>
-        <form id="edit-form">
-            <input id="edit-item-input" required>
-            <input id="edit-tanggal-input" type="date" required>
-            <textarea id="edit-deskripsi-input"></textarea>
-            <div class="target-fields" id="edit-target-fields">
-                <select id="edit-timeframe-select">
-                    <option value="">Pilih Jangka Waktu</option>
-                    <option value="short">Jangka Pendek</option>
-                    <option value="long">Jangka Panjang</option>
-                </select>
-                <select id="edit-status-select">
-                    <option value="not-started">Belum Dimulai</option>
-                    <option value="in-progress">Sedang Berjalan</option>
-                    <option value="completed">Selesai</option>
-                </select>
-                <div class="milestone-checkbox">
-                    <input id="edit-milestone-check" type="checkbox">
-                    <label for="edit-milestone-check">Tandai sebagai Milestone</label>
+    <div class="data-grid" id="data-sections">
+        <template id="section-template">
+            <section class="data-card">
+                <div class="card-header">
+                    <h2 class="section-title"></h2>
+                    <input class="search-bar" placeholder="Cari...">
+                    <button class="btn-add">＋ Tambah</button>
                 </div>
-                <textarea id="edit-lesson-learned" placeholder="Pembelajaran/Refleksi"></textarea>
-                <input id="edit-reference-link" type="url" placeholder="Link Referensi">
-                <textarea id="edit-progress-notes" placeholder="Catatan Progress"></textarea>
-            </div>
-            <input id="edit-item-id" type="hidden">
-            <input id="edit-kategori" type="hidden">
-            <button class="btn-submit" type="submit">Simpan Perubahan</button>
-            <button class="btn-cancel" type="button" id="cancel-edit">Batal</button>
-        </form>
+                <div class="card-content">
+                    <ul class="item-list"></ul>
+                    <p class="empty-state">📭 Belum ada data</p>
+                </div>
+            </section>
+        </template>
     </div>
-</div>
-<div class="loading-indicator" id="loading-indicator">
-    <div class="spinner"></div>
-    <p>Menyimpan data...</p>
-</div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>✏️ Edit Item</h2>
+                <button class="btn-close" aria-label="Close">×</button>
+            </div>
+            <form class="modal-body" id="edit-form"></form>
+        </div>
+    </div>
+
+    <div id="toast-container" aria-live="polite"></div>
+</main>
 <link rel="stylesheet" href="{{ "css/pengembanganDiri.css" | relURL }}">
 <script type="module" src="{{ "js/pengembanganDiri.js" | relURL }}"></script>
 {{ end }}

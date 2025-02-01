@@ -9,6 +9,11 @@ html, body {
     overflow-x: hidden;
 }
 
+img, svg {
+  max-width: 100%;
+  height: auto;
+}
+
 .hidden {
   display: none;
 }
@@ -18,8 +23,7 @@ html, body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-}
-:root {
+}:root {
   --header-height: 80px;
 }
 

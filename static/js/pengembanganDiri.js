@@ -1,836 +1,519 @@
 import { auth, db } from "./firebaseConfig.js";
-import { getDoc, doc, updateDoc, setDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const CATEGORIES = ["booksRead", "coursesTaken", "hobbiesInterests", "keterampilan", "prestasi", "target", "sertifikasi", "catatan"];
-const CATEGORY_LABELS = {
-    booksRead: "Buku Dibaca",
-    coursesTaken: "Kursus Diikuti",
-    hobbiesInterests: "Hobi & Minat",
-    keterampilan: "Keterampilan",
-    prestasi: "Prestasi",
-    target: "Target",
-    sertifikasi: "Sertifikasi",
-    catatan: "Catatan"
+const CATEGORIES = {
+  target: { icon: '🎯', label: 'Target' },
+  booksRead: { icon: '📚', label: 'Buku' },
+  coursesTaken: { icon: '🎓', label: 'Kursus' },
+  hobbiesInterests: { icon: '🎨', label: 'Hobi' },
+  keterampilan: { icon: '🛠️', label: 'Keterampilan' },
+  prestasi: { icon: '🏆', label: 'Prestasi' },
+  sertifikasi: { icon: '📜', label: 'Sertifikasi' },
+  catatan: { icon: '📝', label: 'Catatan' }
 };
 
-const DOM = {
-    form: document.getElementById("pengembangan-form"),
-    kategoriSelect: document.getElementById("kategori-select"),
-    itemInput: document.getElementById("item-input"),
-    tanggalInput: document.getElementById("tanggal-input"),
-    deskripsiInput: document.getElementById("deskripsi-input"),
-    editModal: document.getElementById("edit-modal"),
-    editForm: document.getElementById("edit-form"),
-    editItemInput: document.getElementById("edit-item-input"),
-    editTanggalInput: document.getElementById("edit-tanggal-input"),
-    editDeskripsiInput: document.getElementById("edit-deskripsi-input"),
-    editItemId: document.getElementById("edit-item-id"),
-    editKategori: document.getElementById("edit-kategori"),
-    closeModal: document.querySelector(".close"),
-    cancelEdit: document.getElementById("cancel-edit"),
-};
-
-const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
-
-const formatDate = (timestamp) => (timestamp ? timestamp.toDate().toISOString().split("T")[0] : "");
-
-const createItemData = (title, date, description = "") => ({
-    id: generateId(),
-    title,
-    date: Timestamp.fromDate(new Date(date)),
-    description,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now()
-});
-
-const STATUS_OPTIONS = {
-  'not-started': 'Belum Dimulai',
-  'in-progress': 'Sedang Berjalan', 
-  'completed': 'Selesai'
-};
-
-const TIMEFRAME_OPTIONS = {
-  'short': 'Jangka Pendek',
-  'long': 'Jangka Panjang'
-};
-
-const createTargetData = (
-  title, 
-  date, 
-  description = "",
-  timeframe = "short",
-  status = "not-started",
-  isMilestone = false,
-  lessonLearned = "",
-  referenceLink = "",
-  progressNotes = "",
-  relatedCategories = []
-) => ({
-  ...createItemData(title, date, description),
-  timeframe,
-  status,
-  isMilestone,
-  lessonLearned,
-  referenceLink,
-  progressNotes,
-  relatedCategories
-});
-
-const filterAndSearchItems = (items, filters) => {
-  if (!items) return [];
-  
-  return items.filter(item => {
-    const matchesStatus = !filters.status || item.status === filters.status;
-    const matchesTimeframe = !filters.timeframe || item.timeframe === filters.timeframe;
-    const matchesSearch = !filters.search || 
-      item.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-      item.description.toLowerCase().includes(filters.search.toLowerCase());
-    
-    return matchesStatus && matchesTimeframe && matchesSearch;
-  });
-};
-
-// Tambahkan fungsi untuk mengurutkan items
-const sortItems = (items, sortType) => {
-  if (!items) return [];
-  
-  const sortedItems = [...items];
-  switch(sortType) {
-    case 'date-desc':
-      return sortedItems.sort((a, b) => b.date.seconds - a.date.seconds);
-    case 'date-asc':
-      return sortedItems.sort((a, b) => a.date.seconds - b.date.seconds);
-    case 'status':
-      return sortedItems.sort((a, b) => {
-        const statusOrder = {'completed': 1, 'in-progress': 2, 'not-started': 3};
-        return statusOrder[a.status] - statusOrder[b.status];
-      });
-    default:
-      return sortedItems;
+class DevelopmentManager {
+  constructor() {
+    this.currentStep = 0;
+    this.formData = {};
+    this.userData = {};
+    this.editFormSubmitHandler = null;
+    this.debounceTimer = null;
+    this.init();
   }
-};
 
-const getCategoryLabel = (category) => CATEGORY_LABELS[category] || category;
+  async init() {
+    this.initDOM();
+    this.setupEventListeners();
+    this.authStateHandler();
+    this.setDefaultDate();
+    this.populateKategoriOptions();
+    this.setupThemeToggle();
+  }
 
-function enhanceSuccessMessage(message, kategori = null, action = null, name = null) {
-    const existingNotification = document.querySelector(".success-message");
-    if (existingNotification) {
-        existingNotification.remove();
+  initDOM() {
+    this.dom = {
+      formWizard: document.querySelector('.form-wizard'),
+      wizardPanels: document.querySelectorAll('.wizard-panel'),
+      btnPrev: document.querySelectorAll('.btn-prev'),
+      btnNext: document.querySelectorAll('.btn-next'),
+      kategoriSelect: document.getElementById('kategori-select'),
+      itemInput: document.getElementById('item-input'),
+      tanggalInput: document.getElementById('tanggal-input'),
+      deskripsiInput: document.getElementById('deskripsi-input'),
+      dataGrid: document.getElementById('data-sections'),
+      sectionTemplate: document.getElementById('section-template'),
+      modal: document.getElementById('modal'),
+      editForm: document.getElementById('edit-form'),
+      themeToggle: document.getElementById('theme-toggle')
+    };
+  }
+
+  setupEventListeners() {
+    // Navigation
+    document.querySelectorAll('.desktop-tabs a').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = tab.getAttribute('href');
+        this.showSection(target);
+      });
+    });
+
+    document.querySelector('.mobile-dropdown').addEventListener('change', (e) => {
+      this.showSection(e.target.value);
+    });
+
+    // Form Navigation
+    this.dom.btnPrev.forEach(btn => 
+      btn.addEventListener('click', () => this.handlePrevStep()));
+    this.dom.btnNext.forEach(btn => 
+      btn.addEventListener('click', () => this.handleNextStep()));
+
+    // Form Submission
+    document.getElementById('pengembangan-form').addEventListener('submit', 
+      (e) => this.handleFormSubmit(e));
+
+    // Dynamic Elements
+    this.dom.dataGrid.addEventListener('click', (e) => this.handleDynamicElements(e));
+    this.dom.dataGrid.addEventListener('input', 
+      (e) => this.handleSearchInput(e));
+
+    // Character Count
+    this.dom.deskripsiInput.addEventListener('input', () => 
+      this.updateCharacterCount());
+
+    // Modal Close
+    this.dom.modal.querySelector('.btn-close').addEventListener('click', 
+      () => this.toggleModal());
+  }
+
+  setupThemeToggle() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      document.body.classList.add(savedTheme);
+      this.dom.themeToggle.textContent = savedTheme === 'dark-mode' ? '☀️' : '🌙';
     }
 
-    const successElement = document.createElement("div");
-    successElement.className = "success-message";
+    this.dom.themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      localStorage.setItem('theme', isDarkMode ? 'dark-mode' : '');
+      this.dom.themeToggle.textContent = isDarkMode ? '☀️' : '🌙';
+    });
+  }
 
-    const successMessages = {
-        booksRead: [
-            "1 buku baru membuka jendela pengetahuan barumu.",
-            "Setiap buku adalah perjalanan ilmu yang menakjubkan.",
-            "Membaca adalah investasi terbaik untuk dirimu.",
-            "Satu buku, seribu pengalaman baru."
-        ],
-        coursesTaken: [
-            "Kursus baru = Skill baru dikembangkan!",
-            "Terus belajar, terus tumbuh.",
-            "Pengetahuan adalah kekuatan, dan kamu baru saja mendapatkannya.",
-            "Selamat pada langkah pembelajaran barumu!"
-        ],
-        hobbiesInterests: [
-            "Hobi adalah jendela kebahagiaan dan kreativitasmu.",
-            "Setiap minat baru adalah potensi tersembunyi.",
-            "Kamu baru saja menambah warna pada kehidupanmu.",
-            "Hobi membuat hidup terasa lebih berarti."
-        ],
-        keterampilan: [
-            "Skill baru, kesempatan baru!",
-            "Setiap keterampilan adalah senjata untuk masa depan.",
-            "Kamu baru saja memperluas peta kemampuanmu.",
-            "Terus asah, terus kembangkan potensimu."
-        ],
-        prestasi: [
-            "Setiap prestasi adalah bukti kerja kerasmu.",
-            "Kamu layak berbangga dengan pencapaianmu!",
-            "Prestasi kecil hari ini, kesuksesan besar besok.",
-            "Terus ukir prestasi, terus inspirasi."
-        ],
-        target: [
-            "Target baru = Mimpi baru yang akan diwujudkan!",
-            "Setiap target adalah kompas perjalananmu.",
-            "Kamu baru saja membuat peta masa depanmu.",
-            "Tetap fokus, target akan tercapai."
-        ],
-        sertifikasi: [
-            "Sertifikasi baru, kredibilitas bertambah!",
-            "Selamat pada pengakuan profesionalitasmu.",
-            "Sertifikasi adalah bukti komitmen belajarmu.",
-            "Terus kembangkan diri melalui sertifikasi."
-        ],
-        catatan: [
-            "Catatan adalah jembatan antara pikiran dan aksi.",
-            "Setiap catatan adalah langkah refleksi dirimu.",
-            "Kamu baru saja merekam momen pertumbuhanmu.",
-            "Terus catat, terus pelajari."
-        ],
-    };
+  showSection(sectionId) {
+    document.querySelectorAll('section').forEach(section => {
+      section.classList.remove('active');
+    });
+    document.querySelector(sectionId).classList.add('active');
+    
+    document.querySelectorAll('.desktop-tabs a').forEach(tab => {
+      tab.classList.toggle('active', tab.getAttribute('href') === sectionId);
+    });
+  }
 
-    const actionMessages = {
-        diperbarui: "telah diperbarui. Terus kembangkan dirimu!",
-        dihapus: "telah dihapus. Tetap fokus pada tujuanmu!"
-    };
+  async authStateHandler() {
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return (window.location.href = '/masuk');
+      await this.loadUserData(user.uid);
+      this.renderDataSections();
+    });
+  }
 
-    let successText;
-    if (action && name) {
-        const categoryLabel = getCategoryLabel(kategori);
-        successText = `${categoryLabel} "${name}" ${actionMessages[action]}`;
-    } else {
-        const categoryMessages = successMessages[kategori] || [
-            "Keren! Kamu baru saja menambahkan langkah maju dalam perkembanganmu.",
-            "Setiap langkah kecil adalah kemajuan besar.",
-            "Terus berkembang, terus tumbuh!"
-        ];
-        successText = categoryMessages[Math.floor(Math.random() * categoryMessages.length)];
+  handleNextStep() {
+    if (!this.validateStep()) return;
+    this.currentStep++;
+    this.updateWizard();
+  }
+
+  handlePrevStep() {
+    this.currentStep--;
+    this.updateWizard();
+  }
+
+  validateStep() {
+    const currentPanel = this.dom.wizardPanels[this.currentStep];
+    const requiredFields = currentPanel.querySelectorAll('[required]');
+    let isValid = true;
+
+    requiredFields.forEach(field => {
+      if (!field.checkValidity()) {
+        field.reportValidity();
+        isValid = false;
+      }
+    });
+
+    return isValid;
+  }
+
+  updateWizard() {
+    const progress = ((this.currentStep + 1) / this.dom.wizardPanels.length) * 100;
+    this.dom.formWizard.querySelector('.progress-bar').style.width = `${progress}%`;
+    
+    this.dom.wizardPanels.forEach((panel, index) => {
+      panel.classList.toggle('active', index === this.currentStep);
+    });
+
+    if (this.currentStep === 2) {
+      this.updatePreview();
     }
+  }
 
-    successElement.textContent = successText;
-    document.body.appendChild(successElement);
+  updatePreview() {
+    const previewContent = this.dom.formWizard.querySelector('.preview-content');
+    previewContent.innerHTML = `
+      <p><strong>Kategori:</strong> ${CATEGORIES[this.dom.kategoriSelect.value].label}</p>
+      <p><strong>Judul:</strong> ${this.dom.itemInput.value}</p>
+      <p><strong>Tanggal:</strong> ${new Date(this.dom.tanggalInput.value).toLocaleDateString('id-ID')}</p>
+      ${this.dom.deskripsiInput.value ? `<p><strong>Deskripsi:</strong> ${this.dom.deskripsiInput.value}</p>` : ''}
+    `;
+  }
+
+  async handleFormSubmit(e) {
+    e.preventDefault();
+    this.showLoading();
+    
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const itemData = {
+        id: this.generateId(),
+        title: this.dom.itemInput.value.trim(),
+        date: Timestamp.fromDate(new Date(this.dom.tanggalInput.value)),
+        description: this.dom.deskripsiInput.value.trim(),
+        category: this.dom.kategoriSelect.value,
+        createdAt: Timestamp.now(),
+      };
+
+      await this.saveToFirebase(user.uid, itemData);
+      this.resetForm();
+      this.showNotification('Data berhasil disimpan!', 'success');
+      await this.loadUserData(user.uid);
+      this.renderDataSections();
+    } catch (error) {
+      this.showNotification(`Gagal menyimpan: ${error.message}`, 'error');
+    } finally {
+      this.hideLoading();
+    }
+  }
+
+  showLoading() {
+    const button = this.dom.formWizard.querySelector('.btn-submit');
+    button.innerHTML = `<div class="loading-spinner"></div>`;
+    button.disabled = true;
+  }
+
+  hideLoading() {
+    const button = this.dom.formWizard.querySelector('.btn-submit');
+    button.innerHTML = '💾 Simpan';
+    button.disabled = false;
+  }
+
+  showNotification(message, type = 'success') {
+    const toastContainer = document.getElementById('toast-container');
+    const existing = toastContainer.querySelector('.notification');
+    if (existing) existing.remove();
+
+    const notification = document.createElement('div');
+    notification.className = `notification ${type === 'error' ? 'error' : ''}`;
+    notification.textContent = message;
+    toastContainer.appendChild(notification);
 
     setTimeout(() => {
-        successElement.style.opacity = "0";
-        setTimeout(() => {
-            successElement.remove();
-        }, 500);
+      notification.remove();
     }, 3000);
-}
-
-const createProgressSummary = (userData) => {
-    const progressGrid = document.createElement("div");
-    progressGrid.className = "progress-grid";
-
-    CATEGORIES.forEach((category) => {
-        const items = userData[category] || [];
-        const card = document.createElement("div");
-        card.className = "progress-card";
-        card.innerHTML = `
-            <div class="progress-number">${items.length}</div>
-            <div class="progress-label">${getCategoryLabel(category)}</div>
-        `;
-        progressGrid.appendChild(card);
-    });
-
-    const progressContainer = document.createElement("div");
-    progressContainer.className = "progress-container";
-    progressContainer.appendChild(progressGrid);
-    return progressContainer;
-};
-
-const showEditModal = (item, kategori) => {
-    DOM.editItemInput.value = item.title;
-    DOM.editTanggalInput.value = formatDate(item.date);
-    DOM.editDeskripsiInput.value = item.description || "";
-    DOM.editItemId.value = item.id;
-    DOM.editKategori.value = kategori;
-    DOM.editModal.style.display = "block";
-
-    if (kategori === 'target') {
-        // Add target-specific fields to edit modal
-        const existingTargetFields = DOM.editForm.querySelector('.target-fields');
-        if (!existingTargetFields) {
-            const targetFields = document.createElement('div');
-            targetFields.className = 'target-fields active';
-            targetFields.innerHTML = `
-                <div class="milestone-checkbox">
-                    <input type="checkbox" id="edit-milestone-check" ${item.isMilestone ? 'checked' : ''}>
-                    <label for="edit-milestone-check">Tandai sebagai Milestone</label>
-                </div>
-                <select id="edit-milestone-type" ${!item.isMilestone ? 'disabled' : ''}>
-                    <option value="">Pilih Tipe Milestone</option>
-                    <option value="short" ${item.milestoneType === 'short' ? 'selected' : ''}>Jangka Pendek</option>
-                    <option value="long" ${item.milestoneType === 'long' ? 'selected' : ''}>Jangka Panjang</option>
-                </select>
-                <select id="edit-status-select" required>
-                    <option value="not-started" ${item.status === 'not-started' ? 'selected' : ''}>Belum Dimulai</option>
-                    <option value="in-progress" ${item.status === 'in-progress' ? 'selected' : ''}>Sedang Berjalan</option>
-                    <option value="completed" ${item.status === 'completed' ? 'selected' : ''}>Selesai</option>
-                </select>
-                <div class="related-categories-select">
-                    <label>Kategori Terkait:</label>
-                    <select id="edit-related-categories" multiple>
-                        ${CATEGORIES.filter(cat => cat !== 'target').map(cat => 
-                            `<option value="${cat}" ${item.relatedCategories?.includes(cat) ? 'selected' : ''}>${CATEGORY_LABELS[cat]}</option>`
-                        ).join('')}
-                    </select>
-                </div>
-            `;
-            DOM.editForm.insertBefore(targetFields, DOM.editForm.querySelector('button'));
-
-            document.getElementById('edit-milestone-check').addEventListener('change', (e) => {
-                document.getElementById('edit-milestone-type').disabled = !e.target.checked;
-            });
-        }
-    }
-    updatePreview();
-};
-
-const closeEditModal = () => {
-    DOM.editModal.style.display = "none";
-    DOM.editForm.reset();
-    const targetFields = DOM.editForm.querySelector('.target-fields');
-    if (targetFields) {
-        targetFields.remove();
-    }
-};
-
-const renderList = (listElement, emptyElement, items, kategori) => {
-    if (kategori === 'target') {
-        renderTargetList(listElement, emptyElement, items);
-        return;
-    }
-
-    if (!items || items.length === 0) {
-        listElement.style.display = "none";
-        emptyElement.style.display = "block";
-        return;
-    }
-
-    listElement.style.display = "block";
-    emptyElement.style.display = "none";
-    listElement.innerHTML = "";
-
-    items.sort((a, b) => b.date.seconds - a.date.seconds).forEach((item) => {
-        const li = document.createElement("li");
-        li.className = "item-card";
-        const date = item.date.toDate().toLocaleDateString("id-ID", {
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-        });
-
-        li.innerHTML = `
-            <div class="item-header">
-                <h3>${item.title}</h3>
-                <span class="date">${date}</span>
-            </div>
-            ${item.description ? `<p class="description">${item.description}</p>` : ""}
-            <div class="item-actions">
-                <button class="edit-btn" data-id="${item.id}">Edit</button>
-                <button class="delete-btn" data-id="${item.id}">Hapus</button>
-            </div>
-        `;
-
-        li.querySelector(".edit-btn").onclick = () => showEditModal(item, kategori);
-        li.querySelector(".delete-btn").onclick = () => deleteItem(item, kategori);
-        listElement.appendChild(li);
-    });
-};
-
-const renderTargetList = (listElement, emptyElement, items) => {
-  if (!items || items.length === 0) {
-    listElement.style.display = "none";
-    emptyElement.style.display = "block";
-    return;
   }
 
-  listElement.style.display = "block";
-  emptyElement.style.display = "none";
+  resetForm() {
+    this.currentStep = 0;
+    this.updateWizard();
+    this.dom.formWizard.querySelector('form').reset();
+    this.setDefaultDate();
+  }
 
-  const journeyContainer = document.createElement('div');
-  journeyContainer.className = 'journey-container';
-  
-  const journeyPath = document.createElement('div');
-  journeyPath.className = 'journey-path';
-  
-  const journeyLine = document.createElement('div');
-  journeyLine.className = 'journey-line';
-  journeyPath.appendChild(journeyLine);
+  setDefaultDate() {
+    this.dom.tanggalInput.value = new Date().toISOString().split('T')[0];
+  }
 
-  items.forEach(item => {
-    const journeyItem = document.createElement('div');
-    journeyItem.className = `journey-item status-${item.status || 'not-started'} timeframe-${item.timeframe || 'short'}`;
-    if (item.isMilestone) journeyItem.classList.add('milestone');
-
-    const date = item.date.toDate().toLocaleDateString("id-ID", {
-      year: "numeric",
-      month: "long",
-      day: "numeric"
+  populateKategoriOptions() {
+    const select = this.dom.kategoriSelect;
+    select.innerHTML = '<option value="">Pilih Kategori...</option>';
+    
+    Object.entries(CATEGORIES).forEach(([value, category]) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = `${category.icon} ${category.label}`;
+      select.appendChild(option);
     });
+  }
 
-    journeyItem.innerHTML = `
-      <h3>${item.title}</h3>
-      <span class="date">${date}</span>
-      ${item.description ? `<p class="description">${item.description}</p>` : ''}
-      <div class="target-details">
-        <p class="timeframe">Jangka Waktu: ${TIMEFRAME_OPTIONS[item.timeframe]}</p>
-        <p class="status">Status: ${STATUS_OPTIONS[item.status]}</p>
-        ${item.lessonLearned ? `<p class="lesson">Pembelajaran: ${item.lessonLearned}</p>` : ''}
-        ${item.referenceLink ? `<p class="reference">Referensi: <a href="${item.referenceLink}" target="_blank">Link</a></p>` : ''}
-        ${item.progressNotes ? `<p class="progress">Progress: ${item.progressNotes}</p>` : ''}
+  renderDataSections() {
+    this.dom.dataGrid.innerHTML = '';
+    Object.entries(CATEGORIES).forEach(([key, category]) => {
+      const section = this.dom.sectionTemplate.content.cloneNode(true);
+      section.querySelector('.section-title').textContent = `${category.icon} ${category.label}`;
+      section.querySelector('.data-card').id = `${key}-section`;
+      section.querySelector('.btn-add').dataset.category = key;
+      this.dom.dataGrid.appendChild(section);
+    });
+    
+    this.renderAllItems();
+  }
+
+  renderAllItems() {
+    Object.keys(CATEGORIES).forEach(category => {
+      const listElement = document.querySelector(`#${category}-section .item-list`);
+      const emptyState = document.querySelector(`#${category}-section .empty-state`);
+      const items = this.userData[category] || [];
+      this.renderItems(listElement, emptyState, items, category);
+    });
+  }
+
+  renderItems(listElement, emptyState, items, category) {
+    listElement.innerHTML = '';
+    
+    if (items.length === 0) {
+      emptyState.style.display = 'block';
+      return;
+    }
+
+    emptyState.style.display = 'none';
+    items.forEach(item => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div>
+          <h3>${item.title}</h3>
+          <small>${item.date.toDate().toLocaleDateString('id-ID')}</small>
+        </div>
+        <div class="item-actions">
+          <button class="btn-edit" data-id="${item.id}" data-category="${category}">✏️</button>
+          <button class="btn-delete" data-id="${item.id}" data-category="${category}">🗑️</button>
+        </div>
+      `;
+      listElement.appendChild(li);
+    });
+  }
+
+  handleDynamicElements(e) {
+    const target = e.target;
+    
+    if (target.classList.contains('btn-add')) {
+      this.handleAddItem(target.dataset.category);
+    }
+    
+    if (target.classList.contains('btn-edit')) {
+      this.handleEditItem(target.dataset.id, target.dataset.category);
+    }
+    
+    if (target.classList.contains('btn-delete')) {
+      this.handleDeleteItem(target.dataset.id, target.dataset.category);
+    }
+  }
+
+  handleAddItem(category) {
+    this.dom.kategoriSelect.value = category;
+    document.querySelector('#form-section').scrollIntoView({ behavior: 'smooth' });
+    this.handleNextStep();
+  }
+
+  async handleEditItem(itemId, category) {
+    const item = this.userData[category]?.find(i => i.id === itemId);
+    if (!item) return;
+
+    const editFormHTML = `
+      <div class="input-group">
+        <label for="edit-title">Judul</label>
+        <input id="edit-title" value="${item.title}" required>
       </div>
-      ${item.relatedCategories?.length ? 
-        `<div class="related-categories">
-          ${item.relatedCategories.map(cat => 
-            `<span class="category-tag">${CATEGORY_LABELS[cat]}</span>`
-          ).join('')}
-        </div>` : ''
-      }
-      <div class="item-actions">
-        <button class="edit-btn" data-id="${item.id}">Edit</button>
-        <button class="delete-btn" data-id="${item.id}">Hapus</button>
+      <div class="input-group">
+        <label for="edit-date">Tanggal</label>
+        <input type="date" id="edit-date" value="${item.date.toDate().toISOString().split('T')[0]}" required>
+      </div>
+      <div class="input-group">
+        <label for="edit-desc">Deskripsi</label>
+        <textarea id="edit-desc">${item.description || ''}</textarea>
+      </div>
+      <input type="hidden" id="edit-item-id" value="${itemId}">
+      <input type="hidden" id="edit-category" value="${category}">
+      <div class="button-group">
+        <button type="button" class="btn-cancel">Batal</button>
+        <button type="submit" class="btn-submit">Simpan Perubahan</button>
       </div>
     `;
 
-    journeyPath.appendChild(journeyItem);
-  });
+    this.toggleModal(editFormHTML);
 
-  journeyContainer.appendChild(journeyPath);
-  listElement.innerHTML = '';
-  listElement.appendChild(journeyContainer);
-};
-
-const addItem = async (e) => {
-    e.preventDefault();
-    const user = auth.currentUser;
-    showLoading();
-    if (!user) {
-        alert("Silakan login terlebih dahulu");
-        return;
+    if (this.editFormSubmitHandler) {
+      this.dom.editForm.removeEventListener('submit', this.editFormSubmitHandler);
     }
 
-    const kategori = DOM.kategoriSelect.value;
-    if (!kategori) {
-        alert("Silakan pilih kategori");
-        return;
-    }
+    this.dom.editForm.querySelector('.btn-cancel').addEventListener('click', 
+      () => this.toggleModal());
+    
+    this.editFormSubmitHandler = (e) => this.handleUpdateItem(e);
+    this.dom.editForm.addEventListener('submit', this.editFormSubmitHandler);
+  }
 
-    try {
-        let itemData;
-        if (kategori === 'target') {
-            itemData = createTargetData(
-                DOM.itemInput.value.trim(),
-                DOM.tanggalInput.value,
-                DOM.deskripsiInput.value.trim(),
-                document.getElementById('status-select').value,
-                document.getElementById('milestone-check').checked,
-                document.getElementById('milestone-type').value,
-                Array.from(document.getElementById('related-categories').selectedOptions)
-                    .map(option => option.value)
-            );
-        } else {
-            itemData = createItemData(
-                DOM.itemInput.value.trim(),
-                DOM.tanggalInput.value,
-                DOM.deskripsiInput.value.trim()
-            );
-        }
-
-        const docRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(docRef);
-
-        if (!userDoc.exists()) {
-            await setDoc(docRef, { [kategori]: [itemData] });
-        } else {
-            const currentData = userDoc.data()[kategori] || [];
-            await updateDoc(docRef, {
-                [kategori]: [...currentData, itemData]
-            });
-        }
-
-        DOM.form.reset();
-        const targetFields = document.querySelector('.target-fields');
-        if (targetFields) {
-            targetFields.classList.remove('active');
-        }
-        enhanceSuccessMessage("Keren! Kamu baru saja menambahkan langkah maju dalam perkembanganmu.", kategori);
-        await loadUserData();
-    } catch (error) {
-        console.error("Error menambah data:", error);
-        alert("Gagal menambah data. Error: " + error.message);
-    }
-};
-
-const updateItem = async (e) => {
+  async handleUpdateItem(e) {
     e.preventDefault();
     const user = auth.currentUser;
     if (!user) return;
 
-    const itemId = DOM.editItemId.value;
-    const kategori = DOM.editKategori.value;
-    const itemName = DOM.editItemInput.value.trim();
+    const updates = {
+      title: document.getElementById('edit-title').value,
+      date: Timestamp.fromDate(new Date(document.getElementById('edit-date').value)),
+      description: document.getElementById('edit-desc').value,
+      updatedAt: Timestamp.now(),
+    };
 
     try {
-        const docRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(docRef);
-        const currentData = userDoc.data()[kategori] || [];
+      const userRef = doc(db, 'users', user.uid);
+      const category = document.getElementById('edit-category').value;
+      const itemId = document.getElementById('edit-item-id').value;
+      
+      const updatedItems = this.userData[category].map(item => 
+        item.id === itemId ? { ...item, ...updates } : item
+      );
 
-        let updatedData;
-        if (kategori === 'target') {
-            updatedData = currentData.map(item => 
-                item.id === itemId ? {
-                    ...item,
-                    title: itemName,
-                    date: Timestamp.fromDate(new Date(DOM.editTanggalInput.value)),
-                    description: DOM.editDeskripsiInput.value.trim(),
-                    status: document.getElementById('edit-status-select').value,
-                    isMilestone: document.getElementById('edit-milestone-check').checked,
-                    milestoneType: document.getElementById('edit-milestone-type').value,
-                    relatedCategories: Array.from(document.getElementById('edit-related-categories').selectedOptions)
-                        .map(option => option.value),
-                    updatedAt: Timestamp.now()
-                } : item
-            );
-        } else {
-            updatedData = currentData.map(item =>
-                item.id === itemId ? {
-                    ...item,
-                    title: itemName,
-                    date: Timestamp.fromDate(new Date(DOM.editTanggalInput.value)),
-                    description: DOM.editDeskripsiInput.value.trim(),
-                    updatedAt: Timestamp.now()
-                } : item
-            );
-        }
-
-        await updateDoc(docRef, { [kategori]: updatedData });
-        closeEditModal();
-        enhanceSuccessMessage(null, kategori, "diperbarui", itemName);
-        hideLoading();
-        await loadUserData();
+      await updateDoc(userRef, { [category]: updatedItems });
+      this.toggleModal();
+      this.showNotification('Perubahan berhasil disimpan!', 'success');
+      
+      const listElement = document.querySelector(`#${category}-section .item-list`);
+      const emptyState = document.querySelector(`#${category}-section .empty-state`);
+      this.renderItems(listElement, emptyState, updatedItems, category);
     } catch (error) {
-        console.error("Error memperbarui data:", error);
-        alert("Gagal memperbarui data. Error: " + error.message);
+      this.showNotification(`Gagal menyimpan perubahan: ${error.message}`, 'error');
     }
-};
+  }
 
-const deleteItem = async (item, kategori) => {
-    if (!confirm("Yakin ingin menghapus item ini?")) return;
-
-    const user = auth.currentUser;
-    if (!user) return;
-
+  async handleDeleteItem(itemId, category) {
+    if (!confirm('Apakah Anda yakin ingin menghapus item ini?')) return;
+    
     try {
-        const docRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(docRef);
-        const currentData = userDoc.data()[kategori] || [];
-        const updatedData = currentData.filter((i) => i.id !== item.id);
-
-        await updateDoc(docRef, { [kategori]: updatedData });
-        enhanceSuccessMessage(null, kategori, "dihapus", item.title);
-        await loadUserData();
+      const userRef = doc(db, 'users', auth.currentUser.uid);
+      const filteredItems = this.userData[category].filter(item => item.id !== itemId);
+      
+      await updateDoc(userRef, { [category]: filteredItems });
+      this.showNotification('Item berhasil dihapus', 'success');
+      
+      const listElement = document.querySelector(`#${category}-section .item-list`);
+      const emptyState = document.querySelector(`#${category}-section .empty-state`);
+      this.renderItems(listElement, emptyState, filteredItems, category);
     } catch (error) {
-        console.error("Error menghapus data:", error);
-        hideLoading();
-        alert("Gagal menghapus data. Error: " + error.message);
+      this.showNotification(`Gagal menghapus: ${error.message}`, 'error');
     }
-};
+  }
 
-const loadUserData = async () => {
-    const user = auth.currentUser;
-    if (!user) {
-        console.log("User tidak ditemukan");
-        return;
+  toggleModal(content) {
+    this.dom.modal.style.display = this.dom.modal.style.display === 'flex' ? 'none' : 'flex';
+    if (content) {
+      this.dom.editForm.innerHTML = content;
+    } else {
+      this.dom.editForm.innerHTML = '';
     }
+  }
 
-    try {
-        const docRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(docRef);
-        if (!userDoc.exists()) {
-            console.log("Dokumen user belum ada");
-            return;
-        }
+  generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+  }
 
-        const userData = userDoc.data();
-        const container = document.querySelector(".container");
-        const existingProgressContainers = document.querySelectorAll(".progress-container");
-        existingProgressContainers.forEach((el) => el.remove());
-
-        const progressSummary = createProgressSummary(userData);
-        const pageTitle = document.querySelector(".page-title");
-        if (pageTitle) {
-            pageTitle.insertAdjacentElement("afterend", progressSummary);
-        }
-
-        CATEGORIES.forEach((kategori) => {
-            const listId = `${kategori.replace(/([A-Z])/g, "-$1").toLowerCase()}-list`;
-            const emptyId = `${kategori.replace(/([A-Z])/g, "-$1").toLowerCase()}-empty`;
-            const listElement = document.getElementById(listId);
-            const emptyElement = document.getElementById(emptyId);
-
-            if (!listElement || !emptyElement) {
-                console.error(`Element tidak ditemukan untuk kategori ${kategori}`);
-                return;
-            }
-
-            const items = userData[kategori] || [];
-            renderList(listElement, emptyElement, items, kategori);
-        });
-    } catch (error) {
-        console.error("Error memuat data:", error);
-        alert("Gagal memuat data. Error: " + error.message);
-    }
-};
-
-// Add target-specific fields when "Target" is selected
-DOM.kategoriSelect.addEventListener('change', (e) => {
-    const targetFields = document.querySelector('.target-fields');
-    if (e.target.value === 'target') {
-        if (!targetFields) {
-            const fields = document.createElement('div');
-            fields.className = 'target-fields active';
-            fields.innerHTML = `
-                <div class="milestone-checkbox">
-                    <input type="checkbox" id="milestone-check">
-                    <label for="milestone-check">Tandai sebagai Milestone</label>
-                </div>
-                <select id="milestone-type" disabled>
-                    <option value="">Pilih Tipe Milestone</option>
-                    <option value="short">Jangka Pendek</option>
-                    <option value="long">Jangka Panjang</option>
-                </select>
-                <select id="status-select" required>
-                    <option value="not-started">Belum Dimulai</option>
-                    <option value="in-progress">Sedang Berjalan</option>
-                    <option value="completed">Selesai</option>
-                </select>
-                <div class="related-categories-select">
-                    <label>Kategori Terkait:</label>
-                    <select id="related-categories" multiple>
-                        ${CATEGORIES.filter(cat => cat !== 'target').map(cat => 
-                            `<option value="${cat}">${CATEGORY_LABELS[cat]}</option>`
-                        ).join('')}
-                    </select>
-                </div>
-            `;
-            DOM.form.insertBefore(fields, DOM.form.querySelector('button'));
-
-            document.getElementById('milestone-check').addEventListener('change', (e) => {
-                document.getElementById('milestone-type').disabled = !e.target.checked;
-            });
-        } else {
-            targetFields.classList.add('active');
-        }
-    } else if (targetFields) {
-        targetFields.classList.remove('active');
-    }
-});
-
-// Tab Navigation
-const initTabs = () => {
-    const tabs = document.querySelectorAll('.tab-nav a');
-    const contents = document.querySelectorAll('.tab-content');
+  async saveToFirebase(uid, data) {
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userRef);
+    const category = data.category;
     
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            // Remove active classes
-            tabs.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
-            
-            // Add active class to clicked tab
-            tab.classList.add('active');
-            
-            // Show corresponding content
-            const target = document.querySelector(tab.getAttribute('href'));
-            target.classList.add('active');
-        });
-    });
-};
-
-// Quick Jump Navigation
-const initQuickJump = () => {
-    const quickJump = document.getElementById('quick-jump');
-    quickJump.addEventListener('change', () => {
-        const selected = quickJump.value;
-        const target = document.getElementById(`${selected}-section`);
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth' });
-        }
-    });
-};
-
-// Form Wizard
-const initFormWizard = () => {
-    const wizard = document.querySelector('.form-wizard');
-    const steps = wizard.querySelectorAll('.step');
-    const panels = wizard.querySelectorAll('.wizard-panel');
-    const nextBtns = wizard.querySelectorAll('.btn-next');
-    const prevBtns = wizard.querySelectorAll('.btn-prev');
-    
-    let currentStep = 0;
-    
-    const updateStep = (step) => {
-        steps.forEach((s, i) => {
-            s.classList.toggle('active', i === step);
-        });
-        
-        panels.forEach((p, i) => {
-            p.classList.toggle('active', i === step);
-        });
+    const updateData = {
+      [category]: userSnap.exists() 
+        ? [...(userSnap.data()[category] || []), data] 
+        : [data]
     };
     
-    nextBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (validateStep(currentStep)) {
-                currentStep++;
-                updateStep(currentStep);
-            }
+    await setDoc(userRef, updateData, { merge: true });
+  }
+  
+  renderChart() {
+    const chartContainer = document.querySelector('#progress-chart .chart-bars');
+    chartContainer.innerHTML = '';
+    const total = Object.keys(CATEGORIES).reduce((acc, key) => acc + (this.userData[key]?.length || 0), 0);
+
+    Object.entries(CATEGORIES).forEach(([key, category]) => {
+      const count = this.userData[key]?.length || 0;
+      const percentage = total ? (count / total) * 100 : 0;
+      
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      bar.innerHTML = `
+        <div class="bar-label">${category.icon} ${category.label}</div>
+        <div class="bar-container">
+          <div class="bar-fill" style="width: ${percentage}%"></div>
+        </div>
+        <div class="bar-value">${count} item</div>
+      `;
+
+      // Accessibility and interactivity
+      bar.setAttribute('role', 'progressbar');
+      bar.setAttribute('aria-valuenow', count);
+      bar.setAttribute('aria-valuemin', '0');
+      bar.setAttribute('aria-valuemax', total);
+      bar.querySelector('.bar-fill').dataset.progress = `${percentage.toFixed(1)}%`;
+      
+      // Click handler for filtering
+      bar.addEventListener('click', () => this.filterByCategory(key));
+      
+      chartContainer.appendChild(bar);
+    });
+  }
+
+  async animateChart() {
+    const bars = document.querySelectorAll('.bar-fill');
+    bars.forEach(bar => {
+      const targetWidth = bar.style.width;
+      bar.style.width = '0%';
+      setTimeout(() => {
+        bar.style.width = targetWidth;
+      }, 100);
+    });
+  }
+
+  filterByCategory(category) {
+    document.querySelectorAll('.data-card').forEach(card => {
+      card.style.display = card.id === `${category}-section` ? 'block' : 'none';
+    });
+    this.showNotification(`Menampilkan kategori: ${CATEGORIES[category].label}`);
+  }
+
+  async loadUserData(uid) {
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userRef);
+    this.userData = userSnap.exists() ? userSnap.data() : {};
+    this.renderChart();
+    await this.animateChart();
+  }
+
+  updateCharacterCount() {
+    const charCount = this.dom.deskripsiInput.value.length;
+    this.dom.deskripsiInput.closest('.input-group')
+      .querySelector('.char-count').textContent = `${charCount}/500`;
+  }
+
+  handleSearchInput(e) {
+    if (e.target.classList.contains('search-bar')) {
+      if (this.debounceTimer) clearTimeout(this.debounceTimer);
+      
+      this.debounceTimer = setTimeout(() => {
+        const searchTerm = e.target.value.toLowerCase();
+        const items = e.target.closest('.data-card').querySelectorAll('.item-list li');
+        
+        items.forEach(item => {
+          const title = item.querySelector('h3').textContent.toLowerCase();
+          item.style.display = title.includes(searchTerm) ? 'flex' : 'none';
         });
-    });
-    
-    prevBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentStep--;
-            updateStep(currentStep);
-        });
-    });
-};
-
-// Input Preview
-const initInputPreview = () => {
-    const inputs = document.querySelectorAll('input, textarea, select');
-    inputs.forEach(input => {
-        input.addEventListener('input', () => {
-            updatePreview();
-        });
-    });
-};
-
-const updatePreview = () => {
-    const previewContainer = document.querySelector('.preview-content');
-    const title = DOM.itemInput.value;
-    const date = DOM.tanggalInput.value;
-    const description = DOM.deskripsiInput.value;
-    const kategori = DOM.kategoriSelect.value;
-    
-    // Format tanggal ke format Indonesia
-    const formattedDate = date ? new Date(date).toLocaleDateString('id-ID', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    }) : '';
-
-    let previewHTML = `
-        <div class="preview-item">
-            <p><strong>Kategori:</strong> ${CATEGORY_LABELS[kategori] || ''}</p>
-            <p><strong>Judul:</strong> ${title}</p>
-            <p><strong>Tanggal:</strong> ${formattedDate}</p>
-            ${description ? `<p><strong>Deskripsi:</strong> ${description}</p>` : ''}
-    `;
-
-    // Tambahkan preview untuk field target jika kategori adalah target
-    if (kategori === 'target') {
-        const status = document.getElementById('status-select')?.value;
-        const isMilestone = document.getElementById('milestone-check')?.checked;
-        const milestoneType = document.getElementById('milestone-type')?.value;
-        const lessonLearned = document.getElementById('lesson-learned')?.value;
-        const referenceLink = document.getElementById('reference-link')?.value;
-        const progressNotes = document.getElementById('progress-notes')?.value;
-
-        previewHTML += `
-            <p><strong>Status:</strong> ${STATUS_OPTIONS[status] || ''}</p>
-            <p><strong>Milestone:</strong> ${isMilestone ? 'Ya' : 'Tidak'}</p>
-            ${isMilestone && milestoneType ? `<p><strong>Tipe Milestone:</strong> ${TIMEFRAME_OPTIONS[milestoneType]}</p>` : ''}
-            ${lessonLearned ? `<p><strong>Pembelajaran:</strong> ${lessonLearned}</p>` : ''}
-            ${referenceLink ? `<p><strong>Referensi:</strong> <a href="${referenceLink}" target="_blank">${referenceLink}</a></p>` : ''}
-            ${progressNotes ? `<p><strong>Catatan Progress:</strong> ${progressNotes}</p>` : ''}
-        `;
+      }, 300);
     }
+  }
+}
 
-    previewHTML += '</div>';
-    
-    // Update container dengan preview
-    previewContainer.innerHTML = previewHTML;
-};
-
-// Loading Indicator
-const showLoading = () => {
-    document.getElementById('loading-indicator').style.display = 'block';
-};
-
-const hideLoading = () => {
-    document.getElementById('loading-indicator').style.display = 'none';
-};
-
-document.addEventListener("DOMContentLoaded", () => {
-		const searchInput = document.getElementById('search-input');
-	  const filterStatus = document.getElementById('filter-status');
-	  const filterTimeframe = document.getElementById('filter-timeframe');
-	  const sortSelect = document.getElementById('sort-select');
-	  const exportPdfBtn = document.getElementById('export-pdf');
-	
-	  const applyFiltersAndSort = async () => {
-	    const filters = {
-	      search: searchInput.value,
-	      status: filterStatus.value,
-	      timeframe: filterTimeframe.value
-	    };
-	    
-	    const sortType = sortSelect.value;
-	    const userData = await getUserData();
-	    
-	    if (userData?.target) {
-	      const filteredItems = filterAndSearchItems(userData.target, filters);
-	      const sortedItems = sortItems(filteredItems, sortType);
-	      const targetList = document.getElementById('target-list');
-	      const targetEmpty = document.getElementById('target-empty');
-	      renderTargetList(targetList, targetEmpty, sortedItems);
-	    }
-	  };
-	
-	  // Tambahkan event listeners untuk filter dan pencarian
-	  [searchInput, filterStatus, filterTimeframe, sortSelect].forEach(element => {
-	    element?.addEventListener('input', applyFiltersAndSort);
-	  });
-	
-	  // Tambahkan fungsi export PDF
-	  exportPdfBtn?.addEventListener('click', () => {
-	    window.print();
-	  });
-    const today = new Date().toISOString().split("T")[0];
-    initTabs();
-    initQuickJump();
-    initFormWizard();
-    initInputPreview();
-    if (DOM.tanggalInput) {
-        DOM.tanggalInput.value = today;
-    }
-
-    if (DOM.form) {
-        DOM.form.addEventListener("submit", addItem);
-    }
-
-    if (DOM.editForm) {
-        DOM.editForm.addEventListener("submit", updateItem);
-    }
-
-    if (DOM.closeModal) {
-        DOM.closeModal.addEventListener("click", closeEditModal);
-    }
-
-    if (DOM.cancelEdit) {
-        DOM.cancelEdit.addEventListener("click", closeEditModal);
-    }
-
-    window.addEventListener("click", (e) => {
-        if (e.target === DOM.editModal) {
-            closeEditModal();
-        }
-    });
-
-    auth.onAuthStateChanged((user) => {
-        if (!user) {
-            window.location.href = "/masuk";
-        } else {
-            loadUserData();
-        }
-    });
-});
-
-const findItemById = (itemId, kategori) => {
-    const userData = auth.currentUser 
-        ? JSON.parse(localStorage.getItem(`userData_${auth.currentUser.uid}`))
-        : null;
-    
-    if (userData && userData[kategori]) {
-        return userData[kategori].find((item) => item.id === itemId);
-    }
-    return null;
-};
+const developmentManager = new DevelopmentManager();
