@@ -2,114 +2,114 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Pages on Aparencanamu</title>
-    <link>http://localhost:1313/pages/</link>
+    <link>http://localhost:38437/pages/</link>
     <description>Recent content in Pages on Aparencanamu</description>
     <generator>Hugo</generator>
     <language>id</language>
-    <atom:link href="http://localhost:1313/pages/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:38437/pages/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Aktivitas</title>
-      <link>http://localhost:1313/aktivitas/</link>
+      <link>http://localhost:38437/aktivitas/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/aktivitas/</guid>
+      <guid>http://localhost:38437/aktivitas/</guid>
       <description></description>
     </item>
     <item>
       <title>Bantuan</title>
-      <link>http://localhost:1313/bantuan/</link>
+      <link>http://localhost:38437/bantuan/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/bantuan/</guid>
+      <guid>http://localhost:38437/bantuan/</guid>
       <description>&lt;h2 id=&#34;pertanyaan-yang-sering-diajukan&#34;&gt;Pertanyaan yang sering diajukan.&lt;/h2&gt;&#xA;&lt;h3 id=&#34;apa-itu-aparencanamu&#34;&gt;Apa itu aparencanamu?&lt;/h3&gt;&#xA;&lt;p&gt;aparencanamu adalah platform untuk membantu Anda merencanakan dan mengatur berbagai aspek kehidupan Anda dengan efisien.&lt;/p&gt;&#xA;&lt;h3 id=&#34;bagaimana-cara-mendaftar&#34;&gt;Bagaimana cara mendaftar?&lt;/h3&gt;&#xA;&lt;p&gt;Anda bisa mendaftar dengan mengklik tombol &amp;ldquo;Mulai Sekarang&amp;rdquo; di halaman beranda dan mengisi formulir pendaftaran.&lt;/p&gt;&#xA;&lt;h3 id=&#34;apakah-layanan-ini-gratis&#34;&gt;Apakah layanan ini gratis?&lt;/h3&gt;&#xA;&lt;p&gt;Ya, kami menawarkan layanan dasar secara gratis. Namun, ada fitur premium yang tersedia dengan berlangganan.&lt;/p&gt;&#xA;&lt;h3 id=&#34;bagaimana-cara-menghubungi-dukungan-pelanggan&#34;&gt;Bagaimana cara menghubungi dukungan pelanggan?&lt;/h3&gt;&#xA;&lt;p&gt;Anda bisa menghubungi kami melalui email di &lt;a href=&#34;mailto:info@aparencanamu.com&#34;&gt;info@aparencanamu.com&lt;/a&gt; atau melalui halaman kontak kami.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Contact</title>
-      <link>http://localhost:1313/contact/</link>
+      <link>http://localhost:38437/contact/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/contact/</guid>
+      <guid>http://localhost:38437/contact/</guid>
       <description>&lt;p&gt;Silahkan hubungi kami melalui email atau media sosial kami jika ingin bekerjasama atau untuk hal lainnya dibawah ini:&lt;/p&gt;</description>
     </item>
     <item>
       <title>Daftar</title>
-      <link>http://localhost:1313/daftar/</link>
+      <link>http://localhost:38437/daftar/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/daftar/</guid>
+      <guid>http://localhost:38437/daftar/</guid>
       <description></description>
     </item>
     <item>
       <title>Dashboard</title>
-      <link>http://localhost:1313/dashboard/</link>
+      <link>http://localhost:38437/dashboard/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/dashboard/</guid>
+      <guid>http://localhost:38437/dashboard/</guid>
       <description></description>
     </item>
     <item>
       <title>Kebijakan Privasi</title>
-      <link>http://localhost:1313/kebijakan-privasi/</link>
+      <link>http://localhost:38437/kebijakan-privasi/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/kebijakan-privasi/</guid>
+      <guid>http://localhost:38437/kebijakan-privasi/</guid>
       <description>&lt;h3 id=&#34;1-pengumpulan-informasi&#34;&gt;1. Pengumpulan Informasi&lt;/h3&gt;&#xA;&lt;p&gt;Kami mengumpulkan informasi pribadi dari Anda ketika Anda mendaftar di situs kami, berlangganan newsletter kami, mengisi formulir, atau memasukkan informasi di situs kami.&lt;/p&gt;&#xA;&lt;h3 id=&#34;2-penggunaan-informasi&#34;&gt;2. Penggunaan Informasi&lt;/h3&gt;&#xA;&lt;p&gt;Informasi yang kami kumpulkan dari Anda dapat digunakan untuk mempersonalisasi pengalaman Anda, meningkatkan situs web kami, meningkatkan layanan pelanggan, mengirim email berkala, atau mengelola kontes, promosi, survei, atau fitur situs lainnya.&lt;/p&gt;&#xA;&lt;h3 id=&#34;3-perlindungan-informasi&#34;&gt;3. Perlindungan Informasi&lt;/h3&gt;&#xA;&lt;p&gt;Kami menerapkan berbagai langkah keamanan untuk menjaga keamanan informasi pribadi Anda.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Kesehatan Kebugaran</title>
-      <link>http://localhost:1313/kesehatan-kebugaran/</link>
+      <link>http://localhost:38437/kesehatan-kebugaran/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/kesehatan-kebugaran/</guid>
+      <guid>http://localhost:38437/kesehatan-kebugaran/</guid>
       <description></description>
     </item>
     <item>
       <title>Lupa Password</title>
-      <link>http://localhost:1313/lupa-password/</link>
+      <link>http://localhost:38437/lupa-password/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/lupa-password/</guid>
+      <guid>http://localhost:38437/lupa-password/</guid>
       <description></description>
     </item>
     <item>
       <title>Masuk</title>
-      <link>http://localhost:1313/masuk/</link>
+      <link>http://localhost:38437/masuk/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/masuk/</guid>
+      <guid>http://localhost:38437/masuk/</guid>
       <description></description>
     </item>
     <item>
       <title>Pengembangan Diri</title>
-      <link>http://localhost:1313/pengembangan-diri/</link>
+      <link>http://localhost:38437/pengembangan-diri/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/pengembangan-diri/</guid>
+      <guid>http://localhost:38437/pengembangan-diri/</guid>
       <description></description>
     </item>
     <item>
       <title>Profil</title>
-      <link>http://localhost:1313/profil/</link>
+      <link>http://localhost:38437/profil/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/profil/</guid>
+      <guid>http://localhost:38437/profil/</guid>
       <description></description>
     </item>
     <item>
       <title>Profile</title>
-      <link>http://localhost:1313/profile/</link>
+      <link>http://localhost:38437/profile/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/profile/</guid>
+      <guid>http://localhost:38437/profile/</guid>
       <description></description>
     </item>
     <item>
       <title>Sosial Komunitas</title>
-      <link>http://localhost:1313/sosial-komunitas/</link>
+      <link>http://localhost:38437/sosial-komunitas/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/sosial-komunitas/</guid>
+      <guid>http://localhost:38437/sosial-komunitas/</guid>
       <description></description>
     </item>
     <item>
       <title>Syarat dan Ketentuan</title>
-      <link>http://localhost:1313/syarat-dan-ketentuan/</link>
+      <link>http://localhost:38437/syarat-dan-ketentuan/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/syarat-dan-ketentuan/</guid>
+      <guid>http://localhost:38437/syarat-dan-ketentuan/</guid>
       <description>&lt;h3 id=&#34;1-penerimaan-syarat&#34;&gt;1. Penerimaan Syarat&lt;/h3&gt;&#xA;&lt;p&gt;Dengan menggunakan layanan kami, Anda setuju untuk terikat dengan syarat dan ketentuan yang diuraikan di bawah ini.&lt;/p&gt;&#xA;&lt;h3 id=&#34;2-perubahan-syarat&#34;&gt;2. Perubahan Syarat&lt;/h3&gt;&#xA;&lt;p&gt;Kami berhak untuk mengubah syarat dan ketentuan ini dari waktu ke waktu tanpa pemberitahuan sebelumnya. Perubahan tersebut akan berlaku segera setelah dipublikasikan di situs web ini.&lt;/p&gt;&#xA;&lt;h3 id=&#34;3-penggunaan-layanan&#34;&gt;3. Penggunaan Layanan&lt;/h3&gt;&#xA;&lt;p&gt;Anda setuju untuk menggunakan layanan kami hanya untuk tujuan yang sah dan sesuai dengan hukum yang berlaku.&lt;/p&gt;&#xA;&lt;h3 id=&#34;4-hak-kekayaan-intelektual&#34;&gt;4. Hak Kekayaan Intelektual&lt;/h3&gt;&#xA;&lt;p&gt;Semua konten yang disediakan di situs web ini, termasuk namun tidak terbatas pada teks, grafik, logo, dan gambar, adalah milik aparencanamu atau pemberi lisensinya dan dilindungi oleh hukum hak cipta.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Tentang Kami</title>
-      <link>http://localhost:1313/tentang-kami/</link>
+      <link>http://localhost:38437/tentang-kami/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/tentang-kami/</guid>
+      <guid>http://localhost:38437/tentang-kami/</guid>
       <description>&lt;p&gt;Selamat datang di aparencanamu, platform yang didedikasikan untuk membantu Anda merencanakan masa depan Anda dengan lebih baik. Kami percaya bahwa perencanaan yang baik adalah kunci untuk mencapai tujuan hidup dan sukses.&lt;/p&gt;&#xA;&lt;h3 id=&#34;misi-kami&#34;&gt;Misi Kami&lt;/h3&gt;&#xA;&lt;p&gt;Misi kami adalah menyediakan alat dan sumber daya yang Anda butuhkan untuk merencanakan kehidupan Anda dengan lebih efisien dan efektif. Kami berkomitmen untuk membantu Anda mengatur tugas sehari-hari, menetapkan tujuan jangka panjang, dan mencapai kesuksesan pribadi dan profesional.&lt;/p&gt;</description>
     </item>
   </channel>
