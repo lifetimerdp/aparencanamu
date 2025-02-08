@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // Pengguna sudah login, muat header untuk pengguna yang sudah login
             loadHeader('/partials/header_logged_in.html');
         } else {
             // Inisialisasi skrip untuk header pengguna yang belum login

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Admins on Aparencanamu</title>
+    <link>http://localhost:1313/admin/</link>
+    <description>Recent content in Admins on Aparencanamu</description>
+    <generator>Hugo</generator>
+    <language>id</language>
+    <atom:link href="http://localhost:1313/admin/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Edit Dokumentasi</title>
+      <link>http://localhost:1313/admin/editdokumentasi/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/admin/editdokumentasi/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

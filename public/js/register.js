@@ -1,5 +1,3 @@
-// static/js/register.js
-
 import { auth, db } from './firebaseConfig.js';
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -48,7 +46,8 @@ document.getElementById('register-form').addEventListener('submit', async (event
       firstName: firstName,
       lastName: lastName,
       email: email,
-      userId: user.uid
+      userId: user.uid,
+      role: "user" // Tambahkan field role dengan nilai default "user"
     });
 
     notificationElement.innerHTML = 'Pendaftaran berhasil, mengalihkan halaman.';

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Dokumentasi</title>
+  <script type="module" src="/js/editDokumentasi.js"></script>
+  <style>
+    /* Styling Utama */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    #edit-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .doc-list {
+      margin: 20px 0;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+
+    .doc-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .doc-item:last-child {
+      border-bottom: none;
+    }
+
+    .doc-actions button {
+      margin-left: 10px;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .edit-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .delete-btn {
+      background-color: #f44336;
+      color: white;
+    }
+
+    #editor {
+      margin-top: 30px;
+      padding: 20px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+
+    #edit-form div {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      height: 200px;
+      resize: vertical;
+    }
+
+    button[type="submit"] {
+      background-color: #2196F3;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 50px;
+      font-size: 1.2em;
+      color: #666;
+    }
+
+    .error-message {
+      color: #d32f2f;
+      padding: 10px;
+      background-color: #ffebee;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="edit-container" class="loading">Memuat...</div>
+</body>
+</html>

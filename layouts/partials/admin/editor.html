@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor Dokumentasi</title>
+  <style>
+    /* Styling dasar untuk editor */
+    #editor {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+
+    #editor h2 {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    #edit-form div {
+      margin-bottom: 1rem;
+    }
+
+    #edit-form label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+
+    #edit-form input[type="text"],
+    #edit-form input[type="url"],
+    #edit-form textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    #edit-form textarea {
+      resize: vertical;
+      min-height: 150px;
+    }
+
+    #edit-form button {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    #edit-form button:hover {
+      background-color: #0056b3;
+    }
+    
+    #editor .loading {
+		  text-align: center;
+		  padding: 2rem;
+		  font-size: 1.2rem;
+		}
+  </style>
+</head>
+<body>
+  <div id="editor">
+    <h2>Edit Dokumentasi</h2>
+    <form id="edit-form">
+      <div>
+        <label for="title">Judul:</label>
+        <input type="text" id="title" required>
+      </div>
+      
+      <div>
+        <label for="content">Konten:</label>
+        <textarea id="content" rows="10" required></textarea>
+      </div>
+      
+      <div>
+        <label for="image-url">Link Gambar:</label>
+        <input type="url" id="image-url" placeholder="https://example.com/image.jpg">
+      </div>
+      
+      <button type="submit">Simpan</button>
+    </form>
+  </div>
+
+  <!-- Load JavaScript -->
+  <script type="module" src="/js/editor.js"></script>
+</body>
+</html>

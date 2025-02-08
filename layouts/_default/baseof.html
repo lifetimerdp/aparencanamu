@@ -5,26 +5,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .Title }} - {{ .Site.Title }}</title>
+    
+    <!-- CSS External -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
-    <script defer type="module" src="{{ "js/scripts.js" | relURL }}"></script>
-    <script type="module" defer src="{{ "js/firebaseConfig.js" | relURL }}"></script>
+    
     <!-- CSS Bundling -->
-    {{ $styles := resources.Get "css/styles.css" }}
-    {{ $header := resources.Get "css/header.css" }}
-    {{ $footer := resources.Get "css/footer.css" }}
+    {{ $styles := resources.Get "standarisasi/css/styles.css" }}
+    {{ $header := resources.Get "standarisasi/css/header.css" }}
+    {{ $footer := resources.Get "standarisasi/css/footer.css" }}
+    {{ $magicButtonCss := resources.Get "standarisasi/css/magicButton.css" }}
 
-    {{ $bundle := slice $styles $header $footer | resources.Concat "css/bundle.css" }}
+    {{ $cssBundle := slice $styles $header $footer $magicButtonCss | resources.Concat "standarisasi/css/bundle.css" }}
 
     {{ if hugo.IsProduction }}
-        {{ $bundle = $bundle | minify | fingerprint }}
+        {{ $cssBundle = $cssBundle | minify | fingerprint }}
     {{ end }}
 
-    <link rel="stylesheet" href="{{ $bundle.RelPermalink }}"
-        {{ if hugo.IsProduction }}integrity="{{ $bundle.Data.Integrity }}"{{ end }}>
+    <link rel="stylesheet" href="{{ $cssBundle.RelPermalink }}"
+        {{ if hugo.IsProduction }}integrity="{{ $cssBundle.Data.Integrity }}"{{ end }}>
+    
+    <!-- Module JS -->
+    {{ $scripts := resources.Get "standarisasi/js/scripts.js" }}
+    {{ $magicButtonJs := resources.Get "standarisasi/js/magicButton.js" }}
+    
+    {{ if hugo.IsProduction }}
+        {{ $scripts = $scripts | minify | fingerprint }}
+        {{ $magicButtonJs = $magicButtonJs | minify | fingerprint }}
+    {{ end }}
+
+    <script type="module" src="{{ $scripts.RelPermalink }}"
+        {{ if hugo.IsProduction }}integrity="{{ $scripts.Data.Integrity }}"{{ end }}></script>
+    <script type="module" src="{{ $magicButtonJs.RelPermalink }}"
+        {{ if hugo.IsProduction }}integrity="{{ $magicButtonJs.Data.Integrity }}"{{ end }}></script>
 </head>
 <body>
-    {{ partial "header_logged_out.html" . }} <!-- Default header -->
-    <div id="dynamic-header" style="display: none;"></div> <!-- Placeholder for dynamic header -->
+    {{ partial "header_logged_out.html" . }}
+    <div id="dynamic-header" style="display: none;"></div>
     <main>
         {{ block "main" . }}
         {{ end }}

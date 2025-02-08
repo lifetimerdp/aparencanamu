@@ -1,0 +1,46 @@
+{{/*
+  Parameters:
+  - label: Teks tombol (required)
+  - size: sm, md, lg (default: md)
+  - variant: solid, outline, ghost, gradient (default: solid)
+  - color: primary, secondary, danger, custom (default: primary)
+  - shape: square, rounded, pill (default: rounded)
+  - shadow: true/false (default: false)
+  - outline: true/false (default: false)
+  - gradient: true/false (default: false)
+  - icon: Nama ikon (opsional)
+  - action: showPopup, firebaseSignOut, customFunction (opsional)
+  - target: ID elemen/nama fungsi (opsional)
+  - fullWidth: true/false (default: false)
+  - containerClass: Class tambahan untuk container (opsional)
+  - disabled: true/false (default: false)
+*/}}
+
+{{ $size := .size | default "md" }}
+{{ $variant := .variant | default "solid" }}
+{{ $color := .color | default "primary" }}
+{{ $shape := .shape | default "rounded" }}
+{{ $gradient := .gradient | default false }}
+
+<div class="magic-button-container {{ .containerClass }}">
+  <button
+    class="magic-button 
+           size-{{ $size }}
+           variant-{{ $variant }}
+           color-{{ $color }}
+           shape-{{ $shape }}
+           {{ if .shadow }}shadow{{ end }}
+           {{ if .outline }}outline{{ end }}
+           {{ if $gradient }}gradient{{ end }}
+           {{ if .fullWidth }}full-width{{ end }}"
+    data-action="{{ .action }}"
+    data-target="{{ .target }}"
+    {{ if .disabled }}disabled{{ end }}
+    id="{{ .id }}"
+  >
+    {{ if .icon }}
+      <span class="icon">{{ partial (printf "icons/%s" .icon) }}</span>
+    {{ end }}
+    {{ .label }}
+  </button>
+</div>
