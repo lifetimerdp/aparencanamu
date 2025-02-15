@@ -1,0 +1,83 @@
+{{/*
+Parameters:
+- type: modal | inline (required)
+- providers: slice of providers e.g. (slice "google" "github")
+- triggerText: string (text untuk tombol trigger modal)
+- hideHeader: boolean
+- hideFooter: boolean
+- theme: light | dark
+*/}}
+
+{{ $params := dict }}
+{{ if .context }}
+  {{ $params = merge $params .context.Params }}
+{{ end }}
+{{ $params = merge $params . }}
+
+<div class="magic-auth {{ if eq $params.type "modal" }}magic-auth-modal-wrapper{{ end }}" 
+     data-theme="{{ $params.theme | default "light" }}">
+  
+  {{ if eq $params.type "modal" }}
+    <!-- Trigger Button -->
+    <button class="magic-auth-trigger">
+      {{ $params.triggerText | default "Login" }}
+    </button>
+
+    <!-- Modal Structure -->
+    <div class="magic-auth-modal">
+      <button class="magic-auth-close">&times;</button>
+      
+      {{ if not $params.hideHeader }}
+      <div class="magic-auth-header">
+        <h3>Welcome</h3>
+      </div>
+      {{ end }}
+
+      <form class="magic-auth-form">
+        <div class="magic-auth-input-group">
+          <input type="email" id="magic-auth-email" required>
+          <label for="magic-auth-email">Email</label>
+        </div>
+        <div class="magic-auth-input-group">
+          <input type="password" id="magic-auth-password" required>
+          <label for="magic-auth-password">Password</label>
+        </div>
+        <button type="submit" class="magic-auth-primary-btn">Continue</button>
+      </form>
+
+      {{ if $params.providers }}
+      <div class="magic-auth-social">
+        {{ if in $params.providers "google" }}
+        <button class="magic-auth-google-btn">Continue with Google</button>
+        {{ end }}
+        {{ if in $params.providers "github" }}
+        <button class="magic-auth-github-btn">Continue with GitHub</button>
+        {{ end }}
+      </div>
+      {{ end }}
+
+      {{ if not $params.hideFooter }}
+      <div class="magic-auth-footer">
+        <a href="#" class="magic-auth-forgot-password">Forgot password?</a>
+      </div>
+      {{ end }}
+
+      <div class="magic-auth-error"></div>
+    </div>
+
+  {{ else }}
+    <!-- Inline Version -->
+    <div class="magic-auth-inline">
+      <form class="magic-auth-form">
+        <!-- ... sama dengan form modal ... -->
+      </form>
+    </div>
+  {{ end }}
+</div>
+
+{{ $magicAuthCss := resources.Get "standarisasi/css/magicAuth.css" | minify | fingerprint }}
+{{ $magicAuthJs := resources.Get "standarisasi/js/magicAuth.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $magicAuthCss.RelPermalink }}"
+      {{ if hugo.IsProduction }}integrity="{{ $magicAuthCss.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $magicAuthJs.RelPermalink }}"
+        {{ if hugo.IsProduction }}integrity="{{ $magicAuthJs.Data.Integrity }}"{{ end }}></script>

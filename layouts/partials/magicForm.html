@@ -1,0 +1,79 @@
+{{/* 
+==================================================
+MAGICFORM - Komponen Form Terstandarisasi dengan Firebase
+==================================================
+Parameter:
+- namaKomponen : Nama komponen untuk grouping di Firestore (default: magicForm)
+- koleksi      : Nama koleksi Firestore (default: magicKomponen)
+- dokumen      : ID dokumen khusus (opsional)
+- kolom        : Array objek field (contoh: [{"nama":"nama","tipe":"text","label":"Nama","placeholder":"Isi nama...","wajib":true}])
+- redirect     : URL untuk redirect setelah submit (opsional)
+
+Contoh penggunaan di Hugo:
+{{ partial "magicForm" (dict 
+  "namaKomponen" "magicForm"
+  "kolom" (slice 
+    (dict "nama" "nama" "tipe" "text" "label" "Nama" "placeholder" "Isi nama lengkap")
+    (dict "nama" "jenisKelamin" "tipe" "radio" "label" "Jenis Kelamin" "opsi" (slice (dict "nilai" "L" "label" "Laki-laki") (dict "nilai" "P" "label" "Perempuan")))
+  "redirect" "/terimakasih"
+) }}
+*/}}
+
+<div class="magic-form-container" 
+     data-nama-komponen="{{ .namaKomponen | default "magicForm" }}"
+     data-koleksi="{{ .koleksi | default "magicKomponen" }}" 
+     data-dokumen="{{ .dokumen }}" 
+     data-redirect="{{ .redirect }}">
+
+  <form class="magic-form">
+    {{ range .kolom }}
+      <div class="form-group">
+        <label for="{{ .nama }}">{{ .label }}{{ if .wajib }}<span class="wajib">*</span>{{ end }}</label>
+        
+        {{ if eq .tipe "select" }}
+          <select id="{{ .nama }}" name="{{ .nama }}" class="form-control" {{ if .wajib }}required{{ end }}>
+            {{ range .opsi }}
+              <option value="{{ .nilai }}">{{ .label }}</option>
+            {{ end }}
+          </select>
+        
+        {{ else if eq .tipe "textarea" }}
+          <textarea id="{{ .nama }}" name="{{ .nama }}" class="form-control" 
+            placeholder="{{ .placeholder }}" {{ if .wajib }}required{{ end }}></textarea>
+        
+        {{ else if eq .tipe "checkbox" }}
+          <div class="input-group">
+            {{ range .opsi }}
+              <label class="checkbox-label">
+                <input type="checkbox" name="{{ $.nama }}" value="{{ .nilai }}">
+                {{ .label }}
+              </label>
+            {{ end }}
+          </div>
+        
+        {{ else if eq .tipe "radio" }}
+          <div class="input-group">
+            {{ range .opsi }}
+              <label class="radio-label">
+                <input type="radio" name="{{ $.nama }}" value="{{ .nilai }}" {{ if .wajib }}required{{ end }}>
+                {{ .label }}
+              </label>
+            {{ end }}
+          </div>
+        
+        {{ else }}
+          <input type="{{ .tipe }}" id="{{ .nama }}" name="{{ .nama }}" class="form-control"
+            placeholder="{{ .placeholder }}" {{ if .wajib }}required{{ end }}>
+        {{ end }}
+      </div>
+    {{ end }}
+    <button type="submit" class="submit-btn">Simpan</button>
+  </form>
+  <div class="status-message"></div>
+</div>
+{{ $css := resources.Get "standarisasi/css/magicForm.css" | minify | fingerprint }}
+{{ $js := resources.Get "standarisasi/js/magicForm.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}"
+    {{ if hugo.IsProduction }}integrity="{{ $css.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $js.RelPermalink }}"
+    {{ if hugo.IsProduction }}integrity="{{ $js.Data.Integrity }}"{{ end }}></script>

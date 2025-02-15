@@ -1,4 +1,3 @@
-// Import modul Firebase dari config Anda
 import { auth, db } from '/js/firebaseConfig.js';
 
 // Handle Klik Tombol

@@ -19,5 +19,12 @@
     </form>
   </section>
 </main>
+{{ partial "magicNav" (dict 
+  "koleksi" "magicNav"
+  "kolom" "navConfig"
+  "warnaLatar" "#2d3748"
+  "warnaTeks" "#ffffff"
+  "logo" "/img/logoAparencanamu.svg"
+)}}
 <script type="module" src="{{ "js/kesehatan-kebugaran.js" | relURL }}"></script>
 {{ end }}

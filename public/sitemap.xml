@@ -20,6 +20,8 @@
   </url><url>
     <loc>http://localhost:1313/dashboard/</loc>
   </url><url>
+    <loc>http://localhost:1313/admin/dokumentasihugo/</loc>
+  </url><url>
     <loc>http://localhost:1313/blog/dua/</loc>
   </url><url>
     <loc>http://localhost:1313/admin/editdokumentasi/</loc>

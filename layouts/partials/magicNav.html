@@ -1,0 +1,49 @@
+{{/*
+  MAGICNAV - Navigasi Responsif Terintegrasi Firestore
+
+  Parameter:
+  - koleksi (string): Nama koleksi Firestore (default: 'magicNav')
+  - dokumen (string): ID dokumen (default: userId pengguna terautentikasi)
+  - kolom (string): Nama field dalam dokumen (default: 'navConfig')
+  - warnaLatar (string): Warna latar nav (hex code)
+  - warnaTeks (string): Warna teks nav (hex code)
+  - logo (string): Path/URL gambar logo
+*/}}
+
+{{ $params := dict 
+  "koleksi" "magicNav"
+  "kolom" "navConfig"
+  "warnaLatar" "#ffffff"
+  "warnaTeks" "#2d3748"
+  "logo" "/logo.svg"
+  "dokumen" ""
+}}
+{{ $finalParams := merge $params . }}
+
+<nav class="magic-nav" 
+     data-koleksi="{{ $finalParams.koleksi }}"
+     data-kolom="{{ $finalParams.kolom }}"
+     data-dokumen="{{ $finalParams.dokumen }}"
+     style="background: {{ $finalParams.warnaLatar }}; color: {{ $finalParams.warnaTeks }};">
+     
+  <div class="magic-nav-container">
+    <a href="/" class="magic-nav-logo">
+      <img src="{{ $finalParams.logo }}" alt="Logo">
+    </a>
+    
+    <div class="magic-nav-menu" id="magicNavMenu">
+      <!-- Menu items akan diisi oleh JavaScript -->
+    </div>
+    
+    <button class="magic-nav-toggle" aria-label="Toggle Menu">
+      <div class="magic-nav-hamburger"></div>
+    </button>
+  </div>
+</nav>
+
+{{ $css := resources.Get "standarisasi/css/magicNav.css" | minify | fingerprint }}
+{{ $js := resources.Get "standarisasi/js/magicNav.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}"
+      {{ if hugo.IsProduction }}integrity="{{ $css.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $js.RelPermalink }}"
+        {{ if hugo.IsProduction }}integrity="{{ $js.Data.Integrity }}"{{ end }}></script>

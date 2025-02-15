@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentasi Hugo</title>
+    <link rel="stylesheet" href="/css/dokumentasiHugo.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1>Dokumentasi Hugo</h1>
+        <input type="text" id="searchInput" placeholder="Cari dokumentasi...">
+    </header>
+    <main>
+        <div id="dokumentasiList"></div>
+    </main>
+    {{ partial "magicCard.html" (dict 
+    "title" "hahah"
+    "content" "lorem Ipsum Lorenzo the best results for register login search home today's torrents yesterday's"
+    "image" "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQc5a7_fBr6s_DbVRc_Aqvuj5cE8vbKqRDq0t30eihA8vw92yKJf5swRQkx&s=10"
+    "dokumen" "magicCards"
+    "showLike" "true"
+    )}}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script type="module" src="/js/dokumentasiHugo.js"></script>
+</body>
+</html>

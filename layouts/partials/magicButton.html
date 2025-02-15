@@ -6,8 +6,6 @@
   - color: primary, secondary, danger, custom (default: primary)
   - shape: square, rounded, pill (default: rounded)
   - shadow: true/false (default: false)
-  - outline: true/false (default: false)
-  - gradient: true/false (default: false)
   - icon: Nama ikon (opsional)
   - action: showPopup, firebaseSignOut, customFunction (opsional)
   - target: ID elemen/nama fungsi (opsional)
@@ -20,7 +18,6 @@
 {{ $variant := .variant | default "solid" }}
 {{ $color := .color | default "primary" }}
 {{ $shape := .shape | default "rounded" }}
-{{ $gradient := .gradient | default false }}
 
 <div class="magic-button-container {{ .containerClass }}">
   <button
@@ -30,8 +27,6 @@
            color-{{ $color }}
            shape-{{ $shape }}
            {{ if .shadow }}shadow{{ end }}
-           {{ if .outline }}outline{{ end }}
-           {{ if $gradient }}gradient{{ end }}
            {{ if .fullWidth }}full-width{{ end }}"
     data-action="{{ .action }}"
     data-target="{{ .target }}"
@@ -44,3 +39,9 @@
     {{ .label }}
   </button>
 </div>
+{{ $magicButtonCss := resources.Get "standarisasi/css/magicButton.css" | minify | fingerprint }}
+{{ $magicButtonJs := resources.Get "standarisasi/js/magicButton.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $magicButtonCss.RelPermalink }}"
+		{{ if hugo.IsProduction }}integrity="{{ $magicButtonCss.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $magicButtonJs.RelPermalink }}"
+    {{ if hugo.IsProduction }}integrity="{{ $magicButtonJs.Data.Integrity }}"{{ end }}></script>

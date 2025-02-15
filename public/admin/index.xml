@@ -8,6 +8,13 @@
     <language>id</language>
     <atom:link href="http://localhost:1313/admin/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Dokumentasi Hugo</title>
+      <link>http://localhost:1313/admin/dokumentasihugo/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/admin/dokumentasihugo/</guid>
+      <description></description>
+    </item>
+    <item>
       <title>Edit Dokumentasi</title>
       <link>http://localhost:1313/admin/editdokumentasi/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>

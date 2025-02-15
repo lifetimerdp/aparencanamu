@@ -1,0 +1,108 @@
+{{/*
+MAGIC CARD COMPONENT DOCUMENTATION
+
+Komponen kartu fleksibel dengan integrasi Firebase untuk menampilkan konten responsif. Dilengkapi fitur gambar, video, badge, tombol aksi, dan "like". **Dokumen dan field di Firestore dibuat otomatis!**
+
+PARAMETER:
+- title: Judul kartu (wajib).
+- dokumen: Nama unik dokumen di Firestore (wajib). Dokumen dibuat otomatis.
+- subtitle: Subjudul kartu (opsional).
+- content: Konten utama kartu (teks atau HTML) (opsional).
+- image: URL gambar untuk header kartu (opsional).
+- video: URL video untuk header kartu (opsional).
+- badge: Array teks untuk badge (contoh: `(slice "New" "Featured")` (opsional).
+- buttons: Array objek tombol aksi (`text`, `action`, `icon`) (opsional).
+- showLike: Menampilkan tombol "like" (default: `false`).
+
+CONTOH PENGGUNAAN:
+{{ partial "magicCard.html" (dict 
+  "title" "Mainan Transformers"
+  "dokumen" "cardTransformers" // Nama dokumen (auto-create)
+  "subtitle" "Special Edition"
+  "content" "Mainan keren untuk kolektor!"
+  "image" "https://example.com/transformers.jpg"
+  "badge" (slice "New" "Limited")
+  "buttons" (slice 
+    (dict "text" "Beli Sekarang" "action" "buy" "icon" "cart")
+  )
+  "showLike" true
+)}}
+*/}}
+
+<div class="magic-card" data-dokumen="{{ .dokumen }}">
+  
+  <!-- Media Header (Gambar/Video) -->
+  {{ if or .image .video }}
+  <div class="magic-card-media">
+    {{ if .image }}
+    <img src="{{ .image }}" alt="Card image" loading="lazy">
+    {{ else if .video }}
+    <iframe src="{{ .video }}" frameborder="0" allowfullscreen></iframe>
+    {{ end }}
+  </div>
+  {{ end }}
+  
+  <!-- Konten Kartu -->
+  <div class="magic-card-content">
+    <!-- Header -->
+    <div class="magic-card-header">
+      <h3 class="magic-card-title">{{ .title }}</h3>
+      {{ if .subtitle }}
+      <p class="magic-card-subtitle">{{ .subtitle }}</p>
+      {{ end }}
+    </div>
+
+    <!-- Body -->
+    {{ if .content }}
+    <div class="magic-card-body">
+      {{ .content | safeHTML }}
+    </div>
+    {{ end }}
+
+    <!-- Badges -->
+    {{ if .badge }}
+    <div class="magic-card-badges">
+      {{ range .badge }}
+      <span class="magic-badge">{{ . }}</span>
+      {{ end }}
+    </div>
+    {{ end }}
+
+    <!-- Footer -->
+    <div class="magic-card-footer">
+      <!-- Like Button -->
+      {{ if .showLike }}
+      <div class="magic-like-container">
+        <button class="magic-like-btn">
+          <span class="magic-like-icon">♥</span>
+          <span class="magic-like-count">0</span>
+        </button>
+      </div>
+      {{ end }}
+
+      <!-- Action Buttons -->
+      {{ if .buttons }}
+      <div class="magic-card-actions">
+        {{ range .buttons }}
+        <button 
+          class="magic-action-btn" 
+          data-action="{{ .action }}"
+          data-analytics-event="{{ .action }}"
+        >
+          {{ if .icon }}<i class="icon-{{ .icon }}"></i>{{ end }}
+          {{ .text }}
+        </button>
+        {{ end }}
+      </div>
+      {{ end }}
+    </div>
+  </div>
+</div>
+
+<!-- CSS dan JS -->
+{{ $magicCardCss := resources.Get "standarisasi/css/magicCard.css" | minify | fingerprint }}
+{{ $magicCardJs := resources.Get "standarisasi/js/magicCard.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $magicCardCss.RelPermalink }}"
+      {{ if hugo.IsProduction }}integrity="{{ $magicCardCss.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $magicCardJs.RelPermalink }}"
+        {{ if hugo.IsProduction }}integrity="{{ $magicCardJs.Data.Integrity }}"{{ end }}></script>

@@ -1,10 +1,16 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  increment, 
+  getDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 import { getMessaging } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
-// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAeUpI8hb-mLbp4xYldcu5q89vPxGj1EY8",
   authDomain: "aparencanamu.firebaseapp.com",
@@ -15,12 +21,22 @@ const firebaseConfig = {
   measurementId: "G-3PGV4HD1BP"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const messaging = getMessaging(app);
 
-// Export variables
-export { app, analytics, auth, db, messaging };
+export { 
+  app, 
+  analytics, 
+  auth, 
+  db, 
+  messaging,
+  doc, 
+  setDoc, 
+  updateDoc, 
+  increment, 
+  getDoc, 
+  logEvent 
+};

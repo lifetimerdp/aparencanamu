@@ -1,0 +1,36 @@
+{{/*
+  Magic Chart Component (User Auto-ID)
+  
+  Parameter:
+  - collection  : Nama koleksi (default: "users")
+  - docId       : "auto" (gunakan ID user yang login) atau ID spesifik
+  - fields      : Field yang akan ditampilkan (wajib)
+  - title       : Judul chart (opsional)
+  - colors      : Warna chart (opsional)
+  
+  Contoh:
+  {{ partial "magicChart" (dict 
+    "docId" "auto"
+    "fields" (slice "skills" "hobby" "books")
+    "title" "Profil Saya"
+  ) }}
+*/}}
+
+<div class="magic-chart-container" 
+     id="user-chart"
+     data-collection="{{ default "users" .collection }}"
+     data-doc-id="{{ .docId }}"
+     data-fields="{{ delimit .fields "," }}"
+     data-colors="{{ if .colors }}{{ delimit .colors "," }}{{ else }}#4BC0C0,#36A2EB{{ end }}"
+     data-title="{{ .title }}">
+  <canvas class="magic-chart-canvas"></canvas>
+  <div class="magic-chart-loading">Memuat data pengguna...</div>
+  <div class="magic-chart-tooltip"></div>
+  <div class="magic-chart-error" style="display:none; color:red;"></div>
+</div>
+{{ $css := resources.Get "standarisasi/css/magicChart.css" | minify | fingerprint }}
+{{ $js := resources.Get "standarisasi/js/magicChart.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}"
+		{{ if hugo.IsProduction }}integrity="{{ $css.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $js.RelPermalink }}"
+    {{ if hugo.IsProduction }}integrity="{{ $js.Data.Integrity }}"{{ end }}></script>

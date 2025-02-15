@@ -9,6 +9,12 @@
   <div id="notification" class="notification"></div>
   <a href="/lupa-password">Lupa Password?</a>
 </main>
+{{ partial "magicAuth.html" (dict 
+     "type" "modal"
+     "providers" (slice "google")
+     "triggerText" "Login dengan Google"
+     "theme" "dark"
+   ) }}
 <script type="module" src="{{ "js/login.js" | relURL }}"></script>
 <script type="module" src="{{ "js/auth.js" | relURL }}"></script>
 {{ end }}

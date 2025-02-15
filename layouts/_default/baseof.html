@@ -13,9 +13,8 @@
     {{ $styles := resources.Get "standarisasi/css/styles.css" }}
     {{ $header := resources.Get "standarisasi/css/header.css" }}
     {{ $footer := resources.Get "standarisasi/css/footer.css" }}
-    {{ $magicButtonCss := resources.Get "standarisasi/css/magicButton.css" }}
 
-    {{ $cssBundle := slice $styles $header $footer $magicButtonCss | resources.Concat "standarisasi/css/bundle.css" }}
+    {{ $cssBundle := slice $styles $header $footer | resources.Concat "standarisasi/css/bundle.css" }}
 
     {{ if hugo.IsProduction }}
         {{ $cssBundle = $cssBundle | minify | fingerprint }}
@@ -23,20 +22,6 @@
 
     <link rel="stylesheet" href="{{ $cssBundle.RelPermalink }}"
         {{ if hugo.IsProduction }}integrity="{{ $cssBundle.Data.Integrity }}"{{ end }}>
-    
-    <!-- Module JS -->
-    {{ $scripts := resources.Get "standarisasi/js/scripts.js" }}
-    {{ $magicButtonJs := resources.Get "standarisasi/js/magicButton.js" }}
-    
-    {{ if hugo.IsProduction }}
-        {{ $scripts = $scripts | minify | fingerprint }}
-        {{ $magicButtonJs = $magicButtonJs | minify | fingerprint }}
-    {{ end }}
-
-    <script type="module" src="{{ $scripts.RelPermalink }}"
-        {{ if hugo.IsProduction }}integrity="{{ $scripts.Data.Integrity }}"{{ end }}></script>
-    <script type="module" src="{{ $magicButtonJs.RelPermalink }}"
-        {{ if hugo.IsProduction }}integrity="{{ $magicButtonJs.Data.Integrity }}"{{ end }}></script>
 </head>
 <body>
     {{ partial "header_logged_out.html" . }}
@@ -46,5 +31,14 @@
         {{ end }}
     </main>
     {{ partial "footer.html" . }}
+    <!-- Module JS -->
+    {{ $scripts := resources.Get "standarisasi/js/scripts.js" }}
+    
+    {{ if hugo.IsProduction }}
+        {{ $scripts = $scripts | minify | fingerprint }}
+    {{ end }}
+
+    <script type="module" src="{{ $scripts.RelPermalink }}"
+        {{ if hugo.IsProduction }}integrity="{{ $scripts.Data.Integrity }}"{{ end }}></script>
 </body>
 </html>
