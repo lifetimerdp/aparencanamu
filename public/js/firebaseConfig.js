@@ -1,12 +1,17 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { 
-  getFirestore, 
-  doc, 
-  setDoc, 
-  updateDoc, 
-  increment, 
-  getDoc 
+  getFirestore,
+  doc,
+  collection,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  increment,
+  getDoc,
+  getDocs,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 import { getMessaging } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
@@ -28,15 +33,22 @@ const db = getFirestore(app);
 const messaging = getMessaging(app);
 
 export { 
-  app, 
-  analytics, 
-  auth, 
-  db, 
+  app,
+  analytics,
+  auth,
+  db,
   messaging,
-  doc, 
-  setDoc, 
-  updateDoc, 
-  increment, 
-  getDoc, 
-  logEvent 
+  // Firestore functions
+  doc,
+  collection,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  increment,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  // Analytics
+  logEvent
 };

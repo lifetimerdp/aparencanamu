@@ -39,9 +39,10 @@
     {{ .label }}
   </button>
 </div>
-{{ $magicButtonCss := resources.Get "standarisasi/css/magicButton.css" | minify | fingerprint }}
-{{ $magicButtonJs := resources.Get "standarisasi/js/magicButton.js" | minify | fingerprint }}
-<link rel="stylesheet" href="{{ $magicButtonCss.RelPermalink }}"
-		{{ if hugo.IsProduction }}integrity="{{ $magicButtonCss.Data.Integrity }}"{{ end }}>
-<script type="module" src="{{ $magicButtonJs.RelPermalink }}"
-    {{ if hugo.IsProduction }}integrity="{{ $magicButtonJs.Data.Integrity }}"{{ end }}></script>
+
+{{ $css := resources.Get "standarisasi/css/magicButton.css" | minify | fingerprint }}
+{{ $js := resources.Get "standarisasi/js/magicButton.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}"
+		{{ if hugo.IsProduction }}integrity="{{ $css.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $js.RelPermalink }}"
+    {{ if hugo.IsProduction }}integrity="{{ $js.Data.Integrity }}"{{ end }}></script>

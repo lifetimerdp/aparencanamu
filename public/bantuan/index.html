@@ -56,28 +56,152 @@
     <div id="dynamic-header" style="display: none;"></div>
     <main>
         
-<div class="container">
-    <header class="help-header">
-        <h1>Bantuan</h1>
-    </header>
-    <section class="help-content">
-        <h2 id="pertanyaan-yang-sering-diajukan">Pertanyaan yang sering diajukan.</h2>
-<h3 id="apa-itu-aparencanamu">Apa itu aparencanamu?</h3>
-<p>aparencanamu adalah platform untuk membantu Anda merencanakan dan mengatur berbagai aspek kehidupan Anda dengan efisien.</p>
-<h3 id="bagaimana-cara-mendaftar">Bagaimana cara mendaftar?</h3>
-<p>Anda bisa mendaftar dengan mengklik tombol &ldquo;Mulai Sekarang&rdquo; di halaman beranda dan mengisi formulir pendaftaran.</p>
-<h3 id="apakah-layanan-ini-gratis">Apakah layanan ini gratis?</h3>
-<p>Ya, kami menawarkan layanan dasar secara gratis. Namun, ada fitur premium yang tersedia dengan berlangganan.</p>
-<h3 id="bagaimana-cara-menghubungi-dukungan-pelanggan">Bagaimana cara menghubungi dukungan pelanggan?</h3>
-<p>Anda bisa menghubungi kami melalui email di <a href="mailto:info@aparencanamu.com">info@aparencanamu.com</a> atau melalui halaman kontak kami.</p>
-<h2 id="butuh-bantuan-lebih-lanjut">Butuh Bantuan Lebih Lanjut?</h2>
-<p>Jika Anda memiliki pertanyaan lain atau membutuhkan bantuan lebih lanjut, jangan ragu untuk menghubungi tim dukungan pelanggan kami.</p>
-<ul>
-<li><strong>Email:</strong> <a href="mailto:info@aparencanamu.com">info@aparencanamu.com</a></li>
-</ul>
 
-    </section>
+
+<div class="magic-chart-container" 
+     id="user-chart"
+     data-collection="users"
+     data-doc-id="auto"
+     data-fields="keterampilan,prestasi"
+     data-colors="#4BC0C0,#36A2EB"
+     data-title="Statistik">
+  <canvas class="magic-chart-canvas"></canvas>
+  <div class="magic-chart-loading">Memuat data pengguna...</div>
+  <div class="magic-chart-tooltip"></div>
+  <div class="magic-chart-error" style="display:none; color:red;"></div>
 </div>
+
+
+<link rel="stylesheet" href="/standarisasi/css/magicChart.min.616e99931fa172e3d2477c5c14b17f4fdca600d3dd63ed269f912d3479986594.css"
+		>
+<script type="module" src="/standarisasi/js/magicChart.min.6b20b7d46f9f246d73e7720c62fc2afce81612c71a1a40a8cb5e9435f63b85c3.js"
+    ></script>
+
+
+<div class="magic-form-container" 
+     data-nama-komponen="magicForm"
+     data-koleksi="magicKomponen" 
+     data-dokumen="" 
+     data-redirect="/terimakasih">
+
+  <form class="magic-form">
+    
+      <div class="form-group">
+        <label for="nama">Nama</label>
+        
+        
+          <input type="text" id="nama" name="nama" class="form-control"
+            placeholder="Isi nama lengkap" >
+        
+      </div>
+    
+      <div class="form-group">
+        <label for="jenisKelamin">Jenis Kelamin</label>
+        
+        
+          <div class="input-group">
+            
+              <label class="radio-label">
+                <input type="radio" name="" value="L" >
+                Laki-laki
+              </label>
+            
+              <label class="radio-label">
+                <input type="radio" name="" value="P" >
+                Perempuan
+              </label>
+            
+          </div>
+        
+        
+      </div>
+    
+    <button type="submit" class="submit-btn">Simpan</button>
+  </form>
+  <div class="status-message"></div>
+</div>
+
+
+<link rel="stylesheet" href="/standarisasi/css/magicForm.min.b53c50bb81db814c8e98e72bb5f4bb99bda0ab5b6060a6587df6c54494fbd95f.css"
+    >
+<script type="module" src="/standarisasi/js/magicForm.min.d2643a87594566ae48492b6be8481d2e7a5a2865c97a3187183f643528ae9014.js"
+    ></script>
+
+
+<div class="magic-table-container"
+     data-nama-tabel="Tabel Tes"
+     data-path="users/{userId}"
+     data-kolom="{&#34;Email&#34;:&#34;email&#34;,&#34;Role&#34;:&#34;role&#34;,&#34;first name&#34;:&#34;firstName&#34;,&#34;last name&#34;:&#34;lastName&#34;}"
+     data-filter="">
+     
+  <h3 class="judul-tabel">Tabel Tes</h3>
+  <table class="magic-table">
+    <thead>
+      <tr class="header-tabel"></tr>
+    </thead>
+    <tbody class="body-tabel">
+      <tr class="loading">
+        <td colspan="100%">Memuat data...</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="pesan-error"></div>
+</div>
+
+
+
+<link rel="stylesheet" href="/standarisasi/css/magicTable.min.750b98178e4c5bbcb02ce3df6e4a4ee6aa4eb6b4667a1b70d3cb286aa2092b2d.css"
+    >
+<script type="module" src="/standarisasi/js/magicTable.min.5df7ff768df88e3df4c75365fc1ede84f7ba73a09be34c30c716eb984c1562da.js"
+    ></script>
+
+
+<div class="magic-popup" id="magicPopup">
+  <div class="popup-konten">
+    <span class="tutup">&times;</span>
+    
+    <div class="mode-info">
+      <h2 class="judul"></h2>
+      <div class="isi-form"></div>
+      <div class="aksi">
+        <button class="btn-simpan">Simpan</button>
+        <button class="btn-hapus">Hapus</button>
+      </div>
+    </div>
+
+    <div class="mode-notifikasi">
+      <div class="ikon"></div>
+      <p class="teks-pesan"></p>
+      <button class="btn-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window["showProfile"] = function() {
+    const popup = document.getElementById('magicPopup');
+    if (!popup) return;
+
+    popup.dataset.tipe = "info";
+    popup.dataset.paths = "[{\"fields\":[\"email\"],\"path\":\"users/{userId}\"}]";
+    popup.dataset.judul = "Profil Saya";
+    popup.dataset.jenis = "info";
+    popup.dataset.pesan = "";
+    popup.dataset.allowEdit = "true";
+    popup.dataset.allowDelete = "true";
+    
+    popup.style.display = 'flex';
+    window.magicPopupInstance?.show();
+  };
+</script>
+
+
+
+<link rel="stylesheet" href="/standarisasi/css/magicPopup.min.68a429737c0d11170d846f6a523f9b40baa828bad5ee1a432c28eb9bfc64378f.css"
+      >
+<script type="module" src="/standarisasi/js/magicPopup.min.af039383751d9d78aec6c27e3c92926f4686be03adf6b747e09995c3d39cf148.js"
+        ></script>
+<button onclick="showProfile()">Buka Profil</button>
 
     </main>
     <footer class="site-footer">

@@ -1,0 +1,49 @@
+{{/* 
+MagicTable - Komponen Tabel Dinamis dengan Path Fleksibel Firestore
+
+Parameter:
+- namaTabel    : Nama tampilan tabel (wajib)
+- pathData     : Path Firestore (format: 'koleksi/doc/koleksi/doc/...')
+- kolomTampilan: Mapping header ke field (contoh: (dict "Nama" "nama")
+- filterData   : Filter data (format: "field,value")
+
+Contoh penggunaan:
+{{ partial "magicTable.html" (dict 
+  "namaTabel" "Laporan Transaksi 2024"
+  "pathData" "users/user123/transactions/2024/bulanan"
+  "kolomTampilan" (dict 
+    "Tanggal" "tanggal"
+    "Kategori Transaksi" "kategori"
+    "Total Pembayaran" "jumlah"
+    "Metode" "metode.pembayaran"
+  )
+  "filterData" "status,lunas"
+) }}
+*/}}
+
+<div class="magic-table-container"
+     data-nama-tabel="{{ .namaTabel }}"
+     data-path="{{ .pathData }}"
+     data-kolom="{{ .kolomTampilan | jsonify }}"
+     data-filter="{{ .filterData | default "" }}">
+     
+  <h3 class="judul-tabel">{{ .namaTabel }}</h3>
+  <table class="magic-table">
+    <thead>
+      <tr class="header-tabel"></tr>
+    </thead>
+    <tbody class="body-tabel">
+      <tr class="loading">
+        <td colspan="100%">Memuat data...</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="pesan-error"></div>
+</div>
+
+{{ $css := resources.Get "standarisasi/css/magicTable.css" | minify | fingerprint }}
+{{ $js := resources.Get "standarisasi/js/magicTable.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}"
+    {{ if hugo.IsProduction }}integrity="{{ $css.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $js.RelPermalink }}"
+    {{ if hugo.IsProduction }}integrity="{{ $js.Data.Integrity }}"{{ end }}></script>

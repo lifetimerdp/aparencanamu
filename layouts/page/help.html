@@ -1,10 +1,39 @@
 {{ define "main" }}
-<div class="container">
-    <header class="help-header">
-        <h1>{{ .Title }}</h1>
-    </header>
-    <section class="help-content">
-        {{ .Content }}
-    </section>
-</div>
+{{ partial "magicChart.html" (dict 
+  "collection" "users"
+  "docId" "auto"
+  "fields" (slice "keterampilan" "prestasi")
+  "title" "Statistik"
+)}}
+{{ partial "magicForm.html" (dict 
+  "namaKomponen" "magicForm"
+  "kolom" (slice 
+    (dict "nama" "nama" "tipe" "text" "label" "Nama" "placeholder" "Isi nama lengkap")
+    (dict "nama" "jenisKelamin" "tipe" "radio" "label" "Jenis Kelamin" "opsi" (slice (dict "nilai" "L" "label" "Laki-laki") (dict "nilai" "P" "label" "Perempuan"))))
+  "redirect" "/terimakasih"
+) }}
+{{ partial "magicTable.html" (dict 
+  "namaTabel" "Tabel Tes"
+  "pathData" "users/{userId}"
+  "kolomTampilan" (dict
+    "Email" "email"
+    "first name" "firstName"
+    "last name" "lastName"
+    "Role" "role"
+  )
+) }}
+{{ partial "magicPopup.html" (dict
+  "trigger" "showProfile"
+  "tipe" "info"
+  "paths" (slice 
+    (dict 
+    	"path" "users/{userId}"
+    	"fields" (slice "email")
+    )
+  )
+  "judul" "Profil Saya"
+  "allowEdit" true
+  "allowDelete" true
+)}}
+<button onclick="showProfile()">Buka Profil</button>
 {{ end }}

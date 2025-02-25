@@ -1,9 +1,7 @@
 :root {
   --magic-primary: #2196f3;
   --magic-secondary: #ff4081;
-  --magic-padding: 1.5rem;
   --magic-radius: 8px;
-  --magic-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   --magic-text-color: #333;
   --magic-bg-color: #fff;
   --magic-error-color: #dc3545;
@@ -16,19 +14,15 @@
   --magic-secondary: #f50057;
 }
 
-/* Base Styles */
 .magic-auth {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--magic-text-color);
 }
 
-/* Trigger Button */
 .magic-auth-trigger {
   background: var(--magic-primary);
-  color: white;
-  padding: 0.75rem 1.5rem;
+  color: #fff;
   border: none;
-  border-radius: var(--magic-radius);
   cursor: pointer;
   transition: opacity 0.2s;
   font-size: 1rem;
@@ -38,19 +32,18 @@
   opacity: 0.9;
 }
 
-/* Modal Overlay */
+/* Dipertahankan karena keterkaitan dengan JavaScript */
 .magic-auth-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
   display: none;
+  z-index: 999;
 }
 
-/* Modal Container */
+/* Dipertahankan karena keterkaitan dengan JavaScript */
 .magic-auth-modal {
   display: none;
   position: fixed;
@@ -58,15 +51,10 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background: var(--magic-bg-color);
-  padding: var(--magic-padding);
-  border-radius: var(--magic-radius);
-  box-shadow: var(--magic-shadow);
-  width: 90%;
-  max-width: 400px;
   z-index: 1000;
 }
 
-/* Close Button */
+/* Dipertahankan karena keterkaitan dengan posisi absolut */
 .magic-auth-close {
   position: absolute;
   top: 1rem;
@@ -78,23 +66,16 @@
   color: var(--magic-text-color);
 }
 
-/* Form Elements */
 .magic-auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  /* Properti flex dihapus */
 }
 
 .magic-auth-input-group {
-  position: relative;
-  margin-bottom: 1.5rem;
+  /* margin-bottom dihapus */
 }
 
 .magic-auth-input-group input {
-  width: 100%;
-  padding: 1rem;
   border: 1px solid #e5e7eb;
-  border-radius: calc(var(--magic-radius) - 2px);
   transition: all 0.2s;
   background: var(--magic-bg-color);
   color: var(--magic-text-color);
@@ -103,79 +84,39 @@
 .magic-auth-input-group input:focus {
   border-color: var(--magic-primary);
   outline: none;
-  box-shadow: 0 0 0 3px rgb(33 150 243 / 10%);
 }
 
 .magic-auth-primary-btn {
   background: var(--magic-primary);
   color: #fff;
-  width: 100%;
-  padding: 1rem;
   border: none;
-  border-radius: var(--magic-radius);
   cursor: pointer;
   transition: opacity 0.2s;
 }
 
-.magic-auth-primary-btn:hover {
-  opacity: 0.9;
-}
-
-/* Social Buttons */
 .magic-auth-social {
-  margin-top: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  /* Properti flex dan margin dihapus */
 }
 
 .magic-auth-google-btn {
-  background: #ffffff;
-  color: #1f2937;
   border: 1px solid #e5e7eb;
-  padding: 0.75rem;
-  border-radius: var(--magic-radius);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
   transition: background 0.2s;
 }
 
-.magic-auth-google-btn:hover {
-  background: #f3f4f6;
-}
-
 .magic-auth-github-btn {
-  background: #1f2937;
-  color: white;
-  padding: 0.75rem;
-  border-radius: var(--magic-radius);
   border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
   transition: opacity 0.2s;
 }
 
-.magic-auth-github-btn:hover {
-  opacity: 0.9;
-}
-
-/* Error Message */
 .magic-auth-error {
   color: var(--magic-error-color);
-  padding: 0.5rem 0;
   font-size: 0.875rem;
   display: none;
 }
 
-/* Footer Links */
 .magic-auth-footer {
-  margin-top: 1rem;
   text-align: center;
 }
 
@@ -183,35 +124,4 @@
   color: var(--magic-primary);
   text-decoration: none;
   font-size: 0.875rem;
-}
-
-.magic-auth-forgot-password:hover {
-  text-decoration: underline;
-}
-
-/* Responsive Design */
-@media (max-width: 480px) {
-  .magic-auth-modal {
-    padding: 1.5rem;
-  }
-
-  .magic-auth-input-group input {
-    padding: 0.75rem;
-  }
-}
-
-/* Dark Theme */
-[data-theme="dark"] .magic-auth-input-group input {
-  border-color: #374151;
-  background: #111827;
-}
-
-[data-theme="dark"] .magic-auth-google-btn {
-  background: #374151;
-  color: #f3f4f6;
-  border-color: #4b5563;
-}
-
-[data-theme="dark"] .magic-auth-google-btn:hover {
-  background: #4b5563;
 }

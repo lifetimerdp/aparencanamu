@@ -1,0 +1,38 @@
+{{/* Konfigurasi Parameter:
+- category           : Nama kategori Firestore (required)
+- documentName       : Nama dokumen dalam kategori (required)
+- triggerType        : hover/click/focus (default: hover)
+- position           : top/bottom/left/right/auto (default: auto)
+- styleConfig        : Map untuk custom styling
+- triggerContent     : Konten HTML untuk pemicu tooltip (required)
+*/}}
+
+{{ $category := .category }}
+{{ $documentName := .documentName }}
+{{ $triggerType := .triggerType | default "hover" }}
+{{ $position := .position | default "auto" }}
+{{ $styleConfig := .styleConfig }}
+{{ $triggerContent := .triggerContent }}
+
+{{/* Generate unique ID untuk aksesibilitas */}}
+{{ $tooltipID := printf "tooltip-%s-%s" $category $documentName | anchorize }}
+
+{{/* Trigger Element */}}
+<span class="magic-trigger {{ $styleConfig.customClass }}"
+      data-category="{{ $category }}"
+      data-document="{{ $documentName }}"
+      data-trigger="{{ $triggerType }}"
+      data-position="{{ $position }}"
+      role="button"
+      tabindex="0"
+      aria-describedby="{{ $tooltipID }}"
+      style="{{ with $styleConfig }}background-color: {{ .backgroundColor }}; color: {{ .textColor }}; font-size: {{ .fontSize }};{{ end }}">
+  {{ $triggerContent | safeHTML }}
+</span>
+
+{{ $css := resources.Get "standarisasi/css/magicInfoTambahan.css" | minify | fingerprint }}
+{{ $js := resources.Get "standarisasi/js/magicInfoTambahan.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}"
+    {{ if hugo.IsProduction }}integrity="{{ $css.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $js.RelPermalink }}"
+    {{ if hugo.IsProduction }}integrity="{{ $js.Data.Integrity }}"{{ end }}></script>

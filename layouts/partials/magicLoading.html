@@ -1,0 +1,59 @@
+{{/*
+  MAGIC LOADING - Universal Loading Component
+  ===========================================
+
+  Parameter:
+  • partial: Nama partial tujuan (contoh: "charts/magicChart.html")
+  • params:  Parameter untuk partial tujuan (format: dict)
+  • type:    Jenis animasi [spinner|dots|bars] (default: spinner)
+  • color:   Warna animasi (default: #3b82f6)
+  • size:    Ukuran animasi (default: 40px)
+  • msg:     { loading: "...", error: "..." } (pesan kustom)
+
+  Cara Penggunaan:
+  1. Untuk partial eksternal:
+     {{ partial "magicLoading.html" (dict 
+       "partial" "magicChart.html"
+       "params" (dict "id" "chart1")
+     ) }}
+
+  2. Untuk konten inline:
+     {{ partial "magicLoading.html" . }}
+       {{ partial "kontenSaya.html" }}
+     {{ end }}
+*/}}
+
+<div class="magic-loading"
+     data-partial="{{ .partial }}"
+     data-params="{{ .params | jsonify }}"
+     style="position:relative; min-height:200px;">
+
+  <!-- Loading State -->
+  <div class="ml-loading">
+    <div class="ml-loader ml-{{ .type | default "spinner" }}"
+         style="--ml-color:{{ .color | default "#3b82f6" }};
+               --ml-size:{{ .size | default "40px" }}"></div>
+    <p class="ml-message">{{ .msg.loading | default "Memuat data..." }}</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="ml-error d-none">
+    <p>{{ .msg.error | default "⚠️ Gagal memuat data" }}</p>
+  </div>
+
+  <!-- Content Container -->
+  <div class="ml-content d-none">
+    {{ if .partial }}
+      {{ partial .partial .params }}
+    {{ else }}
+      {{ .Inner }}
+    {{ end }}
+  </div>
+</div>
+
+{{ $css := resources.Get "standarisasi/css/magicLoading.css" | minify | fingerprint }}
+{{ $js := resources.Get "standarisasi/js/magicLoading.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}"
+    {{ if hugo.IsProduction }}integrity="{{ $css.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $js.RelPermalink }}"
+    {{ if hugo.IsProduction }}integrity="{{ $js.Data.Integrity }}"{{ end }}></script>

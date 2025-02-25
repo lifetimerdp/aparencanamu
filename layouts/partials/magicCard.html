@@ -100,9 +100,9 @@ CONTOH PENGGUNAAN:
 </div>
 
 <!-- CSS dan JS -->
-{{ $magicCardCss := resources.Get "standarisasi/css/magicCard.css" | minify | fingerprint }}
-{{ $magicCardJs := resources.Get "standarisasi/js/magicCard.js" | minify | fingerprint }}
-<link rel="stylesheet" href="{{ $magicCardCss.RelPermalink }}"
-      {{ if hugo.IsProduction }}integrity="{{ $magicCardCss.Data.Integrity }}"{{ end }}>
-<script type="module" src="{{ $magicCardJs.RelPermalink }}"
-        {{ if hugo.IsProduction }}integrity="{{ $magicCardJs.Data.Integrity }}"{{ end }}></script>
+{{ $css := resources.Get "standarisasi/css/magicCard.css" | minify | fingerprint }}
+{{ $js := resources.Get "standarisasi/js/magicCard.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}"
+      {{ if hugo.IsProduction }}integrity="{{ $css.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $js.RelPermalink }}"
+        {{ if hugo.IsProduction }}integrity="{{ $js.Data.Integrity }}"{{ end }}></script>

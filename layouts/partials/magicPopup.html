@@ -1,0 +1,80 @@
+{{/*
+  KOMPONEN MAGIC POPUP v7.0
+  ----------------------------------
+  Fungsi:
+  - Menampilkan data dari Firestore dalam popup
+  - Mendukung struktur data kompleks (nested object, array, dll)
+  - Mode info (CRUD) dan notifikasi
+
+  Parameter:
+  - trigger   : Nama fungsi trigger
+  - tipe      : 'info' atau 'notifikasi'
+  - paths     : Array path Firestore dengan format:
+                (dict "path" "collection/document" "fields" (slice "field1" "field2.nested"))
+  - judul     : Judul popup
+  - jenis     : Jenis notifikasi (sukses/error/peringatan)
+  - pesan     : Pesan notifikasi
+  - allowEdit : untuk mengaktifkan fitur edit
+  - allowDelete : untuk mengaktifkan fitur hapus
+
+  Contoh Penggunaan:
+  {{ partial "magicPopup.html" (dict
+    "trigger" "showProfile"
+    "tipe" "info"
+    "paths" (slice 
+      (dict 
+        "path" "users/{userId}"
+        "fields" (slice "nama" "alamat.kota" "skills[]")
+      )
+    )
+    "judul" "Profil Pengguna"
+    "allowEdit" true
+    "allowDelete" false
+  )}}
+*/}}
+<!-- File HTML -->
+<div class="magic-popup" id="magicPopup">
+  <div class="popup-konten">
+    <span class="tutup">&times;</span>
+    
+    <div class="mode-info">
+      <h2 class="judul"></h2>
+      <div class="isi-form"></div>
+      <div class="aksi">
+        <button class="btn-simpan">Simpan</button>
+        <button class="btn-hapus">Hapus</button>
+      </div>
+    </div>
+
+    <div class="mode-notifikasi">
+      <div class="ikon"></div>
+      <p class="teks-pesan"></p>
+      <button class="btn-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window["{{ .trigger | safeJS }}"] = function() {
+    const popup = document.getElementById('magicPopup');
+    if (!popup) return;
+
+    popup.dataset.tipe = "{{ .tipe | default "info" }}";
+    popup.dataset.paths = {{ jsonify (.paths | default slice) }};
+    popup.dataset.judul = "{{ .judul | default "Popup" }}";
+    popup.dataset.jenis = "{{ .jenis | default "info" }}";
+    popup.dataset.pesan = "{{ .pesan | default "" }}";
+    popup.dataset.allowEdit = "{{ .allowEdit | default "false" }}";
+    popup.dataset.allowDelete = "{{ .allowDelete | default "false" }}";
+    
+    popup.style.display = 'flex';
+    window.magicPopupInstance?.show();
+  };
+</script>
+
+{{ $css := resources.Get "standarisasi/css/magicPopup.css" | minify | fingerprint }}
+{{ $js := resources.Get "standarisasi/js/magicPopup.js" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}"
+      {{ if hugo.IsProduction }}integrity="{{ $css.Data.Integrity }}"{{ end }}>
+<script type="module" src="{{ $js.RelPermalink }}"
+        {{ if hugo.IsProduction }}integrity="{{ $js.Data.Integrity }}"{{ end }}></script>

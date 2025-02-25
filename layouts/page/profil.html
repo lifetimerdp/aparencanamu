@@ -53,6 +53,30 @@
     </form>
   </div>
 </main>
+<!-- {{ partial "magicLoading.html" (dict 
+  "partial" "magicInfoTambahan.html"
+  "params" (dict 
+	  "category"       "pengembanganDiri"
+	  "documentName"   "prokrastinasi"
+	  "triggerType"    "click"
+	  "position"       "top"
+	  "styleConfig"    (dict 
+	    "customClass"    "custom-tooltip"
+	    "backgroundColor" "#32a852"
+	    "textColor"      "#2c3e50"
+	    "fontSize"       "1.1rem"
+	  )
+	  "triggerContent" "<span>📌 Apa itu profil?</span>"
+	)
+  "type" "dots"
+  "color" "#eb4034"
+  "msg" (dict 
+    "loading" "Memuat grafik..."
+    "error" "Gagal memuat data"
+  )
+) }}
+-->
+
 <script type="module" src="{{ "js/profil.js" | relURL }}"></script>
 <script type="module" src="{{ "js/auth.js" | relURL }}"></script>
 {{ end }}
