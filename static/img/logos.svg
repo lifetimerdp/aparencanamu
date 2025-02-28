@@ -1,8 +1,11 @@
 <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
   <!-- Huruf P -->
-  <path d="M35 15 L35 75 M35 15 Q50 15 50 35 Q50 55 35 55" stroke="#2B4865" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M35 15 L35 75 M35 15 Q50 15 50 40 Q50 65 35 65" stroke="#2B4865" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 
-  <!-- Panah Pertumbuhan -->
-  <path d="M50 55 L60 45 M60 45 L70 55 M60 45 L60 25" stroke="#8DC63F" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M70 55 L75 60" stroke="#FFD700" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Kompas/Panah Pertumbuhan -->
+  <path d="M50 65 L60 55 M60 55 L70 65 M60 55 L60 35" stroke="#8DC63F" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M70 65 L75 70" stroke="#FFD700" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Pemisah kecil (opsional) -->
+  <line x1="50" y1="40" x2="50" y2="35" stroke="#8DC63F" stroke-width="2" stroke-linecap="round"/>
 </svg>
